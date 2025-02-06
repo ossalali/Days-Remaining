@@ -1,4 +1,4 @@
-package com.ossalali.numbered
+package com.ossalali.daysremaining
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

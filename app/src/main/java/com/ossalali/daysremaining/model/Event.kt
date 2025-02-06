@@ -1,8 +1,7 @@
-package com.ossalali.numbered.model
+package com.ossalali.daysremaining.model
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.util.Date
 
 data class Event(
     val id: Int,

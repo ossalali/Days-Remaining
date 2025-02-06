@@ -1,4 +1,4 @@
-package com.ossalali.numbered.presentation
+package com.ossalali.daysremaining.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

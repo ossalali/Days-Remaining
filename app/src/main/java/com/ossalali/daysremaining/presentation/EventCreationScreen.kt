@@ -1,4 +1,4 @@
-package com.ossalali.numbered.presentation
+package com.ossalali.daysremaining.presentation
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ossalali.numbered.model.Event
+import com.ossalali.daysremaining.model.Event
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

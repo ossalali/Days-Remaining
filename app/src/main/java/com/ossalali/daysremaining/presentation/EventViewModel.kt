@@ -1,7 +1,7 @@
-package com.ossalali.numbered.presentation
+package com.ossalali.daysremaining.presentation
 
 import androidx.lifecycle.ViewModel
-import com.ossalali.numbered.model.Event
+import com.ossalali.daysremaining.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

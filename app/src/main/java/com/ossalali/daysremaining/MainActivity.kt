@@ -1,11 +1,11 @@
-package com.ossalali.numbered
+package com.ossalali.daysremaining
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
-import com.ossalali.numbered.presentation.MainScreen
+import com.ossalali.daysremaining.presentation.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
