@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ossalali.numbered"
+    namespace = "com.ossalali.daysremaining"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ossalali.numbered"
+        applicationId = "com.ossalali.daysremaining"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
@@ -58,6 +58,7 @@ dependencies {
     // Hilt runtime
     implementation(libs.hilt.android)
     implementation(libs.androidx.room.common)
+    implementation(libs.androidx.room.ktx)
     // Hilt compiler (annotation processor)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)

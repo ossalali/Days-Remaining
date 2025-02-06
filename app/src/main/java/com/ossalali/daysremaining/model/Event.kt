@@ -1,10 +1,14 @@
 package com.ossalali.daysremaining.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
+@Entity
 data class Event(
-    val id: Int,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
     val title: String,
     val date: LocalDate,
     val description: String
