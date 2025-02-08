@@ -25,13 +25,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.presentation.event.EventScreen
 import com.ossalali.daysremaining.presentation.event.EventViewModel
 import com.ossalali.daysremaining.presentation.eventcreation.EventCreationScreen
+import com.ossalali.daysremaining.presentation.eventcreation.EventCreationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    eventViewModel: EventViewModel = hiltViewModel()
+    eventViewModel: EventViewModel = hiltViewModel(),
+    eventCreationViewModel: EventCreationViewModel = hiltViewModel()
 ) {
-    var showCreateEventScreen by remember { mutableStateOf(false) }
+    val showCreateEventScreen by eventViewModel.showCreateEventScreen
 
     Scaffold(
         topBar = {
@@ -41,7 +43,10 @@ fun MainScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showCreateEventScreen = true }
+                onClick = {
+                    eventViewModel.toggleCreateEventScreen(true)
+                    eventCreationViewModel.resetEventCreatedState()
+                }
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Event")
             }
@@ -61,9 +66,9 @@ fun MainScreen(
                 ) {
                     EventCreationScreen(
                         onEventCreated = {
-                            showCreateEventScreen = false
+                            eventViewModel.toggleCreateEventScreen(false)
                         },
-                        onClose = { showCreateEventScreen = false }
+                        onClose = { eventViewModel.toggleCreateEventScreen(false) }
                     )
                 }
             }

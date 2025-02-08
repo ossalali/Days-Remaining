@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ossalali.daysremaining.presentation.event.EventViewModel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -42,24 +43,22 @@ fun EventCreationScreen(
     onClose: () -> Unit,
     viewModel: EventCreationViewModel = hiltViewModel()
 ) {
-    var title by remember { mutableStateOf("") }
-    var selectedDateMillis by rememberSaveable {
-        mutableLongStateOf(
-            LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000
-        )
-    }
-    var description by remember { mutableStateOf("") }
+    val title = viewModel.title
+    val description = viewModel.description
 
-    var showDatePicker by remember { mutableStateOf(false) }
+    var selectedDateMillis by rememberSaveable {
+        mutableLongStateOf(LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000)
+    }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var titleError by rememberSaveable { mutableStateOf(false) }
+    var dateError by rememberSaveable { mutableStateOf(false) }
+
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDateMillis)
 
     val selectedLocalDate =
         Instant.ofEpochMilli(selectedDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
     val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val formattedDate = selectedLocalDate.format(dateFormatter)
-
-    var titleError by remember { mutableStateOf(false) }
-    var dateError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -68,14 +67,17 @@ fun EventCreationScreen(
     ) {
         OutlinedTextField(
             value = title,
-            onValueChange = { title = it; titleError = false },
+            onValueChange = {
+                viewModel.onTitleChange(it)
+                titleError = false
+            },
             label = { Text("Title") },
             modifier = Modifier.fillMaxWidth(),
             isError = titleError,
             supportingText = { if (titleError) Text("Title cannot be empty") }
-
         )
         Spacer(modifier = Modifier.height(8.dp))
+
         Box(modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = formattedDate,
@@ -84,10 +86,9 @@ fun EventCreationScreen(
                 readOnly = true,
                 modifier = Modifier.fillMaxWidth(),
                 isError = dateError,
-                supportingText = { if (dateError) Text("Select a valid date") },
+                supportingText = { if (dateError) Text("Select a valid date") }
             )
-
-            // Transparent overlay to capture clicks.
+            // A transparent overlay to capture click events and open the date picker.
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -100,9 +101,10 @@ fun EventCreationScreen(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = description,
-            onValueChange = { description = it },
+            onValueChange = { viewModel.onDescriptionChange(it) },
             label = { Text("Description") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -112,24 +114,25 @@ fun EventCreationScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(
-                onClick = onClose,
-            ) { Text("Cancel") }
+            Button(onClick = onClose) {
+                Text("Cancel")
+            }
             Button(
                 onClick = {
-                    titleError = title.isBlank()
+                    titleError = viewModel.title.isBlank()
                     dateError = selectedDateMillis == 0L
                     if (!titleError && !dateError) {
-                        viewModel.createEvent(title, selectedLocalDate.toString(), description)
+                        viewModel.onDateChange(selectedLocalDate.toString())
+                        viewModel.createEvent()
                         onEventCreated()
                     }
                 }
             ) {
                 Text("Create Event")
             }
-
         }
     }
+
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },

@@ -1,5 +1,7 @@
 package com.ossalali.daysremaining.presentation.event
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
@@ -16,11 +18,37 @@ class EventViewModel @Inject constructor(
     private val eventRepo: EventRepo,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
-    fun deleteEvent(event: Event) {
-        viewModelScope.launch(ioDispatcher) {
-            eventRepo.deleteEvent(event)
-        }
-    }
 
     val allEvents: Flow<List<Event>> = eventRepo.allEvents
+
+    private val _showCreateEventScreen = mutableStateOf(false)
+    val showCreateEventScreen: State<Boolean> = _showCreateEventScreen
+
+    private val _confirmDeleteDialog = mutableStateOf(false)
+    val confirmDeleteDialog: State<Boolean> = _confirmDeleteDialog
+
+    private val _currentEvent = mutableStateOf<Event?>(null)
+    val currentEvent: State<Event?> = _currentEvent
+
+    fun toggleCreateEventScreen(show: Boolean) {
+        _showCreateEventScreen.value = show
+    }
+
+    fun showDeleteDialog(event: Event) {
+        _currentEvent.value = event
+        _confirmDeleteDialog.value = true
+    }
+
+    fun dismissDeleteDialog() {
+        _confirmDeleteDialog.value = false
+    }
+
+    fun deleteEvent() {
+        _confirmDeleteDialog.value = false
+        _currentEvent.value?.let { event ->
+            viewModelScope.launch(ioDispatcher) {
+                eventRepo.deleteEvent(event)
+            }
+        }
+    }
 }

@@ -11,14 +11,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +35,8 @@ fun EventScreen(
     viewModel: EventViewModel
 ) {
     val events: State<List<Event>> = viewModel.allEvents.collectAsState(initial = emptyList())
+    val confirmDeleteDialog by viewModel.confirmDeleteDialog
+
     LazyColumn(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -78,13 +83,30 @@ fun EventScreen(
                         imageVector = Icons.Filled.Delete,
                         contentDescription = "Delete Event",
                         modifier = Modifier
-                            .clickable { viewModel.deleteEvent(event) }
+                            .clickable { viewModel.showDeleteDialog(event) }
                             .size(24.dp),
                         tint = Color.Black
                     )
                 }
             }
         }
+    }
+    if (confirmDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDeleteDialog() },
+            title = { Text(text = "Delete Event?") },
+            text = { Text(text = "Are you sure you want to delete this event?") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.deleteEvent() }) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissDeleteDialog() }) {
+                    Text("No")
+                }
+            }
+        )
     }
 }
 
