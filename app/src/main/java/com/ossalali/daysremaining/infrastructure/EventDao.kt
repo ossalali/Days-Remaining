@@ -12,7 +12,7 @@ interface EventDao {
     @Insert
     fun insertEvent(event: Event)
 
-    @Query("SELECT * FROM event")
+    @Query("SELECT * FROM event order by id desc")
     fun getAllEvents(): Flow<List<Event>>
 
     @Delete

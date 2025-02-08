@@ -21,8 +21,6 @@ class EventViewModel @Inject constructor(
 
     val allEvents: Flow<List<Event>> = eventRepo.allEvents
 
-    private val _showCreateEventScreen = mutableStateOf(false)
-    val showCreateEventScreen: State<Boolean> = _showCreateEventScreen
 
     private val _confirmDeleteDialog = mutableStateOf(false)
     val confirmDeleteDialog: State<Boolean> = _confirmDeleteDialog
@@ -30,9 +28,6 @@ class EventViewModel @Inject constructor(
     private val _currentEvent = mutableStateOf<Event?>(null)
     val currentEvent: State<Event?> = _currentEvent
 
-    fun toggleCreateEventScreen(show: Boolean) {
-        _showCreateEventScreen.value = show
-    }
 
     fun showDeleteDialog(event: Event) {
         _currentEvent.value = event

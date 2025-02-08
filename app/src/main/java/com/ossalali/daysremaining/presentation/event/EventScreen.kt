@@ -19,28 +19,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.model.Event
 
 @Composable
 fun EventScreen(
-    viewModel: EventViewModel
+    viewModel: EventViewModel = hiltViewModel<EventViewModel>(),
+    inputEvents: List<Event>
 ) {
-    val events: State<List<Event>> = viewModel.allEvents.collectAsState(initial = emptyList())
     val confirmDeleteDialog by viewModel.confirmDeleteDialog
 
     LazyColumn(
         modifier = Modifier.fillMaxWidth()
     ) {
-        items(events.value) { event ->
+        items(inputEvents) { event ->
             Card(
                 shape = MaterialTheme.shapes.medium,
                 colors = CardDefaults.cardColors(
@@ -106,16 +103,6 @@ fun EventScreen(
                     Text("No")
                 }
             }
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EventScreenPreview() {
-    MaterialTheme {
-        EventScreen(
-            viewModel = hiltViewModel()
         )
     }
 }

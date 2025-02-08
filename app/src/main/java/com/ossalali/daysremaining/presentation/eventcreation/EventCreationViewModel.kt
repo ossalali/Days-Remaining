@@ -1,5 +1,6 @@
 package com.ossalali.daysremaining.presentation.eventcreation
 
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,7 +11,18 @@ import com.ossalali.daysremaining.infrastructure.EventRepo
 import com.ossalali.daysremaining.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,6 +34,46 @@ class EventCreationViewModel @Inject constructor(
     var date by mutableStateOf("")
     var description by mutableStateOf("")
     var isEventCreated by mutableStateOf(false)
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    val _allEvents: Flow<List<Event>> = eventRepo.allEvents
+
+    val eventsList = searchText
+        .combine(_allEvents) { text, events ->
+            if (text.isBlank()) {
+                events
+            }
+            events.filter { event ->
+                event.title.contains(text.trim(), ignoreCase = true)
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    fun onSearchTextChange(text: String) {
+        _searchText.value = text
+    }
+
+    fun onToggleSearch() {
+        _isSearching.value = !_isSearching.value
+        if (!_isSearching.value) {
+            onSearchTextChange("")
+        }
+    }
+
+    private val _showCreateEventScreen = mutableStateOf(false)
+    val showCreateEventScreen: State<Boolean> = _showCreateEventScreen
+
+    fun toggleCreateEventScreen(show: Boolean) {
+        _showCreateEventScreen.value = show
+    }
 
     fun onTitleChange(newTitle: String) {
         title = newTitle
@@ -36,12 +88,12 @@ class EventCreationViewModel @Inject constructor(
     }
 
     fun createEvent() {
-        if (title.isBlank() || date.isBlank() || description.isBlank()) {
+        if (title.isBlank() || date.isBlank()) {
             return
         }
 
         viewModelScope.launch(ioDispatcher) {
-            val eventDate = java.time.LocalDate.parse(date)
+            val eventDate = LocalDate.parse(date)
             val event = Event(
                 title = title,
                 date = eventDate,
