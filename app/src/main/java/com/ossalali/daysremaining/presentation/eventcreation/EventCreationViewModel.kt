@@ -12,15 +12,11 @@ import com.ossalali.daysremaining.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -31,9 +27,9 @@ class EventCreationViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
     var title by mutableStateOf("")
-    var date by mutableStateOf("")
+    private var date by mutableStateOf("")
     var description by mutableStateOf("")
-    var isEventCreated by mutableStateOf(false)
+    private var isEventCreated by mutableStateOf(false)
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
@@ -41,11 +37,12 @@ class EventCreationViewModel @Inject constructor(
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
-    val _allEvents: Flow<List<Event>> = eventRepo.allEvents
+    private val _allEvents: Flow<List<Event>> = eventRepo.allEvents
 
     val eventsList = searchText
         .combine(_allEvents) { text, events ->
             if (text.isBlank()) {
+                @Suppress("UNUSED_EXPRESSION")
                 events
             }
             events.filter { event ->
