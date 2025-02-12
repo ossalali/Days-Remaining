@@ -23,13 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.presentation.event.EventScreen
+import com.ossalali.daysremaining.presentation.event.EventViewModel
 import com.ossalali.daysremaining.presentation.eventcreation.EventCreationScreen
 import com.ossalali.daysremaining.presentation.eventcreation.EventCreationViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    eventCreationViewModel: EventCreationViewModel = hiltViewModel()
+    eventCreationViewModel: EventCreationViewModel = hiltViewModel(),
+    eventViewModel: EventViewModel = hiltViewModel()
 ) {
     val showCreateEventScreen by eventCreationViewModel.showCreateEventScreen
     val searchText by eventCreationViewModel.searchText.collectAsState()
@@ -43,7 +44,9 @@ fun MainScreen(
                 searchText = searchText,
                 onSearchTextChange = eventCreationViewModel::onSearchTextChange,
                 onStartSearch = { eventCreationViewModel.onToggleSearch() },
-                onCloseSearch = { eventCreationViewModel.onToggleSearch() }
+                onCloseSearch = { eventCreationViewModel.onToggleSearch() },
+                eventViewModel = eventViewModel,
+                eventsList = eventsList.toMutableList()
             )
         },
         floatingActionButton = {

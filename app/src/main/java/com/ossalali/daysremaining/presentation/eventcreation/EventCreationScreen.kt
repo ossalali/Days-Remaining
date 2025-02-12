@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -27,9 +28,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.room.util.foreignKeyCheck
 import com.ossalali.daysremaining.presentation.event.EventViewModel
 import java.time.Instant
 import java.time.LocalDate
@@ -60,6 +65,14 @@ fun EventCreationScreen(
     val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val formattedDate = selectedLocalDate.format(dateFormatter)
 
+    val titleFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        titleFocusRequester.requestFocus()
+        keyboardController?.show()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -72,7 +85,7 @@ fun EventCreationScreen(
                 titleError = false
             },
             label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = titleFocusRequester),
             isError = titleError,
             supportingText = { if (titleError) Text("Title cannot be empty") }
         )
