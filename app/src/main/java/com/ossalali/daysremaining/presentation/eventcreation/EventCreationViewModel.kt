@@ -37,7 +37,7 @@ class EventCreationViewModel @Inject constructor(
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
-    private val _allEvents: Flow<List<Event>> = eventRepo.allEvents
+    private val _allEvents: Flow<List<Event>> = eventRepo.allEventsAsFlow
 
     val eventsList = searchText
         .combine(_allEvents) { text, events ->

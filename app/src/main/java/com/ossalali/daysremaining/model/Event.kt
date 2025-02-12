@@ -11,7 +11,8 @@ data class Event(
     val id: Int = 0,
     val title: String,
     val date: LocalDate,
-    val description: String
+    val description: String,
+    val isArchived: Boolean = false
 ) {
     fun getNumberOfDays(): Long {
         val today = LocalDate.now()

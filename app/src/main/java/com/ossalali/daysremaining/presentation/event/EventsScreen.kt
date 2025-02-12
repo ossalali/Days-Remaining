@@ -9,7 +9,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.model.Event
 
 @Composable
-fun EventScreen(
+fun EventsScreen(
     viewModel: EventViewModel = hiltViewModel<EventViewModel>(),
     inputEvents: List<Event>
 ) {

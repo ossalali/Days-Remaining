@@ -13,8 +13,14 @@ interface EventDao {
     fun insertEvent(event: Event)
 
     @Query("SELECT * FROM event order by id desc")
-    fun getAllEvents(): Flow<List<Event>>
+    fun getAllEventsAsFlow(): Flow<List<Event>>
+
+    @Query("SELECT * FROM event order by id desc")
+    suspend fun getAllEvents(): List<Event>
 
     @Delete
     fun deleteEvent(event: Event)
+
+    @Query("UPDATE event SET isArchived = 1 WHERE id = :eventId")
+    fun archiveEvent(eventId: Int)
 }
