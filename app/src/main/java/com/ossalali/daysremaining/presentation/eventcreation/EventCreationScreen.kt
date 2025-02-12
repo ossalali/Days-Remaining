@@ -34,8 +34,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.room.util.foreignKeyCheck
-import com.ossalali.daysremaining.presentation.event.EventViewModel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
