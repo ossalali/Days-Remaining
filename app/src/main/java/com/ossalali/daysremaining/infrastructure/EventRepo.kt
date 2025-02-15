@@ -13,14 +13,12 @@ class EventRepo(private val eventDao: EventDao) {
         eventDao.insertEvent(event)
     }
 
-    fun deleteEvent(event: Event) {
-        eventDao.deleteEvent(event)
+    fun deleteEvents(eventIds: List<Int>) {
+        eventDao.deleteEvents(eventIds)
     }
 
-    fun archiveEvents(events: List<Event>) {
-        events.forEach { event ->
-            eventDao.archiveEvent(event.id)
-        }
+    fun archiveEvents(eventIds: List<Int>) {
+        eventDao.archiveEvents(eventIds)
     }
 
     fun insertEvents(eventList: MutableList<Event>) {

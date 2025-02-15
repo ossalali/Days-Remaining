@@ -1,4 +1,4 @@
-package com.ossalali.daysremaining.presentation.topbar.appdrawer
+package com.ossalali.daysremaining.presentation.mainscreen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.presentation.event.EventViewModel
 import com.ossalali.daysremaining.presentation.event.EventsScreen
 import com.ossalali.daysremaining.presentation.eventcreation.EventCreationScreen
 import com.ossalali.daysremaining.presentation.eventcreation.EventCreationViewModel
@@ -21,7 +21,8 @@ import com.ossalali.daysremaining.presentation.eventcreation.EventCreationViewMo
 fun HomeContent(
     eventsList: List<Event>,
     paddingValues: PaddingValues,
-    eventCreationViewModel: EventCreationViewModel = hiltViewModel()
+    eventCreationViewModel: EventCreationViewModel,
+    eventViewModel: EventViewModel
 ) {
     val showCreateEventScreen by eventCreationViewModel.showCreateEventScreen
 
@@ -46,6 +47,7 @@ fun HomeContent(
             }
         }
         EventsScreen(
+            viewModel = eventViewModel,
             inputEvents = eventsList
         )
     }

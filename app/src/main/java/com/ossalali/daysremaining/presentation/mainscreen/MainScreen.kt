@@ -1,5 +1,6 @@
 package com.ossalali.daysremaining.presentation.mainscreen
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -11,21 +12,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.ossalali.daysremaining.presentation.event.EventViewModel
 import com.ossalali.daysremaining.presentation.eventcreation.EventCreationViewModel
 import com.ossalali.daysremaining.presentation.topbar.TopAppBarWithSearch
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.AppDrawer
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DebugScreen
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DrawerViewModel
-import com.ossalali.daysremaining.presentation.topbar.appdrawer.HomeContent
 import com.ossalali.daysremaining.presentation.topbar.options.AppDrawerOptions
 
 @Composable
@@ -34,9 +37,25 @@ fun MainScreen(
     eventViewModel: EventViewModel = hiltViewModel(),
     drawerViewModel: DrawerViewModel = hiltViewModel()
 ) {
-    val searchText by eventCreationViewModel.searchText.collectAsState()
-    val isSearching by eventCreationViewModel.isSearching.collectAsState()
-    val eventsList by eventCreationViewModel.eventsList.collectAsState()
+    val systemUiController = rememberSystemUiController()
+    val isDarkMode = isSystemInDarkTheme()
+
+    val statusBarColor = if (isDarkMode) {
+        Color.White
+    } else {
+        Color.Black
+    }
+
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = statusBarColor,
+            darkIcons = !isDarkMode
+        )
+    }
+
+    val searchText by eventViewModel.searchText.collectAsState()
+    val isSearching by eventViewModel.isSearching.collectAsState()
+    val eventsList by eventViewModel.eventsList.collectAsState()
 
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -67,15 +86,16 @@ fun MainScreen(
                     drawerViewModel.toggleDrawer()
                 }
             )
-        }) {
+        }
+    ) {
         Scaffold(
             topBar = {
                 TopAppBarWithSearch(
                     isSearching = isSearching,
                     searchText = searchText,
-                    onSearchTextChange = eventCreationViewModel::onSearchTextChange,
-                    onStartSearch = { eventCreationViewModel.onToggleSearch() },
-                    onCloseSearch = { eventCreationViewModel.onToggleSearch() },
+                    onSearchTextChange = eventViewModel::onSearchTextChange,
+                    onStartSearch = { eventViewModel.onToggleSearch() },
+                    onCloseSearch = { eventViewModel.onToggleSearch() },
                     onDrawerClick = { drawerViewModel.toggleDrawer() },
                     eventViewModel = eventViewModel,
                     eventsList = eventsList.toMutableList()
@@ -98,7 +118,14 @@ fun MainScreen(
                 modifier = Modifier.padding(paddingValues)
             ) {
                 composable(AppDrawerOptions.DEBUG.name) { DebugScreen() }
-                composable(AppDrawerOptions.Home.name) { HomeContent(eventsList, paddingValues) }
+                composable(AppDrawerOptions.Home.name) {
+                    HomeContent(
+                        eventsList = eventsList,
+                        paddingValues = paddingValues,
+                        eventCreationViewModel = eventCreationViewModel,
+                        eventViewModel = eventViewModel
+                    )
+                }
                 composable(AppDrawerOptions.Archive.name) { /*ArchiveScreen()*/ }
                 composable(AppDrawerOptions.Settings.name) { /*SettingsScreen()*/ }
             }

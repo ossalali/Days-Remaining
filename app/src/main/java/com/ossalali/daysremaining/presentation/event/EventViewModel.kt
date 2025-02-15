@@ -11,6 +11,11 @@ import com.ossalali.daysremaining.model.Event
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,9 +24,6 @@ class EventViewModel @Inject constructor(
     private val eventRepo: EventRepo,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
-
-    val allEvents: Flow<List<Event>> = eventRepo.allEventsAsFlow
-
     private val _selectedEventIds = mutableStateListOf<Int>()
     val selectedEventIds: List<Int> get() = _selectedEventIds
 
@@ -33,15 +35,55 @@ class EventViewModel @Inject constructor(
         }
     }
 
+    private val _allEvents: Flow<List<Event>> = eventRepo.allEventsAsFlow
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    val eventsList = searchText
+        .combine(_allEvents) { text, events ->
+            if (text.isBlank()) {
+                @Suppress("UNUSED_EXPRESSION")
+                events
+            }
+            events.filter { event ->
+                event.title.contains(text.trim(), ignoreCase = true)
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    fun onSearchTextChange(text: String) {
+        _searchText.value = text
+    }
+
+    fun onToggleSearch() {
+        _isSearching.value = !_isSearching.value
+        if (!_isSearching.value) {
+            onSearchTextChange("")
+        }
+    }
+
     private val _confirmDeleteDialog = mutableStateOf(false)
     val confirmDeleteDialog: State<Boolean> = _confirmDeleteDialog
 
-    private val _currentEvent = mutableStateOf<Event?>(null)
-    val currentEvent: State<Event?> = _currentEvent
+    private val _confirmArchiveDialog = mutableStateOf(false)
+    val confirmArchiveDialog: State<Boolean> = _confirmArchiveDialog
 
+    fun showArchiveDialog() {
+        _confirmArchiveDialog.value = true
+    }
 
-    fun showDeleteDialog(event: Event) {
-        _currentEvent.value = event
+    fun dismissArchiveDialog() {
+        _confirmArchiveDialog.value = false
+    }
+
+    fun showDeleteDialog() {
         _confirmDeleteDialog.value = true
     }
 
@@ -49,16 +91,17 @@ class EventViewModel @Inject constructor(
         _confirmDeleteDialog.value = false
     }
 
-    fun deleteEvent() {
-        _confirmDeleteDialog.value = false
-        _currentEvent.value?.let { event ->
-            viewModelScope.launch(ioDispatcher) {
-                eventRepo.deleteEvent(event)
-            }
+    fun deleteEvents() {
+        viewModelScope.launch(ioDispatcher) {
+            eventRepo.deleteEvents(selectedEventIds)
+            dismissDeleteDialog()
         }
     }
 
-    fun archiveEvent() {
-
+    fun archiveEvents() {
+        viewModelScope.launch(ioDispatcher) {
+            eventRepo.archiveEvents(selectedEventIds)
+            dismissArchiveDialog()
+        }
     }
 }

@@ -56,18 +56,15 @@ android {
 
 dependencies {
     // Hilt dependencies:
-    // Hilt runtime
     implementation(libs.hilt.android)
     implementation(libs.androidx.room.common)
     implementation(libs.androidx.room.ktx)
-    // Hilt compiler (annotation processor)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Explicitly add Room compiler to supply the missing class
-    ksp(libs.androidx.room.compiler)
 
     // Compose and other dependencies:
+    ksp(libs.androidx.room.compiler)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -79,6 +76,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.material3.v140alpha07)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.accompanist.systemuicontroller)
 
     debugImplementation(libs.androidx.ui.tooling)
 

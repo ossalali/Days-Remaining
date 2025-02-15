@@ -19,20 +19,20 @@ fun DefaultTopAppBar(
     onDrawerClick: () -> Unit,
     eventViewModel: EventViewModel
 ) {
+    val selectedEventIds = eventViewModel.selectedEventIds
+
     CenterAlignedTopAppBar(
         title = { Text("Events") },
         navigationIcon = {
-            if (eventViewModel.selectedEventIds.isEmpty()) {
-                IconButton(onClick = onDrawerClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Menu,
-                        contentDescription = "Menu"
-                    )
-                }
+            IconButton(onClick = onDrawerClick) {
+                Icon(
+                    imageVector = Icons.Filled.Menu,
+                    contentDescription = "Menu"
+                )
             }
         },
         actions = {
-            if (eventViewModel.selectedEventIds.isEmpty()) {
+            if (selectedEventIds.isEmpty()) {
                 IconButton(onClick = onStartSearch) {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -42,8 +42,8 @@ fun DefaultTopAppBar(
             } else {
                 MoreVertMenu {
                     when (it) {
-                        VertOptions.Archive -> eventViewModel.archiveEvent()
-                        VertOptions.Delete -> eventViewModel.deleteEvent()
+                        VertOptions.Archive -> eventViewModel.showArchiveDialog()
+                        VertOptions.Delete -> eventViewModel.showDeleteDialog()
                     }
                 }
             }

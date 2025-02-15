@@ -1,4 +1,5 @@
 [versions]
+accompanistSystemuicontroller = "0.31.2-alpha"
 agp = "8.8.0"
 composeBom = "2025.01.01"
 hiltAndroid = "2.49"
@@ -23,6 +24,7 @@ roomCommon = "2.6.1"
 roomKtx = "2.6.1"
 
 [libraries]
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

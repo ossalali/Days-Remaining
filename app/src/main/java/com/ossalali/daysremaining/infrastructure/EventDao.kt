@@ -1,7 +1,6 @@
 package com.ossalali.daysremaining.infrastructure
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import com.ossalali.daysremaining.model.Event
@@ -18,9 +17,9 @@ interface EventDao {
     @Query("SELECT * FROM event order by id desc")
     suspend fun getAllEvents(): List<Event>
 
-    @Delete
-    fun deleteEvent(event: Event)
+    @Query("DELETE FROM event WHERE id in (:eventIds)")
+    fun deleteEvents(eventIds: List<Int>)
 
-    @Query("UPDATE event SET isArchived = 1 WHERE id = :eventId")
-    fun archiveEvent(eventId: Int)
+    @Query("UPDATE event SET isArchived = 1 WHERE id in (:eventIds)")
+    fun archiveEvents(eventIds: List<Int>)
 }

@@ -24,14 +24,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.model.Event
 
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun EventListScreen(
-    viewModel: EventViewModel = hiltViewModel<EventViewModel>(),
+    viewModel: EventViewModel,
     inputEvents: List<Event>
 ) {
     if (inputEvents.isEmpty()) {
