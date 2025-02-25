@@ -11,6 +11,9 @@ interface EventDao {
     @Insert
     fun insertEvent(event: Event)
 
+    @Query("SELECT * FROM event WHERE isArchived = 0 order by id desc")
+    fun getAllActiveEventsAsFlow(): Flow<List<Event>>
+
     @Query("SELECT * FROM event order by id desc")
     fun getAllEventsAsFlow(): Flow<List<Event>>
 
@@ -22,4 +25,7 @@ interface EventDao {
 
     @Query("UPDATE event SET isArchived = 1 WHERE id in (:eventIds)")
     fun archiveEvents(eventIds: List<Int>)
+
+    @Query("SELECT * FROM event ORDER BY id DESC LIMIT 1")
+    suspend fun getFirstEvent(): Event
 }

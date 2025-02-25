@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 class EventRepo(private val eventDao: EventDao) {
     val allEventsAsFlow: Flow<List<Event>> = eventDao.getAllEventsAsFlow()
+    val allActiveEventsAsFlow: Flow<List<Event>> = eventDao.getAllActiveEventsAsFlow()
+
     suspend fun getAllEvents(): List<Event> {
         return eventDao.getAllEvents()
     }
@@ -25,5 +27,9 @@ class EventRepo(private val eventDao: EventDao) {
         eventList.forEach { event ->
             eventDao.insertEvent(event)
         }
+    }
+
+    suspend fun getFirstEvent(): Event {
+        return eventDao.getFirstEvent()
     }
 }

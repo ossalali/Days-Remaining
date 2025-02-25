@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.androidx.material3.v140alpha07)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.androidx.glance.appwidget)
 
     debugImplementation(libs.androidx.ui.tooling)
 
