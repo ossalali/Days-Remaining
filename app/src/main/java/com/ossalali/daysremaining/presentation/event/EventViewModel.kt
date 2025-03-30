@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -35,7 +35,7 @@ class EventViewModel @Inject constructor(
         }
     }
 
-    private val _allEvents: Flow<List<Event>> = eventRepo.allEventsAsFlow
+    private val _allEvents: Flow<List<EventItem>> = eventRepo.allEventsAsFlow
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()

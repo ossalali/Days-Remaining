@@ -1,7 +1,7 @@
 package com.ossalali.daysremaining.presentation.topbar
 
 import androidx.compose.runtime.Composable
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.event.EventViewModel
 
 @Composable
@@ -13,7 +13,7 @@ fun TopAppBarWithSearch(
     searchText: String,
     onSearchTextChange: (String) -> Unit,
     eventViewModel: EventViewModel,
-    eventsList: MutableList<Event>
+    eventsList: MutableList<EventItem>
 
 ) {
     if (isSearching) {

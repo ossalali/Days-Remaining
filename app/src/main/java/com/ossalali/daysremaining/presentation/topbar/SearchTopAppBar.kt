@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.event.EventListScreen
 import com.ossalali.daysremaining.presentation.event.EventViewModel
 
@@ -31,7 +31,7 @@ fun SearchTopAppBar(
     searchText: String,
     onSearchTextChange: (String) -> Unit,
     eventViewModel: EventViewModel,
-    eventsList: MutableList<Event>
+    eventsList: MutableList<EventItem>
 ) {
     var isSearchBarActive by remember { mutableStateOf(true) }
     val textFieldState = rememberTextFieldState(searchText)

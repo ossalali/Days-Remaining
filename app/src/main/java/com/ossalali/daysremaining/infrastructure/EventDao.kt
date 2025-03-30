@@ -3,29 +3,32 @@ package com.ossalali.daysremaining.infrastructure
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EventDao {
     @Insert
-    fun insertEvent(event: Event)
+    fun insertEvent(eventItem: EventItem)
 
-    @Query("SELECT * FROM event WHERE isArchived = 0 order by id desc")
-    fun getAllActiveEventsAsFlow(): Flow<List<Event>>
+    @Query("SELECT * FROM eventitem WHERE isArchived = 0 order by id desc")
+    fun getAllActiveEventsAsFlow(): Flow<List<EventItem>>
 
-    @Query("SELECT * FROM event order by id desc")
-    fun getAllEventsAsFlow(): Flow<List<Event>>
+    @Query("SELECT * FROM eventitem order by id desc")
+    fun getAllEventsAsFlow(): Flow<List<EventItem>>
 
-    @Query("SELECT * FROM event order by id desc")
-    suspend fun getAllEvents(): List<Event>
+    @Query("SELECT * FROM eventitem order by id desc")
+    suspend fun getAllEvents(): List<EventItem>
 
-    @Query("DELETE FROM event WHERE id in (:eventIds)")
+    @Query("SELECT * FROM eventitem WHERE isArchived = 0 order by id desc")
+    suspend fun getAllActiveEvents(): List<EventItem>
+
+    @Query("DELETE FROM eventitem WHERE id in (:eventIds)")
     fun deleteEvents(eventIds: List<Int>)
 
-    @Query("UPDATE event SET isArchived = 1 WHERE id in (:eventIds)")
+    @Query("UPDATE eventitem SET isArchived = 1 WHERE id in (:eventIds)")
     fun archiveEvents(eventIds: List<Int>)
 
-    @Query("SELECT * FROM event ORDER BY id DESC LIMIT 1")
-    suspend fun getFirstEvent(): Event
+    @Query("SELECT * FROM eventitem ORDER BY id DESC LIMIT 1")
+    suspend fun getFirstEvent(): EventItem
 }

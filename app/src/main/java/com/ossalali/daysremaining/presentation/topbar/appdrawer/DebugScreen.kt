@@ -17,7 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ossalali.daysremaining.businesslogic.Debug.DebugAddEvents
+import com.ossalali.daysremaining.businesslogic.debug.AddDebugEventsUseCase
+import com.ossalali.daysremaining.businesslogic.debug.DebugAddEvents
 import kotlinx.coroutines.launch
 
 @Composable
@@ -36,7 +37,7 @@ fun DebugScreen(
             modifier = Modifier.padding(8.dp),
             onClick = {
                 scope.launch {
-                    addEvents(debugScreenViewModel)
+                    addEvents(debugScreenViewModel, AddDebugEventsUseCase())
                     showSnackbar = true
                 }
             },

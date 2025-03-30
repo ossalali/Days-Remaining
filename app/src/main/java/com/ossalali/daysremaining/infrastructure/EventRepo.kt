@@ -1,17 +1,21 @@
 package com.ossalali.daysremaining.infrastructure
 
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import kotlinx.coroutines.flow.Flow
 
 class EventRepo(private val eventDao: EventDao) {
-    val allEventsAsFlow: Flow<List<Event>> = eventDao.getAllEventsAsFlow()
+    val allEventsAsFlow: Flow<List<EventItem>> = eventDao.getAllEventsAsFlow()
 
-    suspend fun getAllEvents(): List<Event> {
+    suspend fun getAllEvents(): List<EventItem> {
         return eventDao.getAllEvents()
     }
 
-    fun insertEvent(event: Event) {
-        eventDao.insertEvent(event)
+    suspend fun getAllActiveEvents(): List<EventItem> {
+        return eventDao.getAllActiveEvents()
+    }
+
+    fun insertEvent(eventItem: EventItem) {
+        eventDao.insertEvent(eventItem)
     }
 
     fun deleteEvents(eventIds: List<Int>) {
@@ -22,13 +26,13 @@ class EventRepo(private val eventDao: EventDao) {
         eventDao.archiveEvents(eventIds)
     }
 
-    fun insertEvents(eventList: MutableList<Event>) {
-        eventList.forEach { event ->
+    fun insertEvents(eventItemList: List<EventItem>) {
+        eventItemList.forEach { event ->
             eventDao.insertEvent(event)
         }
     }
 
-    suspend fun getFirstEvent(): Event {
+    suspend fun getFirstEvent(): EventItem {
         return eventDao.getFirstEvent()
     }
 }

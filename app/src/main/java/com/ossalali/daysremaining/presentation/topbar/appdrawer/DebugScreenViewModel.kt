@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -15,9 +15,9 @@ class DebugScreenViewModel @Inject constructor(
     private val eventRepo: EventRepo,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
-    fun insertEvents(eventList: MutableList<Event>) {
+    fun insertEvents(eventItemList: List<EventItem>) {
         viewModelScope.launch(ioDispatcher) {
-            eventRepo.insertEvents(eventList)
+            eventRepo.insertEvents(eventItemList)
         }
     }
 

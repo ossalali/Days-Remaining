@@ -5,17 +5,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 
 @Composable
 fun EventsScreen(
     viewModel: EventViewModel,
-    inputEvents: List<Event>
+    inputEventItems: List<EventItem>
 ) {
     val deleteDialog by viewModel.confirmDeleteDialog
     val archiveDialog by viewModel.confirmArchiveDialog
 
-    EventListScreen(viewModel, inputEvents)
+    EventListScreen(viewModel, inputEventItems)
     if (deleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDeleteDialog() },

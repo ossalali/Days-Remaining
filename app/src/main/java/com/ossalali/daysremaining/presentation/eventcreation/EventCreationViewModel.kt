@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -51,12 +51,12 @@ class EventCreationViewModel @Inject constructor(
 
         viewModelScope.launch(ioDispatcher) {
             val eventDate = LocalDate.parse(date)
-            val event = Event(
+            val eventItem = EventItem(
                 title = title,
                 date = eventDate,
                 description = description
             )
-            eventRepo.insertEvent(event)
+            eventRepo.insertEvent(eventItem)
 
             isEventCreated = true
         }

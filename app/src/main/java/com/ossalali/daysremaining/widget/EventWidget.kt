@@ -19,7 +19,7 @@ import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.widget.di.WidgetRepositoryEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 
@@ -46,7 +46,7 @@ class EventWidget : GlanceAppWidget() {
 }
 
 @Composable
-fun WidgetContent(event: Event) {
+fun WidgetContent(eventItem: EventItem) {
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -63,13 +63,13 @@ fun WidgetContent(event: Event) {
         ) {
             Column {
                 Text(
-                    text = event.title,
+                    text = eventItem.title,
                     style = TextStyle(fontSize = 12.sp),
                     maxLines = 1
                 )
                 Row {
                     Text(
-                        text = event.getNumberOfDays().toString(),
+                        text = eventItem.getNumberOfDays().toString(),
                         style = TextStyle(fontSize = 36.sp, fontWeight = FontWeight.Bold),
                         maxLines = 1
                     )

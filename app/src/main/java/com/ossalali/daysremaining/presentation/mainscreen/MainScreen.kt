@@ -1,6 +1,7 @@
 package com.ossalali.daysremaining.presentation.mainscreen
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -30,12 +31,15 @@ import com.ossalali.daysremaining.presentation.topbar.appdrawer.AppDrawer
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DebugScreen
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DrawerViewModel
 import com.ossalali.daysremaining.presentation.topbar.options.AppDrawerOptions
+import com.ossalali.daysremaining.v2.presentation.ui.EventList
+import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
 
 @Composable
 fun MainScreen(
     eventCreationViewModel: EventCreationViewModel = hiltViewModel(),
     eventViewModel: EventViewModel = hiltViewModel(),
-    drawerViewModel: DrawerViewModel = hiltViewModel()
+    drawerViewModel: DrawerViewModel = hiltViewModel(),
+    eventListViewModel: EventListViewModel = hiltViewModel()
 ) {
     val systemUiController = rememberSystemUiController()
     val isDarkMode = isSystemInDarkTheme()
@@ -119,11 +123,9 @@ fun MainScreen(
             ) {
                 composable(AppDrawerOptions.DEBUG.name) { DebugScreen() }
                 composable(AppDrawerOptions.Home.name) {
-                    HomeContent(
-                        eventsList = eventsList,
-                        paddingValues = paddingValues,
-                        eventCreationViewModel = eventCreationViewModel,
-                        eventViewModel = eventViewModel
+                    EventList(
+                        modifier = Modifier.fillMaxSize(),
+                        viewModel = eventListViewModel
                     )
                 }
                 composable(AppDrawerOptions.Archive.name) { /*ArchiveScreen()*/ }

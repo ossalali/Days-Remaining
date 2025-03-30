@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 @Entity
-data class Event(
+data class EventItem(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val title: String,

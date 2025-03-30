@@ -1,4 +1,4 @@
-package com.ossalali.daysremaining.presentation.event
+package com.ossalali.daysremaining.v2.presentation.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -21,19 +21,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.ossalali.daysremaining.model.EventItem
-
+import com.ossalali.daysremaining.v2.presentation.ui.theme.DefaultPreviews
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun EventListScreen(
-    viewModel: EventViewModel,
-    inputEventItems: List<EventItem>
+fun EventListGrid(
+    onEventItemClick: (Int) -> Unit,
+    onEventItemSelection: (Int) -> Unit,
+    events: List<EventItem>,
+    selectedEventIds: List<Int>,
+    modifier: Modifier = Modifier
 ) {
-    if (inputEventItems.isEmpty()) {
+    if (events.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -46,13 +52,13 @@ fun EventListScreen(
     }
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier
     ) {
         items(
-            inputEventItems,
+            events,
             key = { event -> event.id }
         ) { event ->
-            val isSelected = viewModel.selectedEventIds.contains(event.id)
+            val isSelected = selectedEventIds.contains(event.id)
             Card(
                 border = if (isSelected) {
                     BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
@@ -65,14 +71,14 @@ fun EventListScreen(
                     .padding(8.dp)
                     .combinedClickable(
                         onClick = {
-                            if (viewModel.selectedEventIds.isEmpty()) {
-                                /* open editing screen*/
+                            if (selectedEventIds.isEmpty()) {
+                                onEventItemClick(event.id)
                             } else {
-                                viewModel.toggleSelection(event.id)
+                                onEventItemSelection(event.id)
                             }
                         },
                         onLongClickLabel = "Event Selected",
-                        onLongClick = { viewModel.toggleSelection(event.id) }
+                        onLongClick = { onEventItemSelection(event.id) }
 
                     ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -118,3 +124,31 @@ fun EventListScreen(
         }
     }
 }
+
+@DefaultPreviews
+@Composable
+internal fun EventListGridPreview(
+    @PreviewParameter(EventListGridPreviewParameterProvider::class)
+    eventItem: EventItem
+) {
+    EventListGrid(
+        onEventItemClick = {},
+        onEventItemSelection = {},
+        events = listOf(eventItem),
+        selectedEventIds = emptyList(),
+        modifier = Modifier
+    )
+}
+
+
+internal class EventListGridPreviewParameterProvider :
+    CollectionPreviewParameterProvider<EventItem>(
+        listOf(
+            EventItem(
+                id = 0,
+                title = "Event 1",
+                description = "Event 1 Description",
+                date = LocalDate.now().plusDays(5)
+            )
+        )
+    )

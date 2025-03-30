@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.ossalali.daysremaining.model.Event
+import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.event.EventViewModel
 import com.ossalali.daysremaining.presentation.event.EventsScreen
 import com.ossalali.daysremaining.presentation.eventcreation.EventCreationScreen
@@ -19,7 +19,7 @@ import com.ossalali.daysremaining.presentation.eventcreation.EventCreationViewMo
 
 @Composable
 fun HomeContent(
-    eventsList: List<Event>,
+    eventsList: List<EventItem>,
     paddingValues: PaddingValues,
     eventCreationViewModel: EventCreationViewModel,
     eventViewModel: EventViewModel
@@ -48,7 +48,7 @@ fun HomeContent(
         }
         EventsScreen(
             viewModel = eventViewModel,
-            inputEvents = eventsList
+            inputEventItems = eventsList
         )
     }
 }
