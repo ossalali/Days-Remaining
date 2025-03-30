@@ -20,7 +20,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.ossalali.daysremaining.presentation.event.EventViewModel
+import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.archive.ArchiveScreen
+import com.ossalali.daysremaining.presentation.settings.SettingsScreen
+import com.ossalali.daysremaining.presentation.topbar.TopAppBarWithSearch
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.AppDrawer
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DebugScreen
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DrawerViewModel
@@ -30,7 +33,7 @@ import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
 
 @Composable
 fun MainScreen(
-    eventViewModel: EventViewModel = hiltViewModel(),
+    mainViewModel: MainScreenViewModel = hiltViewModel(),
     drawerViewModel: DrawerViewModel = hiltViewModel(),
     eventListViewModel: EventListViewModel = hiltViewModel()
 ) {
@@ -51,6 +54,13 @@ fun MainScreen(
         )
     }
 
+    // Get search state from MainScreenViewModel
+    val searchText by mainViewModel.searchText.collectAsState()
+    val isSearching by mainViewModel.isSearching.collectAsState()
+    val currentEvents by mainViewModel.currentEventItems.collectAsState()
+    val filteredEvents by mainViewModel.filteredEventsList.collectAsState()
+    val selectedEventIds = mainViewModel.selectedEventIds
+
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = currentBackStackEntry?.destination?.route ?: AppDrawerOptions.Home.name
@@ -65,6 +75,7 @@ fun MainScreen(
             drawerState.close()
         }
     }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -82,7 +93,28 @@ fun MainScreen(
             )
         }
     ) {
-        Scaffold() { paddingValues ->
+        Scaffold(
+            topBar = {
+                if (currentScreen == AppDrawerOptions.Home.name) {
+                    TopAppBarWithSearch(
+                        isSearching = isSearching,
+                        searchText = searchText,
+                        onSearchTextChange = mainViewModel::onSearchTextChange,
+                        onStartSearch = { mainViewModel.toggleSearch() },
+                        onCloseSearch = { mainViewModel.toggleSearch() },
+                        onDrawerClick = { drawerViewModel.toggleDrawer() },
+                        eventsList = getEventsListForTopBar(
+                            isSearching,
+                            filteredEvents,
+                            currentEvents
+                        ),
+                        selectedEventIds = selectedEventIds,
+                        onArchive = { mainViewModel.showArchiveDialog() },
+                        onDelete = { mainViewModel.showDeleteDialog() }
+                    )
+                }
+            }
+        ) { paddingValues ->
             NavHost(
                 navController = navController,
                 startDestination = AppDrawerOptions.Home.name,
@@ -96,9 +128,21 @@ fun MainScreen(
                         onDrawerClick = { drawerViewModel.toggleDrawer() }
                     )
                 }
-                composable(AppDrawerOptions.Archive.name) { /*ArchiveScreen()*/ }
-                composable(AppDrawerOptions.Settings.name) { /*SettingsScreen()*/ }
+                composable(AppDrawerOptions.Archive.name) { ArchiveScreen() }
+                composable(AppDrawerOptions.Settings.name) { SettingsScreen() }
             }
         }
+    }
+}
+
+private fun getEventsListForTopBar(
+    isSearching: Boolean,
+    filteredEvents: List<EventItem>,
+    currentEvents: List<EventItem>
+): MutableList<EventItem> {
+    return if (isSearching) {
+        filteredEvents.toMutableList()
+    } else {
+        currentEvents.toMutableList()
     }
 }

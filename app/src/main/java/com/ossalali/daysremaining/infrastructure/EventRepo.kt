@@ -14,6 +14,10 @@ class EventRepo(private val eventDao: EventDao) {
         return eventDao.getAllActiveEvents()
     }
 
+    suspend fun getAllArchivedEvents(): List<EventItem> {
+        return eventDao.getAllArchivedEvents()
+    }
+
     fun insertEvent(eventItem: EventItem) {
         eventDao.insertEvent(eventItem)
     }
@@ -24,6 +28,10 @@ class EventRepo(private val eventDao: EventDao) {
 
     fun archiveEvents(eventIds: List<Int>) {
         eventDao.archiveEvents(eventIds)
+    }
+
+    fun unarchiveEvents(eventId: List<Int>) {
+        eventDao.unarchiveEvents(eventId)
     }
 
     fun insertEvents(eventItemList: List<EventItem>) {
