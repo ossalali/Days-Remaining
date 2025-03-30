@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -18,8 +17,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.topbar.TopAppBarWithSearch
 import com.ossalali.daysremaining.v2.presentation.ui.theme.DefaultPreviews
-import com.ossalali.daysremaining.v2.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.Event
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.Interaction
@@ -33,7 +32,8 @@ import java.time.LocalDate
 @Composable
 internal fun EventList(
     modifier: Modifier = Modifier,
-    viewModel: EventListViewModel = hiltViewModel()
+    viewModel: EventListViewModel = hiltViewModel(),
+    onDrawerClick: () -> Unit = {}
 ) {
     LaunchedEffect(Unit) {
         // to refresh the events on showing this screen again
@@ -46,6 +46,10 @@ internal fun EventList(
         eventsFlow = viewModel.events,
         selectedEventIds = viewModel.selectedEventItemIds,
         currentEventItems = viewModel.currentEventItems,
+        isSearching = viewModel.isSearching.collectAsState().value,
+        searchText = viewModel.searchText.collectAsState().value,
+        filteredEventsList = viewModel.filteredEventsList.collectAsState().value,
+        onDrawerClick = onDrawerClick,
         modifier = modifier
     )
 }
@@ -57,6 +61,10 @@ private fun EventListImpl(
     eventsFlow: Flow<Event>,
     selectedEventIds: List<Int>,
     currentEventItems: List<EventItem>,
+    isSearching: Boolean,
+    searchText: String,
+    filteredEventsList: List<EventItem>,
+    onDrawerClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     CollectEvents(eventsFlow) { event ->
@@ -69,16 +77,22 @@ private fun EventListImpl(
 
     Scaffold(
         topBar = {
-            //TopAppBarWithSearch(
-            //    isSearching = isSearching,
-            //    searchText = searchText,
-            //    onSearchTextChange = eventViewModel::onSearchTextChange,
-            //    onStartSearch = { eventViewModel.onToggleSearch() },
-            //    onCloseSearch = { eventViewModel.onToggleSearch() },
-            //    onDrawerClick = { drawerViewModel.toggleDrawer() },
-            //    eventViewModel = eventViewModel,
-            //    eventsList = eventsList.toMutableList()
-            //)
+            TopAppBarWithSearch(
+                isSearching = isSearching,
+                searchText = searchText,
+                onSearchTextChange = { onInteraction(Interaction.SearchTextChanged(it)) },
+                onStartSearch = { onInteraction(Interaction.ToggleSearch) },
+                onCloseSearch = { onInteraction(Interaction.ToggleSearch) },
+                onDrawerClick = onDrawerClick,
+                eventsList = if (isSearching) {
+                    filteredEventsList.toMutableList()
+                } else {
+                    currentEventItems.toMutableList()
+                },
+                selectedEventIds = selectedEventIds,
+                onArchive = { /* TODO: Implement archive functionality */ },
+                onDelete = { /* TODO: Implement delete functionality */ }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -94,20 +108,34 @@ private fun EventListImpl(
             when (state.value) {
                 State.Init -> onInteraction(Interaction.Init)
                 is State.ShowEventsGrid -> {
+                    val eventsToShow = if (isSearching) {
+                        filteredEventsList
+                    } else {
+                        (state.value as State.ShowEventsGrid).eventItems
+                    }
+
                     EventListGrid(
                         onEventItemClick = { onInteraction(Interaction.OpenEventItemDetails(it)) },
                         onEventItemSelection = { onInteraction(Interaction.Select(it)) },
-                        events = (state.value as State.ShowEventsGrid).eventItems,
+                        events = eventsToShow,
                         selectedEventIds = selectedEventIds,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(paddingValues)
+                            .padding(
+                                top = paddingValues.calculateTopPadding()
+                            )
                     )
                 }
 
                 is State.Selected -> TODO()
                 is State.ShowAddEventScreen -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                top = paddingValues.calculateTopPadding()
+                            )
+                    ) {
                         AddEventScreen(
                             onEventCreated = { event ->
                                 onInteraction(Interaction.EventItemAdded(event))
@@ -117,16 +145,19 @@ private fun EventListImpl(
                             }
                         )
 
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = Dimensions.marginDefault))
+                        val eventsToShow = if (isSearching) {
+                            filteredEventsList
+                        } else {
+                            currentEventItems
+                        }
 
                         EventListGrid(
                             onEventItemClick = { onInteraction(Interaction.OpenEventItemDetails(it)) },
                             onEventItemSelection = { onInteraction(Interaction.Select(it)) },
-                            events = currentEventItems,
+                            events = eventsToShow,
                             selectedEventIds = selectedEventIds,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(paddingValues)
                         )
                     }
                 }
@@ -146,7 +177,11 @@ internal fun EventListPreview(
         stateflow = MutableStateFlow(state),
         eventsFlow = emptyFlow(),
         selectedEventIds = emptyList(),
-        currentEventItems = emptyList()
+        currentEventItems = emptyList(),
+        isSearching = false,
+        searchText = "",
+        filteredEventsList = emptyList(),
+        onDrawerClick = {}
     )
 }
 

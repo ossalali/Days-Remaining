@@ -21,8 +21,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.ossalali.daysremaining.presentation.event.EventViewModel
-import com.ossalali.daysremaining.presentation.eventcreation.EventCreationViewModel
-import com.ossalali.daysremaining.presentation.topbar.TopAppBarWithSearch
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.AppDrawer
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DebugScreen
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DrawerViewModel
@@ -32,7 +30,6 @@ import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
 
 @Composable
 fun MainScreen(
-    eventCreationViewModel: EventCreationViewModel = hiltViewModel(),
     eventViewModel: EventViewModel = hiltViewModel(),
     drawerViewModel: DrawerViewModel = hiltViewModel(),
     eventListViewModel: EventListViewModel = hiltViewModel()
@@ -53,10 +50,6 @@ fun MainScreen(
             darkIcons = !isDarkMode
         )
     }
-
-    val searchText by eventViewModel.searchText.collectAsState()
-    val isSearching by eventViewModel.isSearching.collectAsState()
-    val eventsList by eventViewModel.eventsList.collectAsState()
 
     val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -89,20 +82,7 @@ fun MainScreen(
             )
         }
     ) {
-        Scaffold(
-            topBar = {
-                TopAppBarWithSearch(
-                    isSearching = isSearching,
-                    searchText = searchText,
-                    onSearchTextChange = eventViewModel::onSearchTextChange,
-                    onStartSearch = { eventViewModel.onToggleSearch() },
-                    onCloseSearch = { eventViewModel.onToggleSearch() },
-                    onDrawerClick = { drawerViewModel.toggleDrawer() },
-                    eventViewModel = eventViewModel,
-                    eventsList = eventsList.toMutableList()
-                )
-            }
-        ) { paddingValues ->
+        Scaffold() { paddingValues ->
             NavHost(
                 navController = navController,
                 startDestination = AppDrawerOptions.Home.name,
@@ -112,7 +92,8 @@ fun MainScreen(
                 composable(AppDrawerOptions.Home.name) {
                     EventList(
                         modifier = Modifier.fillMaxSize(),
-                        viewModel = eventListViewModel
+                        viewModel = eventListViewModel,
+                        onDrawerClick = { drawerViewModel.toggleDrawer() }
                     )
                 }
                 composable(AppDrawerOptions.Archive.name) { /*ArchiveScreen()*/ }

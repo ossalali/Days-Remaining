@@ -9,7 +9,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.ossalali.daysremaining.presentation.event.EventViewModel
 import com.ossalali.daysremaining.presentation.topbar.options.VertOptions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -17,10 +16,10 @@ import com.ossalali.daysremaining.presentation.topbar.options.VertOptions
 fun DefaultTopAppBar(
     onStartSearch: () -> Unit,
     onDrawerClick: () -> Unit,
-    eventViewModel: EventViewModel
+    selectedEventIds: List<Int> = emptyList(),
+    onArchive: () -> Unit = {},
+    onDelete: () -> Unit = {}
 ) {
-    val selectedEventIds = eventViewModel.selectedEventIds
-
     CenterAlignedTopAppBar(
         title = { Text("Events") },
         navigationIcon = {
@@ -42,8 +41,8 @@ fun DefaultTopAppBar(
             } else {
                 MoreVertMenu {
                     when (it) {
-                        VertOptions.Archive -> eventViewModel.showArchiveDialog()
-                        VertOptions.Delete -> eventViewModel.showDeleteDialog()
+                        VertOptions.Archive -> onArchive()
+                        VertOptions.Delete -> onDelete()
                     }
                 }
             }

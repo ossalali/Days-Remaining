@@ -10,6 +10,8 @@ import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.I
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.State
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,6 +29,16 @@ open class EventListViewModel @Inject constructor(
     val currentEventItems: List<EventItem>
         get() = _currentEventItems
 
+    // Search functionality
+    private val _searchText = MutableStateFlow("")
+    val searchText: StateFlow<String> = _searchText
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching: StateFlow<Boolean> = _isSearching
+
+    private val _filteredEventsList = MutableStateFlow<List<EventItem>>(emptyList())
+    val filteredEventsList: StateFlow<List<EventItem>> = _filteredEventsList
+
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
             Interaction.Init -> showEvents()
@@ -34,12 +46,39 @@ open class EventListViewModel @Inject constructor(
             is Interaction.Select -> handleEventItemSelection(interaction.eventId)
             is Interaction.OpenEventItemDetails -> TODO()
             is Interaction.EventItemAdded -> eventItemAdded(interaction.eventItem)
+            is Interaction.SearchTextChanged -> onSearchTextChange(interaction.text)
+            Interaction.ToggleSearch -> onToggleSearch()
+        }
+    }
+
+    private fun onToggleSearch() {
+        _isSearching.value = !_isSearching.value
+        if (!_isSearching.value) {
+            _searchText.value = ""
+            filterEvents()
+        }
+    }
+
+    private fun onSearchTextChange(text: String) {
+        _searchText.value = text
+        filterEvents()
+    }
+
+    private fun filterEvents() {
+        if (_searchText.value.isEmpty()) {
+            _filteredEventsList.value = _currentEventItems
+        } else {
+            _filteredEventsList.value = _currentEventItems.filter {
+                it.title.contains(_searchText.value, ignoreCase = true) ||
+                        it.description.contains(_searchText.value, ignoreCase = true)
+            }
         }
     }
 
     private fun setCurrentEventItems(eventItems: List<EventItem>) {
         _currentEventItems.clear()
         _currentEventItems.addAll(eventItems)
+        filterEvents() // Update filtered list when raw data changes
     }
 
     private fun eventItemAdded(eventItem: EventItem) {
@@ -85,6 +124,7 @@ open class EventListViewModel @Inject constructor(
         data object ShowAddEventScreen : State
         data class ShowEventsGrid(val eventItems: List<EventItem>) : State
         data class Selected(val eventItemId: Int) : State
+
     }
 
     sealed interface Interaction {
@@ -93,6 +133,8 @@ open class EventListViewModel @Inject constructor(
         data class EventItemAdded(val eventItem: EventItem) : Interaction
         data class OpenEventItemDetails(val eventId: Int) : Interaction
         data class Select(val eventId: Int) : Interaction
+        data class SearchTextChanged(val text: String) : Interaction
+        data object ToggleSearch : Interaction
     }
 
     sealed interface Event {

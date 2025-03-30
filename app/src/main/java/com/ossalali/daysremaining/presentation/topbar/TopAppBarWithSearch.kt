@@ -2,7 +2,6 @@ package com.ossalali.daysremaining.presentation.topbar
 
 import androidx.compose.runtime.Composable
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.presentation.event.EventViewModel
 
 @Composable
 fun TopAppBarWithSearch(
@@ -12,23 +11,25 @@ fun TopAppBarWithSearch(
     isSearching: Boolean,
     searchText: String,
     onSearchTextChange: (String) -> Unit,
-    eventViewModel: EventViewModel,
-    eventsList: MutableList<EventItem>
-
+    eventsList: MutableList<EventItem>,
+    selectedEventIds: List<Int> = emptyList(),
+    onArchive: () -> Unit = {},
+    onDelete: () -> Unit = {}
 ) {
     if (isSearching) {
         SearchTopAppBar(
             onCloseSearch = onCloseSearch,
             searchText = searchText,
             onSearchTextChange = onSearchTextChange,
-            eventViewModel = eventViewModel,
             eventsList = eventsList
         )
     } else {
         DefaultTopAppBar(
             onStartSearch = onStartSearch,
             onDrawerClick = onDrawerClick,
-            eventViewModel = eventViewModel
+            selectedEventIds = selectedEventIds,
+            onArchive = onArchive,
+            onDelete = onDelete
         )
     }
 }
