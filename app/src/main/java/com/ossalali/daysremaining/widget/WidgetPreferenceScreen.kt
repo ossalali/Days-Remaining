@@ -25,7 +25,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -41,11 +40,12 @@ fun WidgetPreferenceScreen(
 ) {
     val systemUiController = rememberSystemUiController()
     val isDarkMode = isSystemInDarkTheme()
+    val colorScheme = MaterialTheme.colorScheme
 
     val statusBarColor = if (isDarkMode) {
-        Color.White
+        colorScheme.inverseOnSurface  // Light color for dark mode
     } else {
-        Color.Black
+        colorScheme.onSurface  // Dark color for light mode
     }
 
     val inputEvents by viewModel.getEvents().collectAsState()

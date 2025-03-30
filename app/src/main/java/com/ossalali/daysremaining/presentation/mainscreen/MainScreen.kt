@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
@@ -13,7 +14,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,11 +39,12 @@ fun MainScreen(
 ) {
     val systemUiController = rememberSystemUiController()
     val isDarkMode = isSystemInDarkTheme()
+    val colorScheme = MaterialTheme.colorScheme
 
     val statusBarColor = if (isDarkMode) {
-        Color.White
+        colorScheme.inverseOnSurface  // Light color for dark mode
     } else {
-        Color.Black
+        colorScheme.onSurface  // Dark color for light mode
     }
 
     SideEffect {
