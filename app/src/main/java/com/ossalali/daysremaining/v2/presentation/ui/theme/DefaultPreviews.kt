@@ -11,7 +11,8 @@ annotation class DefaultPreviews
 @Preview(
     name = "Phone Light Mode",
     showSystemUi = true,
-    device = Devices.PIXEL_7_PRO
+    device = Devices.PIXEL_7_PRO,
+    uiMode = Configuration.UI_MODE_NIGHT_NO
 )
 @Preview(
     name = "Phone Dark Mode",
@@ -24,7 +25,8 @@ annotation class MobilePreviews
 @Preview(
     name = "Tablet Light Mode",
     showSystemUi = true,
-    device = Devices.PIXEL_TABLET
+    device = Devices.PIXEL_TABLET,
+    uiMode = Configuration.UI_MODE_NIGHT_NO
 )
 @Preview(
     name = "Tablet Dark Mode",

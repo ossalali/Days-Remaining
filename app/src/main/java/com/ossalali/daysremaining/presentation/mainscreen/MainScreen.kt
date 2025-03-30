@@ -3,11 +3,7 @@ package com.ossalali.daysremaining.presentation.mainscreen
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
@@ -104,16 +100,6 @@ fun MainScreen(
                     eventViewModel = eventViewModel,
                     eventsList = eventsList.toMutableList()
                 )
-            },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-                        eventCreationViewModel.toggleCreateEventScreen(true)
-                        eventCreationViewModel.resetEventCreatedState()
-                    }
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add Event")
-                }
             }
         ) { paddingValues ->
             NavHost(

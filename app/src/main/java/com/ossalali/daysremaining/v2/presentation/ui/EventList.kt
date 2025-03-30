@@ -1,14 +1,17 @@
 package com.ossalali.daysremaining.v2.presentation.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -16,6 +19,7 @@ import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.v2.presentation.ui.theme.DefaultPreviews
+import com.ossalali.daysremaining.v2.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.Event
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.Interaction
@@ -30,13 +34,21 @@ import java.time.LocalDate
 internal fun EventList(
     modifier: Modifier = Modifier,
     viewModel: EventListViewModel = hiltViewModel()
-) = EventListImpl(
-    onInteraction = viewModel::onInteraction,
-    stateflow = viewModel.state,
-    eventsFlow = viewModel.events,
-    selectedEventIds = viewModel.selectedEventItemIds,
-    modifier = modifier
-)
+) {
+    LaunchedEffect(Unit) {
+        // to refresh the events on showing this screen again
+        viewModel.onInteraction(Interaction.Init)
+    }
+
+    EventListImpl(
+        onInteraction = viewModel::onInteraction,
+        stateflow = viewModel.state,
+        eventsFlow = viewModel.events,
+        selectedEventIds = viewModel.selectedEventItemIds,
+        currentEventItems = viewModel.currentEventItems,
+        modifier = modifier
+    )
+}
 
 @Composable
 private fun EventListImpl(
@@ -44,6 +56,7 @@ private fun EventListImpl(
     stateflow: StateFlow<State>,
     eventsFlow: Flow<Event>,
     selectedEventIds: List<Int>,
+    currentEventItems: List<EventItem>,
     modifier: Modifier = Modifier
 ) {
     CollectEvents(eventsFlow) { event ->
@@ -54,6 +67,7 @@ private fun EventListImpl(
         }
     }
     val state = stateflow.collectAsState()
+
     Scaffold(
         topBar = {
             //TopAppBarWithSearch(
@@ -93,15 +107,30 @@ private fun EventListImpl(
                 }
 
                 is State.Selected -> TODO()
-                is State.ShowAddEventScreen -> AddEventScreen(
-                    onEventCreated = { event ->
-                        onInteraction(Interaction.EventItemAdded(event))
-                        onInteraction(Interaction.Init)
-                    },
-                    onCancel = {
-                        onInteraction(Interaction.Init)
+                is State.ShowAddEventScreen -> {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        AddEventScreen(
+                            onEventCreated = { event ->
+                                onInteraction(Interaction.EventItemAdded(event))
+                            },
+                            onCancel = {
+                                onInteraction(Interaction.Init)
+                            }
+                        )
+
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = Dimensions.marginDefault))
+
+                        EventListGrid(
+                            onEventItemClick = { onInteraction(Interaction.OpenEventItemDetails(it)) },
+                            onEventItemSelection = { onInteraction(Interaction.Select(it)) },
+                            events = currentEventItems,
+                            selectedEventIds = selectedEventIds,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues)
+                        )
                     }
-                )
+                }
             }
         }
     }
@@ -117,7 +146,8 @@ internal fun EventListPreview(
         onInteraction = {},
         stateflow = MutableStateFlow(state),
         eventsFlow = emptyFlow(),
-        selectedEventIds = emptyList()
+        selectedEventIds = emptyList(),
+        currentEventItems = emptyList()
     )
 }
 

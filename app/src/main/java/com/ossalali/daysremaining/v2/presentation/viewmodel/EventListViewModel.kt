@@ -23,6 +23,10 @@ open class EventListViewModel @Inject constructor(
     val selectedEventItemIds: List<Int>
         get() = _selectedEventItemIds
 
+    private val _currentEventItems = mutableStateListOf<EventItem>()
+    val currentEventItems: List<EventItem>
+        get() = _currentEventItems
+
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
             Interaction.Init -> showEvents()
@@ -33,9 +37,16 @@ open class EventListViewModel @Inject constructor(
         }
     }
 
+    private fun setCurrentEventItems(eventItems: List<EventItem>) {
+        _currentEventItems.clear()
+        _currentEventItems.addAll(eventItems)
+    }
+
     private fun eventItemAdded(eventItem: EventItem) {
         launch(ioDispatcher) {
             eventRepo.insertEvent(eventItem)
+            // After adding the event, refresh the events list
+            showEvents()
         }
     }
 
@@ -50,12 +61,23 @@ open class EventListViewModel @Inject constructor(
     private fun showEvents() {
         viewModelScope.launch(ioDispatcher) {
             val events = eventRepo.getAllActiveEvents()
+            setCurrentEventItems(events)
             stateMutable.value = State.ShowEventsGrid(events)
         }
     }
 
     private fun addEventItem() {
-        stateMutable.value = State.ShowAddEventScreen
+        // Save current events if we have them
+        val currentState = stateMutable.value
+        if (currentState is State.ShowEventsGrid) {
+            // Create a custom ShowAddEventScreen with the current events
+            stateMutable.value = State.ShowAddEventScreen
+        } else {
+            // Just show the add screen and load events
+            stateMutable.value = State.ShowAddEventScreen
+            // Also ensure we load the events
+            showEvents()
+        }
     }
 
     sealed interface State {
