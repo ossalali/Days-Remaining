@@ -61,7 +61,6 @@ private fun EventListImpl(
 ) {
     CollectEvents(eventsFlow) { event ->
         when (event) {
-            is Event.EventItemCreated -> TODO("show AddEventItemScreen")
             is Event.EventItemArchived -> TODO()
             is Event.EventItemDeleted -> TODO()
         }

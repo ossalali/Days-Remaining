@@ -96,7 +96,6 @@ open class EventListViewModel @Inject constructor(
     }
 
     sealed interface Event {
-        data class EventItemCreated(val eventItem: EventItem) : Event
         data class EventItemDeleted(val eventId: Int) : Event
         data class EventItemArchived(val eventId: Int) : Event
     }
