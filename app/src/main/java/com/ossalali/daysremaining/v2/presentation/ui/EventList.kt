@@ -90,7 +90,6 @@ private fun EventListImpl(
         when (event) {
             is Event.EventItemArchived -> TODO()
             is Event.EventItemDeleted -> TODO()
-            else -> {}
         }
     }
     val state by stateflow.collectAsState()
