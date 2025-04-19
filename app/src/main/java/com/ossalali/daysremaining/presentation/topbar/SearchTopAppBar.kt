@@ -49,6 +49,10 @@ fun SearchTopAppBar(
         keyboardController?.show()
     }
 
+    LaunchedEffect(textFieldState.text) {
+        onSearchTextChange(textFieldState.text.toString())
+    }
+
     SearchBar(
         modifier = Modifier.fillMaxWidth(),
         inputField = {
@@ -108,6 +112,5 @@ fun SearchTopAppBar(
                 }
             }
         }
-        onSearchTextChange(textFieldState.text.toString())
     }
 }

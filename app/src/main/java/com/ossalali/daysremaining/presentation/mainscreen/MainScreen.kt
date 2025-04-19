@@ -80,6 +80,21 @@ fun MainScreen(
     val filteredEvents by eventListViewModel.filteredEventsList.collectAsState()
     val selectedEventIds = mainViewModel.selectedEventIds
 
+    // Sync search state between view models
+    LaunchedEffect(searchText, isSearching) {
+        if (eventListViewModel.searchText.value != searchText) {
+            eventListViewModel.onInteraction(
+                EventListViewModel.Interaction.SearchTextChanged(searchText)
+            )
+        }
+
+        if (eventListViewModel.isSearching.value != isSearching) {
+            eventListViewModel.onInteraction(
+                EventListViewModel.Interaction.ToggleSearch
+            )
+        }
+    }
+
     val navController = rememberAnimatedNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = currentBackStackEntry?.destination?.route ?: Destinations.EVENT_LIST
@@ -170,16 +185,12 @@ fun MainScreen(
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
                     exitTransition = { fadeOut(animationSpec = tween(300)) }
                 ) { backStackEntry ->
-                    val filteredEvents by eventListViewModel.filteredEventsList.collectAsState()
-                    val currentEventItems = eventListViewModel.currentEventItems
                     val eventId =
                         backStackEntry.arguments?.getInt(Destinations.EVENT_DETAILS_ARG_ID)
-                    val event = currentEventItems.find { it.id == eventId }
-                        ?: filteredEvents.find { it.id == eventId }
 
-                    if (event != null) {
+                    if (eventId != null) {
                         EventDetails(
-                            event = event,
+                            eventId = eventId,
                             onBackClick = { navController.popBackStack() }
                         )
                     } else {

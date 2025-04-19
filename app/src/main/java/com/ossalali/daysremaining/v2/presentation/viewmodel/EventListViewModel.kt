@@ -83,8 +83,7 @@ open class EventListViewModel @Inject constructor(
             _filteredEventsList.value = _currentEventItems
         } else {
             _filteredEventsList.value = _currentEventItems.filter {
-                it.title.contains(_searchText.value, ignoreCase = true) ||
-                        it.description.contains(_searchText.value, ignoreCase = true)
+                it.title.contains(_searchText.value, ignoreCase = true)
             }
         }
     }
