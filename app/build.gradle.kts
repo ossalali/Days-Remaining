@@ -77,8 +77,13 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.material3.v140alpha07)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.accompanist.navigation.animation)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.androidx.glance.appwidget)
+
+    // Use these instead of Material 2
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.ui)
 
     debugImplementation(libs.androidx.ui.tooling)
 

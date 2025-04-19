@@ -12,12 +12,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.v2.presentation.ui.theme.DefaultPreviews
+import com.ossalali.daysremaining.v2.presentation.ui.theme.Dimensions
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -25,7 +24,7 @@ import java.time.format.FormatStyle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetails(
-    event: EventItem, // Renamed parameter for clarity
+    event: EventItem,
     onBackClick: () -> Unit
 ) {
     Scaffold(
@@ -39,12 +38,7 @@ fun EventDetails(
                             contentDescription = "Back"
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -52,18 +46,18 @@ fun EventDetails(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp) // Add padding around the content
+                .padding(horizontal = Dimensions.default) // Add horizontal padding only
         ) {
             val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
             Text(
                 text = "Date: ${event.date.format(dateFormatter)}",
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = Dimensions.half)
             )
             Text(
                 text = "Description: ${event.description}",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = Dimensions.half)
             )
             Text(
                 text = "Days Remaining: ${event.getNumberOfDays()}",

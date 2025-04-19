@@ -1,5 +1,9 @@
 package com.ossalali.daysremaining.presentation.mainscreen
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,23 +19,37 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.archive.ArchiveScreen
+import com.ossalali.daysremaining.presentation.event.EventDetails
 import com.ossalali.daysremaining.presentation.settings.SettingsScreen
 import com.ossalali.daysremaining.presentation.topbar.TopAppBarWithSearch
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.AppDrawer
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DebugScreen
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DrawerViewModel
-import com.ossalali.daysremaining.presentation.topbar.options.AppDrawerOptions
 import com.ossalali.daysremaining.v2.presentation.ui.EventList
 import com.ossalali.daysremaining.v2.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
 
+// Screen Definitions
+object Destinations {
+    const val EVENT_LIST = "eventList"
+    const val EVENT_DETAILS = "eventDetails/{eventId}"
+    const val EVENT_DETAILS_ARG_ID = "eventId"
+    fun eventDetailsRoute(eventId: Int) = "eventDetails/$eventId"
+    const val ARCHIVE = "archive"
+    const val SETTINGS = "settings"
+    const val DEBUG = "debug"
+}
+
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen(
     mainViewModel: MainScreenViewModel = hiltViewModel(),
@@ -59,12 +77,12 @@ fun MainScreen(
     val searchText by mainViewModel.searchText.collectAsState()
     val isSearching by mainViewModel.isSearching.collectAsState()
     val currentEvents by mainViewModel.currentEventItems.collectAsState()
-    val filteredEvents by mainViewModel.filteredEventsList.collectAsState()
+    val filteredEvents by eventListViewModel.filteredEventsList.collectAsState()
     val selectedEventIds = mainViewModel.selectedEventIds
 
-    val navController = rememberNavController()
+    val navController = rememberAnimatedNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = currentBackStackEntry?.destination?.route ?: AppDrawerOptions.Home.name
+    val currentScreen = currentBackStackEntry?.destination?.route ?: Destinations.EVENT_LIST
 
     val isDrawerOpen = drawerViewModel.isDrawerOpen.collectAsState().value
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -78,7 +96,7 @@ fun MainScreen(
     }
 
     ModalNavigationDrawer(
-        modifier = Modifier.padding(Dimensions.marginQuarter),
+        modifier = Modifier.padding(Dimensions.quarter),
         drawerState = drawerState,
         drawerContent = {
             AppDrawer(
@@ -86,7 +104,7 @@ fun MainScreen(
                 onScreenSelected = { route ->
                     if (route != currentScreen) {
                         navController.navigate(route) {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                            popUpTo(Destinations.EVENT_LIST) { inclusive = false }
                             launchSingleTop = true
                         }
                     }
@@ -97,7 +115,7 @@ fun MainScreen(
     ) {
         Scaffold(
             topBar = {
-                if (currentScreen == AppDrawerOptions.Home.name) {
+                if (currentScreen == Destinations.EVENT_LIST) {
                     TopAppBarWithSearch(
                         isSearching = isSearching,
                         searchText = searchText,
@@ -117,20 +135,59 @@ fun MainScreen(
                 }
             }
         ) { paddingValues ->
-            NavHost(
+            AnimatedNavHost(
                 navController = navController,
-                startDestination = AppDrawerOptions.Home.name,
+                startDestination = Destinations.EVENT_LIST,
                 modifier = Modifier.padding(paddingValues)
             ) {
-                composable(AppDrawerOptions.DEBUG.name) { DebugScreen() }
-                composable(AppDrawerOptions.Home.name) {
+                composable(Destinations.DEBUG) { DebugScreen() }
+                composable(
+                    route = Destinations.EVENT_LIST,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) {
                     EventList(
                         modifier = Modifier.fillMaxSize(),
                         viewModel = eventListViewModel,
+                        navController = navController
                     )
                 }
-                composable(AppDrawerOptions.Archive.name) { ArchiveScreen() }
-                composable(AppDrawerOptions.Settings.name) { SettingsScreen() }
+                composable(
+                    route = Destinations.ARCHIVE,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) { ArchiveScreen() }
+                composable(
+                    route = Destinations.SETTINGS,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) { SettingsScreen() }
+                composable(
+                    route = Destinations.EVENT_DETAILS,
+                    arguments = listOf(navArgument(Destinations.EVENT_DETAILS_ARG_ID) {
+                        type = NavType.IntType
+                    }),
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) { backStackEntry ->
+                    val filteredEvents by eventListViewModel.filteredEventsList.collectAsState()
+                    val currentEventItems = eventListViewModel.currentEventItems
+                    val eventId =
+                        backStackEntry.arguments?.getInt(Destinations.EVENT_DETAILS_ARG_ID)
+                    val event = currentEventItems.find { it.id == eventId }
+                        ?: filteredEvents.find { it.id == eventId }
+
+                    if (event != null) {
+                        EventDetails(
+                            event = event,
+                            onBackClick = { navController.popBackStack() }
+                        )
+                    } else {
+                        LaunchedEffect(Unit) {
+                            navController.popBackStack()
+                        }
+                    }
+                }
             }
         }
     }

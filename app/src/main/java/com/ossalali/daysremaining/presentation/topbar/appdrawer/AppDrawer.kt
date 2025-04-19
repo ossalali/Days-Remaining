@@ -12,7 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.ossalali.daysremaining.BuildConfig
 import com.ossalali.daysremaining.model.DrawerItem
-import com.ossalali.daysremaining.presentation.topbar.options.AppDrawerOptions
+import com.ossalali.daysremaining.presentation.mainscreen.Destinations
 
 @Composable
 fun AppDrawer(
@@ -20,15 +20,15 @@ fun AppDrawer(
     onScreenSelected: (String) -> Unit,
 ) {
     val drawerItems = mutableListOf(
-        DrawerItem(AppDrawerOptions.Home.name, "Home", Icons.Filled.Home),
-        DrawerItem(AppDrawerOptions.Archive.name, "Archive", Icons.Filled.Archive),
-        DrawerItem(AppDrawerOptions.Settings.name, "Settings", Icons.Filled.Settings)
+        DrawerItem(Destinations.EVENT_LIST, "Home", Icons.Filled.Home),
+        DrawerItem(Destinations.ARCHIVE, "Archive", Icons.Filled.Archive),
+        DrawerItem(Destinations.SETTINGS, "Settings", Icons.Filled.Settings)
     )
 
     if (BuildConfig.DEBUG) {
         drawerItems.add(
             DrawerItem(
-                AppDrawerOptions.DEBUG.name,
+                Destinations.DEBUG,
                 "Debug",
                 Icons.Filled.AdminPanelSettings
             )

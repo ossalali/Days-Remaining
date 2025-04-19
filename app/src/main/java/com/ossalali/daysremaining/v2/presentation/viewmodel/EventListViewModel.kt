@@ -5,12 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.mainscreen.Destinations
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.Event
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.Interaction
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.State
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,6 +42,10 @@ open class EventListViewModel @Inject constructor(
     private val _filteredEventsList = MutableStateFlow<List<EventItem>>(emptyList())
     val filteredEventsList: StateFlow<List<EventItem>> = _filteredEventsList
 
+    // Navigation Events
+    private val _navigationEvent = MutableSharedFlow<String>()
+    val navigationEvent: SharedFlow<String> = _navigationEvent
+
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
             Interaction.Init -> showEvents()
@@ -52,10 +59,9 @@ open class EventListViewModel @Inject constructor(
     }
 
     private fun handleEventItemClick(eventId: Int) {
-        launch(ioDispatcher) {
-            eventRepo.getEventById(eventId).let { eventItem ->
-                stateMutable.value = State.EventClicked(eventItem)
-            }
+        // Instead of changing state, emit a navigation event
+        viewModelScope.launch {
+            _navigationEvent.emit(Destinations.eventDetailsRoute(eventId))
         }
     }
 
@@ -131,7 +137,6 @@ open class EventListViewModel @Inject constructor(
         data object Init : State
         data object ShowAddEventScreen : State
         data class ShowEventsGrid(val eventItems: List<EventItem>) : State
-        data class EventClicked(val eventItem: EventItem) : State
     }
 
     sealed interface Interaction {

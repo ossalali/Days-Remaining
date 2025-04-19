@@ -3,9 +3,12 @@ package com.ossalali.daysremaining.v2.presentation.ui.theme
 import androidx.compose.ui.unit.dp
 
 object Dimensions {
-    val marginDefault = 16.dp
-    val marginHalf = marginDefault / 2
-    val marginQuarter = marginDefault / 4
-    val marginThird = marginDefault / 3
-    val marginDouble = marginDefault * 2
+    val default = 16.dp
+    val half = default / 2
+    val quarter = default / 4
+    val third = default / 3
+    val double = default * 2
+    val triple = default * 3
+    val quadruple = default * 4
+    val quintuple = default * 5
 }
