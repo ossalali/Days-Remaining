@@ -43,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -149,11 +150,16 @@ private fun EventListImpl(
 
     // Animation states
     var isFirstRender by remember { mutableStateOf(true) }
+    var bottomBarAnimStarted by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     val bottomBarHeight = with(density) { Dimensions.quintuple.toPx() }
     val bottomBarOffsetY by animateFloatAsState(
-        targetValue = if (isSearching) bottomBarHeight else 0f,
-        animationSpec = tween(durationMillis = if (isFirstRender) 0 else 300),
+        targetValue = if (isSearching && !isFirstRender) bottomBarHeight else 0f,
+        animationSpec = tween(
+            durationMillis = 300,
+            // Delay the bottom bar animation to allow the search button to move up first
+            delayMillis = if (isSearching) 150 else 0
+        ),
         label = "BottomBarAnimation"
     )
 
@@ -201,19 +207,24 @@ private fun EventListImpl(
         if (isSearching && searchButtonPosition != Offset.Zero && searchBarPosition != Offset.Zero) {
             // Calculate the distance for the animation
             val distanceY = searchBarPosition.y - searchButtonPosition.y
-
+            
             // Mark we're animating
             animatingToSearchBar = true
-
-            // Launch parallel animations
+            
+            // Ensure bottomBar animation doesn't start until button animation is complete
             launch {
                 // Animate the vertical movement
                 searchButtonTranslationY.animateTo(
                     targetValue = distanceY,
                     animationSpec = tween(durationMillis = 300)
                 )
+                
+                // Now that the button has reached the top, trigger the bottom bar animation
+                // by setting this flag which will be collected by the bottomBarOffsetY animation
+                bottomBarAnimStarted = true
             }
-
+            
+            // These animations can run in parallel
             launch {
                 // Animate width expansion
                 searchButtonWidth.animateTo(
@@ -221,7 +232,7 @@ private fun EventListImpl(
                     animationSpec = tween(durationMillis = 300)
                 )
             }
-
+            
             launch {
                 // Animate height adjustment
                 searchButtonHeight.animateTo(
@@ -229,7 +240,7 @@ private fun EventListImpl(
                     animationSpec = tween(durationMillis = 300)
                 )
             }
-
+            
             launch {
                 // Animate corner radius change (from circle to rounded rectangle)
                 searchButtonCornerRadius.animateTo(
@@ -237,9 +248,13 @@ private fun EventListImpl(
                     animationSpec = tween(durationMillis = 300)
                 )
             }
-
+            
             // When all animations complete, finish the transition
-            animatingToSearchBar = false
+            // Small delay to ensure animations finish
+            launch {
+                kotlinx.coroutines.delay(320)
+                animatingToSearchBar = false
+            }
         } else if (!isSearching) {
             // Reset animation values for next time
             searchButtonTranslationY.snapTo(0f)
@@ -281,51 +296,67 @@ private fun EventListImpl(
                             exit = fadeOut()
                         ) {
                             SearchBar(
-                                query = searchText,
-                                onQueryChange = {
-                                    searchText = it
-                                    onInteraction(Interaction.SearchTextChanged(it))
-                                    // Filter locally for immediate response
-                                    filteredEvents = if (it.isEmpty()) {
-                                        currentEventItems
-                                    } else {
-                                        currentEventItems.filter { event ->
-                                            event.title.contains(it, ignoreCase = true)
-                                        }
-                                    }
+                                inputField = {
+                                    SearchBarDefaults.InputField(
+                                        query = searchText,
+                                        onQueryChange = { 
+                                            searchText = it
+                                            onInteraction(Interaction.SearchTextChanged(it))
+                                            // Filter locally for immediate response
+                                            filteredEvents = if (it.isEmpty()) {
+                                                currentEventItems
+                                            } else {
+                                                currentEventItems.filter { event ->
+                                                    event.title.contains(it, ignoreCase = true)
+                                                }
+                                            }
+                                        },
+                                        onSearch = { /* Submit not needed, we filter as user types */ },
+                                        expanded = isSearching,
+                                        onExpandedChange = { 
+                                            if (!it) {
+                                                isSearching = false
+                                                onInteraction(Interaction.ToggleSearch)
+                                            } else {
+                                                isSearching = true
+                                                onInteraction(Interaction.ToggleSearch)
+                                            }
+                                        },
+                                        placeholder = { Text("Search events") },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                contentDescription = "Back",
+                                                modifier = Modifier.clickable { 
+                                                    isSearching = false
+                                                    keyboardController?.hide()
+                                                    onInteraction(Interaction.ToggleSearch)
+                                                }
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                imageVector = Icons.Default.Search,
+                                                contentDescription = "Search"
+                                            )
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(focusRequester)
+                                    )
                                 },
-                                onSearch = { /* Submit not needed, we filter as user types */ },
-                                active = isSearching,
-                                onActiveChange = {
+                                expanded = isSearching,
+                                onExpandedChange = { 
                                     if (!it) {
                                         isSearching = false
+                                        keyboardController?.hide()
                                         onInteraction(Interaction.ToggleSearch)
                                     } else {
                                         isSearching = true
                                         onInteraction(Interaction.ToggleSearch)
                                     }
                                 },
-                                placeholder = { Text("Search events") },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Back",
-                                        modifier = Modifier.clickable {
-                                            isSearching = false
-                                            keyboardController?.hide()
-                                            onInteraction(Interaction.ToggleSearch)
-                                        }
-                                    )
-                                },
-                                trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = "Search"
-                                    )
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(focusRequester)
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 LazyVerticalGrid(
                                     columns = GridCells.Fixed(2),
@@ -336,12 +367,12 @@ private fun EventListImpl(
                                     items(filteredEvents) { event ->
                                         SearchEventItem(
                                             event = event,
-                                            onClick = {
+                                            onClick = { 
                                                 isSearching = false
                                                 keyboardController?.hide()
                                                 // First hide search, then navigate
                                                 onInteraction(Interaction.ToggleSearch)
-                                                onInteraction(Interaction.OpenEventItemDetails(event.id))
+                                                onInteraction(Interaction.OpenEventItemDetails(event.id)) 
                                             },
                                             modifier = Modifier.fillMaxWidth()
                                         )
