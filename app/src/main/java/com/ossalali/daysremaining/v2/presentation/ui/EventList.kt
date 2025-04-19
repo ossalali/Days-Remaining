@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.event.EventDetails
 import com.ossalali.daysremaining.v2.presentation.ui.theme.DefaultPreviews
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel.Event
@@ -32,10 +33,8 @@ import java.time.LocalDate
 internal fun EventList(
     modifier: Modifier = Modifier,
     viewModel: EventListViewModel = hiltViewModel(),
-    onDrawerClick: () -> Unit = {}
 ) {
     LaunchedEffect(Unit) {
-        // to refresh the events on showing this screen again
         viewModel.onInteraction(Interaction.Init)
     }
 
@@ -82,7 +81,13 @@ private fun EventListImpl(
                 State.Init -> onInteraction(Interaction.Init)
                 is State.ShowEventsGrid -> {
                     EventListGrid(
-                        onEventItemClick = { onInteraction(Interaction.OpenEventItemDetails(it)) },
+                        onEventItemClick = { eventItemId ->
+                            onInteraction(
+                                Interaction.OpenEventItemDetails(
+                                    eventItemId
+                                )
+                            )
+                        },
                         onEventItemSelection = { onInteraction(Interaction.Select(it)) },
                         events = (state.value as State.ShowEventsGrid).eventItems,
                         selectedEventIds = selectedEventIds,
@@ -92,7 +97,6 @@ private fun EventListImpl(
                     )
                 }
 
-                is State.Selected -> TODO()
                 is State.ShowAddEventScreen -> {
                     Column(
                         modifier = Modifier
@@ -120,6 +124,11 @@ private fun EventListImpl(
                         )
                     }
                 }
+
+                is State.EventClicked -> EventDetails(
+                    event = (state.value as State.EventClicked).eventItem,
+                    onBackClick = { onInteraction(Interaction.Init) }
+                )
             }
         }
     }
@@ -153,7 +162,6 @@ internal class EventListPreviewParameterProvider : CollectionPreviewParameterPro
                     date = LocalDate.now().plusDays(5)
                 )
             )
-        ),
-        State.Selected(0)
+        )
     )
 )

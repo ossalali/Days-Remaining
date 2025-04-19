@@ -29,6 +29,7 @@ import com.ossalali.daysremaining.presentation.topbar.appdrawer.DebugScreen
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DrawerViewModel
 import com.ossalali.daysremaining.presentation.topbar.options.AppDrawerOptions
 import com.ossalali.daysremaining.v2.presentation.ui.EventList
+import com.ossalali.daysremaining.v2.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
 
 @Composable
@@ -77,6 +78,7 @@ fun MainScreen(
     }
 
     ModalNavigationDrawer(
+        modifier = Modifier.padding(Dimensions.marginQuarter),
         drawerState = drawerState,
         drawerContent = {
             AppDrawer(
@@ -125,7 +127,6 @@ fun MainScreen(
                     EventList(
                         modifier = Modifier.fillMaxSize(),
                         viewModel = eventListViewModel,
-                        onDrawerClick = { drawerViewModel.toggleDrawer() }
                     )
                 }
                 composable(AppDrawerOptions.Archive.name) { ArchiveScreen() }

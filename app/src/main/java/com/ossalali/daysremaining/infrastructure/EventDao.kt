@@ -26,6 +26,9 @@ interface EventDao {
     @Query("SELECT * FROM eventitem WHERE isArchived = 1 order by id desc")
     suspend fun getAllArchivedEvents(): List<EventItem>
 
+    @Query("SELECT * FROM eventitem WHERE id = :eventId")
+    suspend fun getEventById(eventId: Int): EventItem
+
     @Query("DELETE FROM eventitem WHERE id in (:eventIds)")
     fun deleteEvents(eventIds: List<Int>)
 

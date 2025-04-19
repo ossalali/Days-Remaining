@@ -43,4 +43,8 @@ class EventRepo(private val eventDao: EventDao) {
     suspend fun getFirstEvent(): EventItem {
         return eventDao.getFirstEvent()
     }
+
+    suspend fun getEventById(eventId: Int): EventItem {
+        return eventDao.getEventById(eventId)
+    }
 }

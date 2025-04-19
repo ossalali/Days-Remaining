@@ -44,10 +44,18 @@ open class EventListViewModel @Inject constructor(
             Interaction.Init -> showEvents()
             is Interaction.AddEventItem -> addEventItem()
             is Interaction.Select -> handleEventItemSelection(interaction.eventId)
-            is Interaction.OpenEventItemDetails -> TODO()
+            is Interaction.OpenEventItemDetails -> handleEventItemClick(interaction.eventId)
             is Interaction.EventItemAdded -> eventItemAdded(interaction.eventItem)
             is Interaction.SearchTextChanged -> onSearchTextChange(interaction.text)
             Interaction.ToggleSearch -> onToggleSearch()
+        }
+    }
+
+    private fun handleEventItemClick(eventId: Int) {
+        launch(ioDispatcher) {
+            eventRepo.getEventById(eventId).let { eventItem ->
+                stateMutable.value = State.EventClicked(eventItem)
+            }
         }
     }
 
@@ -123,8 +131,7 @@ open class EventListViewModel @Inject constructor(
         data object Init : State
         data object ShowAddEventScreen : State
         data class ShowEventsGrid(val eventItems: List<EventItem>) : State
-        data class Selected(val eventItemId: Int) : State
-
+        data class EventClicked(val eventItem: EventItem) : State
     }
 
     sealed interface Interaction {
