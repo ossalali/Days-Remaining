@@ -21,7 +21,7 @@ fun DefaultTopAppBar(
     onDelete: () -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
-        title = { Text("Events") },
+        title = { Text("Days Remaining") },
         navigationIcon = {
             IconButton(onClick = onDrawerClick) {
                 Icon(

@@ -7,7 +7,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -148,7 +153,20 @@ fun MainScreen(
                         onDelete = { mainViewModel.showDeleteDialog() }
                     )
                 }
-            }
+            },
+            floatingActionButton = {
+                if (currentScreen == Destinations.EVENT_LIST) {
+                    FloatingActionButton(
+                        modifier = Modifier.padding(bottom = Dimensions.quadruple),
+                        onClick = {
+                            eventListViewModel.onInteraction(EventListViewModel.Interaction.AddEventItem)
+                        }
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = "Add Event")
+                    }
+                }
+            },
+            floatingActionButtonPosition = FabPosition.End
         ) { paddingValues ->
             AnimatedNavHost(
                 navController = navController,
