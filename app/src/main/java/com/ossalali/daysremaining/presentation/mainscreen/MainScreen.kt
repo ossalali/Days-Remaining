@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -24,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -38,9 +40,12 @@ import com.ossalali.daysremaining.presentation.event.EventDetails
 import com.ossalali.daysremaining.presentation.settings.SettingsScreen
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DebugScreen
 import com.ossalali.daysremaining.presentation.topbar.appdrawer.DrawerViewModel
+import com.ossalali.daysremaining.v2.presentation.ui.AnimatedSearchBar
 import com.ossalali.daysremaining.v2.presentation.ui.EventList
+import com.ossalali.daysremaining.v2.presentation.ui.search.rememberSearchAnimationState
 import com.ossalali.daysremaining.v2.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.v2.presentation.viewmodel.EventListViewModel
+import kotlinx.coroutines.launch
 
 // Screen Definitions
 object Destinations {
@@ -79,6 +84,11 @@ fun MainScreen(
 
     val searchText by mainViewModel.searchText.collectAsState()
     val isSearching by mainViewModel.isSearching.collectAsState()
+    val currentEvents by eventListViewModel.filteredEventsList.collectAsState()
+
+    // Create search animation state
+    val searchAnimState = rememberSearchAnimationState()
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(searchText, isSearching) {
         if (eventListViewModel.searchText.value != searchText) {
@@ -108,72 +118,107 @@ fun MainScreen(
             drawerState.close()
         }
     }
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Days Remaining") }
-            )
-        },
-        floatingActionButton = {
-            if (currentScreen == Destinations.EVENT_LIST) {
-                FloatingActionButton(
-                    modifier = Modifier.padding(bottom = Dimensions.quadruple),
-                    onClick = {
-                        eventListViewModel.onInteraction(EventListViewModel.Interaction.AddEventItem)
-                    }
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add Event")
-                }
-            }
-        },
-        floatingActionButtonPosition = FabPosition.End
-    ) { paddingValues ->
-        AnimatedNavHost(
-            navController = navController,
-            startDestination = Destinations.EVENT_LIST,
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable(Destinations.DEBUG) { DebugScreen() }
-            composable(
-                route = Destinations.EVENT_LIST,
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) }
-            ) {
-                EventList(
-                    modifier = Modifier.fillMaxSize(),
-                    viewModel = eventListViewModel,
-                    navController = navController
-                )
-            }
-            composable(
-                route = Destinations.ARCHIVE,
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) }
-            ) { ArchiveScreen() }
-            composable(
-                route = Destinations.SETTINGS,
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) }
-            ) { SettingsScreen() }
-            composable(
-                route = Destinations.EVENT_DETAILS,
-                arguments = listOf(navArgument(Destinations.EVENT_DETAILS_ARG_ID) {
-                    type = NavType.IntType
-                }),
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) }
-            ) { backStackEntry ->
-                val eventId =
-                    backStackEntry.arguments?.getInt(Destinations.EVENT_DETAILS_ARG_ID)
 
-                if (eventId != null) {
-                    EventDetails(
-                        eventId = eventId,
-                        onBackClick = { navController.popBackStack() }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                if (isSearching && currentScreen == Destinations.EVENT_LIST) {
+                    AnimatedSearchBar(
+                        isSearching = isSearching,
+                        searchText = searchText,
+                        onSearchTextChanged = { text ->
+                            mainViewModel.updateSearchText(text)
+                        },
+                        onSearchActiveChanged = { active ->
+                            if (!active) {
+                                mainViewModel.toggleSearch(false)
+                            }
+                        },
+                        searchAnimState = searchAnimState,
+                        filteredEvents = currentEvents,
+                        onEventClicked = { eventId ->
+                            eventListViewModel.onInteraction(
+                                EventListViewModel.Interaction.OpenEventItemDetails(eventId)
+                            )
+                        }
                     )
                 } else {
-                    LaunchedEffect(Unit) {
-                        navController.popBackStack()
+                    CenterAlignedTopAppBar(
+                        title = { Text("Days Remaining") }
+                    )
+                }
+            },
+            floatingActionButton = {
+                if (currentScreen == Destinations.EVENT_LIST && !isSearching) {
+                    FloatingActionButton(
+                        modifier = Modifier.padding(bottom = Dimensions.quadruple),
+                        onClick = {
+                            eventListViewModel.onInteraction(EventListViewModel.Interaction.AddEventItem)
+                        }
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = "Add Event")
+                    }
+                }
+            },
+            floatingActionButtonPosition = FabPosition.End
+        ) { paddingValues ->
+            AnimatedNavHost(
+                navController = navController,
+                startDestination = Destinations.EVENT_LIST,
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable(Destinations.DEBUG) { DebugScreen() }
+                composable(
+                    route = Destinations.EVENT_LIST,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) {
+                    EventList(
+                        modifier = Modifier.fillMaxSize(),
+                        viewModel = eventListViewModel,
+                        navController = navController,
+                        mainScreenSearchToggle = {
+                            // When search is activated, trigger the animation
+                            scope.launch {
+                                // First activate search
+                                mainViewModel.toggleSearch(true)
+                                // Then animate with a small delay for proper sequence
+                                searchAnimState.animateToSearchBar()
+                            }
+                        },
+                        updateSearchButtonPosition = searchAnimState.updateSearchButtonPosition
+                    )
+                }
+                composable(
+                    route = Destinations.ARCHIVE,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) { ArchiveScreen() }
+                composable(
+                    route = Destinations.SETTINGS,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) { SettingsScreen() }
+                composable(
+                    route = Destinations.EVENT_DETAILS,
+                    arguments = listOf(navArgument(Destinations.EVENT_DETAILS_ARG_ID) {
+                        type = NavType.IntType
+                    }),
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) { backStackEntry ->
+                    val eventId =
+                        backStackEntry.arguments?.getInt(Destinations.EVENT_DETAILS_ARG_ID)
+
+                    if (eventId != null) {
+                        EventDetails(
+                            eventId = eventId,
+                            onBackClick = { navController.popBackStack() }
+                        )
+                    } else {
+                        LaunchedEffect(Unit) {
+                            navController.popBackStack()
+                        }
                     }
                 }
             }

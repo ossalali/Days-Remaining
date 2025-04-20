@@ -23,10 +23,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ossalali.daysremaining.model.EventItem
@@ -51,7 +52,9 @@ import kotlin.math.roundToInt
 internal fun EventList(
     modifier: Modifier = Modifier,
     viewModel: EventListViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
+    mainScreenSearchToggle: () -> Unit = {},
+    updateSearchButtonPosition: (Offset, IntSize) -> Unit = { _, _ -> }
 ) {
     LaunchedEffect(Unit) {
         viewModel.onInteraction(Interaction.Init)
@@ -64,12 +67,14 @@ internal fun EventList(
     }
 
     EventListImpl(
+        modifier = modifier,
         onInteraction = viewModel::onInteraction,
         stateflow = viewModel.state,
         eventsFlow = viewModel.events,
         selectedEventIds = viewModel.selectedEventItemIds,
         currentEventItems = viewModel.currentEventItems,
-        modifier = modifier
+        mainScreenSearchToggle = mainScreenSearchToggle,
+        updateSearchButtonPosition = updateSearchButtonPosition
     )
 }
 
@@ -79,12 +84,14 @@ internal fun EventList(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventListImpl(
+    modifier: Modifier = Modifier,
     onInteraction: (Interaction) -> Unit,
     stateflow: StateFlow<State>,
     eventsFlow: Flow<Event>,
     selectedEventIds: List<Int>,
     currentEventItems: List<EventItem>,
-    modifier: Modifier = Modifier
+    mainScreenSearchToggle: () -> Unit = {},
+    updateSearchButtonPosition: (Offset, IntSize) -> Unit = { _, _ -> }
 ) {
     CollectEvents(eventsFlow) { event: Event ->
         when (event) {
@@ -100,19 +107,9 @@ private fun EventListImpl(
     )
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    // Local search state
-    var isSearching by remember { mutableStateOf(false) }
-    var searchText by remember { mutableStateOf("") }
-    var filteredEvents by remember { mutableStateOf(currentEventItems) }
-
-    // Create animation state
-    val searchAnimState = rememberSearchAnimationState()
-
-    // Bottom bar animation
-    val density = LocalDensity.current
-    val bottomBarHeight = with(density) { Dimensions.quintuple.toPx() }
+    // Bottom bar animation - simplified without searchAnimState
     val bottomBarOffsetY by animateFloatAsState(
-        targetValue = if (isSearching && searchAnimState.bottomBarAnimStarted) bottomBarHeight else 0f,
+        targetValue = 0f,
         animationSpec = tween(durationMillis = 250, delayMillis = 0),
         label = "BottomBarAnimation"
     )
@@ -132,41 +129,7 @@ private fun EventListImpl(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = {
-                // Only show SearchBar when search is active
-                if (isSearching) {
-                    AnimatedSearchBar(
-                        isSearching = isSearching,
-                        searchText = searchText,
-                        onSearchTextChanged = {
-                            searchText = it
-                            onInteraction(Interaction.SearchTextChanged(it))
-                            // Filter locally for immediate response
-                            filteredEvents = if (it.isEmpty()) {
-                                currentEventItems
-                            } else {
-                                currentEventItems.filter { event ->
-                                    event.title.contains(it, ignoreCase = true)
-                                }
-                            }
-                        },
-                        onSearchActiveChanged = { active ->
-                            if (!active) {
-                                isSearching = false
-                                onInteraction(Interaction.ToggleSearch)
-                            } else {
-                                isSearching = true
-                                onInteraction(Interaction.ToggleSearch)
-                            }
-                        },
-                        searchAnimState = searchAnimState,
-                        filteredEvents = filteredEvents,
-                        onEventClicked = { eventId ->
-                            onInteraction(Interaction.OpenEventItemDetails(eventId))
-                        }
-                    )
-                }
-            },
+            topBar = { },
             bottomBar = {
                 // Always show the bottom bar placeholder to maintain layout consistency during animation
                 Box(modifier = Modifier.height(Dimensions.quadruple)) {}
@@ -178,31 +141,21 @@ private fun EventListImpl(
                 when (val currentState = state) {
                     State.Init -> onInteraction(Interaction.Init)
                     is State.ShowEventsGrid -> {
-                        // Only show the main grid when not searching
-                        if (!isSearching) {
-                            EventListGrid(
-                                onEventItemClick = { eventItemId ->
-                                    onInteraction(
-                                        Interaction.OpenEventItemDetails(
-                                            eventItemId
-                                        )
+                        EventListGrid(
+                            onEventItemClick = { eventItemId ->
+                                onInteraction(
+                                    Interaction.OpenEventItemDetails(
+                                        eventItemId
                                     )
-                                },
-                                onEventItemSelection = { onInteraction(Interaction.Select(it)) },
-                                events = currentState.eventItems,
-                                selectedEventIds = selectedEventIds,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(paddingValues)
-                            )
-                        } else {
-                            // Empty placeholder when searching - content is in the SearchBar
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(paddingValues)
-                            )
-                        }
+                                )
+                            },
+                            onEventItemSelection = { onInteraction(Interaction.Select(it)) },
+                            events = currentState.eventItems,
+                            selectedEventIds = selectedEventIds,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues)
+                        )
                     }
 
                     is State.ShowAddEventScreen -> {
@@ -230,8 +183,8 @@ private fun EventListImpl(
         // Apply animation offset to the bottom bar
         DraggableBottomBarWithFAB(
             onClick = { 
-                isSearching = !isSearching
-                onInteraction(Interaction.ToggleSearch) 
+                // Trigger search in MainScreen instead of locally
+                mainScreenSearchToggle()
             },
             onDragUp = { onInteraction(Interaction.AddEventItem) },
             onShowDeleted = { /* TODO: Implement show deleted events */ },
@@ -239,7 +192,7 @@ private fun EventListImpl(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .offset { IntOffset(0, bottomBarOffsetY.roundToInt()) },
-            fabPositionCallback = searchAnimState.updateSearchButtonPosition
+            fabPositionCallback = updateSearchButtonPosition // Pass position to parent for animation
         )
 
         // Show bottom sheet for add event screen
