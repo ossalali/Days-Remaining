@@ -1,8 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -41,6 +42,7 @@ android {
         buildConfig = true
     }
 
+    @Suppress("UnstableApiUsage")
     composeOptions {
         // Use the version that matches your Compose runtime libraries.
         kotlinCompilerExtensionVersion = "1.5.11"
@@ -80,8 +82,6 @@ dependencies {
     implementation(libs.accompanist.navigation.animation)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.androidx.glance.appwidget)
-
-    // Use these instead of Material 2
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui)
 
