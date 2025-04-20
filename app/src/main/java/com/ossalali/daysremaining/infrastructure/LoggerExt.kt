@@ -8,10 +8,8 @@ import com.ossalali.daysremaining.App
  */
 fun appLogger(): Logger {
     return try {
-        // Try to get the injected logger instance from the App
         App.getInstance().logger
-    } catch (e: Exception) {
-        // Fall back to the default logger if App is not initialized yet
+    } catch (_: Exception) {
         Logger.default
     }
 }
