@@ -36,11 +36,6 @@ class MainScreenViewModel @Inject constructor(
     // Current events
     private val _currentEventItems = MutableStateFlow<List<EventItem>>(emptyList())
 
-    // Dialog states
-    private val _showDeleteDialog = MutableStateFlow(false)
-
-    private val _showArchiveDialog = MutableStateFlow(false)
-
     // Initialize the view model by loading events
     init {
         loadEvents()

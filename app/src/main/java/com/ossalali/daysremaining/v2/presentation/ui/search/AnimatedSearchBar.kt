@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.ossalali.daysremaining.infrastructure.logError
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.v2.presentation.ui.EventSearchBar
 import kotlinx.coroutines.delay
@@ -64,7 +65,7 @@ fun AnimatedSearchBar(
                 focusRequester.requestFocus()
                 keyboardController?.show()
             } catch (e: IllegalStateException) {
-                // Ignore focus request errors - will try again when conditions are right
+                logError("SearchBar focus request failed", e)
             }
         } else if (!isSearching) {
             // Reset animation when search is closed
