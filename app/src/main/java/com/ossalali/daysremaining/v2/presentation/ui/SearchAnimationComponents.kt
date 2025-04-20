@@ -6,25 +6,25 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,18 +38,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.v2.presentation.ui.theme.Dimensions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import kotlin.math.roundToInt
 
 /**
@@ -204,7 +206,6 @@ class SearchAnimationState(
 /**
  * Displays the search bar with animation components
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimatedSearchBar(
     isSearching: Boolean,
@@ -256,59 +257,16 @@ fun AnimatedSearchBar(
             enter = fadeIn(animationSpec = tween(durationMillis = 100)),
             exit = fadeOut()
         ) {
-            SearchBar(
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = searchText,
-                        onQueryChange = onSearchTextChanged,
-                        onSearch = { /* Submit not needed, we filter as user types */ },
-                        expanded = isSearching,
-                        onExpandedChange = onSearchActiveChanged,
-                        placeholder = { Text("Search events") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                modifier = Modifier.clickable {
-                                    onSearchActiveChanged(false)
-                                    keyboardController?.hide()
-                                }
-                            )
-                        },
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search"
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                    )
-                },
-                expanded = isSearching,
-                onExpandedChange = onSearchActiveChanged,
+            EventSearchBar(
+                searchText = searchText,
+                isExpanded = isSearching,
+                onSearchTextChanged = onSearchTextChanged,
+                onExpandedChanged = onSearchActiveChanged,
+                filteredEvents = filteredEvents,
+                onEventClicked = onEventClicked,
+                focusRequester = focusRequester,
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                ) {
-                    items(filteredEvents) { event ->
-                        SearchEventItem(
-                            event = event,
-                            onClick = {
-                                onSearchActiveChanged(false)
-                                keyboardController?.hide()
-                                onEventClicked(event.id)
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-            }
+            )
         }
     }
 
@@ -335,12 +293,11 @@ private fun AnimatedSearchButton(
             .offset {
                 IntOffset(
                     // Center the expanding button within the search bar width
-                    x = (searchAnimState.searchBarPosition.x + (searchAnimState.searchBarSize.width - searchAnimState.searchButtonWidth.value) / 2).roundToInt(),
+                    x = 0,
                     y = (searchAnimState.searchButtonPosition.y + searchAnimState.searchButtonTranslationY.value).roundToInt()
                 )
             },
         shape = RoundedCornerShape(with(LocalDensity.current) { searchAnimState.searchButtonCornerRadius.value.toDp() }),
-        color = MaterialTheme.colorScheme.primaryContainer
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -362,6 +319,117 @@ private fun AnimatedSearchButton(
                     .size(24.dp)
                     .alpha(iconAlpha)
             )
+        }
+    }
+}
+
+/**
+ * Preview for testing the search animation
+ */
+@Preview(showBackground = true, heightDp = 600)
+@Composable
+fun SearchAnimationPreview() {
+    val searchAnimState = rememberSearchAnimationState()
+    var isSearching by remember { mutableStateOf(false) }
+    var searchText by remember { mutableStateOf("") }
+
+    // Sample event data for the preview
+    val sampleEvents = remember {
+        listOf(
+            EventItem(1, "Birthday", LocalDate.now().plusDays(1), "d1", false),
+            EventItem(2, "Anniversary", LocalDate.now().plusDays(2), "d2", false),
+            EventItem(3, "Vacation", LocalDate.now().plusDays(3), "d3", false),
+            EventItem(4, "Meeting", LocalDate.now().plusDays(4), "d4", false)
+        )
+    }
+
+    MaterialTheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                // Demo controls
+                Button(
+                    onClick = { isSearching = !isSearching },
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Text(if (isSearching) "Close Search" else "Open Search")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // The search bar to be tested
+                AnimatedSearchBar(
+                    isSearching = isSearching,
+                    searchText = searchText,
+                    onSearchTextChanged = { searchText = it },
+                    onSearchActiveChanged = { isSearching = it },
+                    searchAnimState = searchAnimState,
+                    filteredEvents = sampleEvents.filter {
+                        searchText.isEmpty() || it.title.contains(searchText, ignoreCase = true)
+                    },
+                    onEventClicked = { /* Preview only */ },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Position a fake search button for the animation to start from
+                // This helps to visualize where the animation will originate
+                if (!isSearching) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Dimensions.double),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                onClick = {},
+                                modifier = Modifier.padding(
+                                    start = Dimensions.half,
+                                    end = Dimensions.half
+                                )
+                            ) {
+                                Text("Deleted")
+                            }
+                            FloatingActionButton(
+                                onClick = { isSearching = true },
+                                modifier = Modifier
+                                    .onGloballyPositioned { coordinates ->
+                                        // Update the button position for the animation
+                                        searchAnimState.updateSearchButtonPosition(
+                                            coordinates.positionInRoot(),
+                                            coordinates.size
+                                        )
+                                    }
+                                    .padding(
+                                        start = Dimensions.half,
+                                        end = Dimensions.half
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search"
+                                )
+                            }
+                            Button(
+                                onClick = {},
+                                modifier = Modifier.padding(
+                                    start = Dimensions.half,
+                                    end = Dimensions.half
+                                )
+                            ) {
+                                Text("Archived")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 } 
