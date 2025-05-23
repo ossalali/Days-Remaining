@@ -14,31 +14,40 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
+import androidx.compose.material.icons.Icons // Added
+import androidx.compose.material.icons.filled.Done // Added
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api // Added
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon // Added
+import androidx.compose.material3.IconButton // Added
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar // Added
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope // Added
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+// import androidx.compose.ui.tooling.preview.Preview // Already commented out
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+// import androidx.hilt.navigation.compose.hiltViewModel // Already commented out
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.launch // Added
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class) // Added ExperimentalMaterial3Api
 @Composable
 fun WidgetPreferenceScreen(
-    viewModel: WidgetPreferenceScreenViewModel = hiltViewModel()
+    viewModel: WidgetPreferenceScreenViewModel
 ) {
     val systemUiController = rememberSystemUiController()
+    val scope = rememberCoroutineScope() // For launching suspend functions from compose
     val isDarkMode = isSystemInDarkTheme()
     val colorScheme = MaterialTheme.colorScheme
 
@@ -59,7 +68,21 @@ fun WidgetPreferenceScreen(
 
     Scaffold(
         topBar = {
-            // TODO: Implement TopAppBar
+            TopAppBar(
+                title = { Text("Widget Settings") },
+                actions = {
+                    IconButton(onClick = {
+                        scope.launch { // Launch the suspend function
+                            viewModel.saveSelectedEvents()
+                            // Optionally, finish activity or show a toast:
+                            // val activity = (context as? Activity)
+                            // activity?.finish()
+                        }
+                    }) {
+                        Icon(Icons.Filled.Done, contentDescription = "Save")
+                    }
+                }
+            )
         }
     ) { paddingValues ->
         if (inputEvents.isEmpty()) {
@@ -95,9 +118,7 @@ fun WidgetPreferenceScreen(
                             .padding(8.dp)
                             .combinedClickable(
                                 onClick = {
-                                    if (viewModel.selectedEventIds.isEmpty()) {
-                                        viewModel.toggleSelection(event.id)
-                                    }
+                                    viewModel.toggleSelection(event.id)
                                 },
                                 onClickLabel = "Event Selected",
 
@@ -148,8 +169,8 @@ fun WidgetPreferenceScreen(
     }
 }
 
-@Preview
-@Composable
-fun WidgetPreferenceScreenPreview() {
-    WidgetPreferenceScreen()
-}
+// @Preview
+// @Composable
+// fun WidgetPreferenceScreenPreview() {
+    // WidgetPreferenceScreen() // Preview will need a ViewModel instance
+// }

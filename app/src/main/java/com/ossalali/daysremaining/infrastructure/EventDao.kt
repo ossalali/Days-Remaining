@@ -40,4 +40,7 @@ interface EventDao {
 
     @Query("SELECT * FROM eventitem ORDER BY id DESC LIMIT 1")
     suspend fun getFirstEvent(): EventItem
+
+    @Query("SELECT * FROM eventitem WHERE id IN (:eventIds)")
+    suspend fun getEventsByIds(eventIds: List<Int>): List<EventItem>
 }

@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version "1.9.22" // Added Kotlin serialization plugin
 }
 
 android {
@@ -88,7 +89,25 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
 
     testImplementation(libs.junit)
+    // JUnit 4, if specifically needed alongside JUnit 5 (libs.junit.jupiter)
+    // testImplementation("junit:junit:4.13.2") 
+    // testImplementation("androidx.test.ext:junit:1.1.5") // For AndroidX Test extensions for JUnit
+
+    // Room testing
+    testImplementation("androidx.room:room-testing:2.6.1")
+
+    // Coroutines testing
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    // Mockito for testing
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // DataStore and Kotlinx Serialization
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }

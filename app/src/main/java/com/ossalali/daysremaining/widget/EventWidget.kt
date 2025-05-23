@@ -5,12 +5,15 @@ import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.appwidget.AppWidgetId // Added import
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import kotlinx.coroutines.flow.first // Added import
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -30,7 +33,19 @@ class EventWidget : GlanceAppWidget() {
             WidgetRepositoryEntryPoint::class.java
         )
         val eventRepo = widgetEntryPoint.eventRepo()
-        val event = eventRepo.getFirstEvent()
+        val widgetDataStore = widgetEntryPoint.widgetDataStore() // Get WidgetDataStore
+
+        // Get the current appWidgetId from the GlanceId
+        val currentAppWidgetId = (id as AppWidgetId).appWidgetId
+
+        // Get selected event IDs from DataStore
+        val selectedEventIds = widgetDataStore.getSelectedEventIds(currentAppWidgetId).first()
+        
+        val events = if (selectedEventIds.isNotEmpty()) {
+            eventRepo.getEventsByIds(selectedEventIds)
+        } else {
+            emptyList()
+        }
 
         provideContent {
             val colorProvider = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -39,14 +54,14 @@ class EventWidget : GlanceAppWidget() {
                 WidgetColorScheme.colors
             }
             GlanceTheme(colors = colorProvider) {
-                WidgetContent(event)
+                WidgetContent(events) // Pass the list of events
             }
         }
     }
 }
 
 @Composable
-fun WidgetContent(eventItem: EventItem) {
+fun WidgetContent(eventItems: List<EventItem>) { // Changed parameter
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -61,24 +76,39 @@ fun WidgetContent(eventItem: EventItem) {
                 .cornerRadius(8.dp)
                 .background(GlanceTheme.colors.widgetBackground)
         ) {
-            Column {
+            if (eventItems.isEmpty()) {
                 Text(
-                    text = eventItem.title,
-                    style = TextStyle(fontSize = 12.sp),
-                    maxLines = 1
+                    text = "No events selected. Configure widget.", 
+                    style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurface)
                 )
-                Row {
-                    Text(
-                        text = eventItem.getNumberOfDays().toString(),
-                        style = TextStyle(fontSize = 36.sp, fontWeight = FontWeight.Bold),
-                        maxLines = 1
-                    )
-                    Text(
-                        text = "d",
-                        style = TextStyle(fontSize = 12.sp),
-                        modifier = GlanceModifier.padding(start = 4.dp),
-                        maxLines = 1
-                    )
+            } else {
+                Column { // Display items in a Column
+                    eventItems.forEach { eventItem ->
+                        // Display logic for each event item
+                        Text(
+                            text = eventItem.title,
+                            style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurface),
+                            maxLines = 1
+                        )
+                        Row {
+                            Text(
+                                text = eventItem.getNumberOfDays().toString(),
+                                // Adjusted font size for multiple items
+                                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, color = GlanceTheme.colors.onSurface), 
+                                maxLines = 1
+                            )
+                            Text(
+                                text = "d",
+                                style = TextStyle(fontSize = 10.sp, color = GlanceTheme.colors.onSurface),
+                                modifier = GlanceModifier.padding(start = 2.dp), // Adjusted padding
+                                maxLines = 1
+                            )
+                        }
+                        // Simple visual separation if needed, can be a line or just padding
+                        // For now, let's assume the natural spacing of Column is enough,
+                        // or add a small padding at the bottom of the Row/Column for each item if necessary
+                        // androidx.glance.layout.Spacer(modifier = GlanceModifier.height(4.dp)) // Uncomment if needed
+                    }
                 }
             }
         }
