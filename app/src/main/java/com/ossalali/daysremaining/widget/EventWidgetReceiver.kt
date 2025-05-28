@@ -32,34 +32,10 @@ class EventWidgetReceiver : GlanceAppWidgetReceiver() {
             Log.d("EventWidgetReceiver", "Received action $ACTION_FORCE_WIDGET_UPDATE for appWidgetId: $appWidgetId")
 
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                // Launch a coroutine to perform the update, as GlanceAppWidget.update is suspend.
-                // Using the existing 'coroutineScope' defined in the class (Dispatchers.IO)
-                coroutineScope.launch {
-                    try {
-                        Log.d("EventWidgetReceiver", "Processing force update for appWidgetId: $appWidgetId")
-                        val glanceManager = GlanceAppWidgetManager(context)
-                        val glanceId = glanceManager.getGlanceIdBy(appWidgetId)
-                        
-                        // Option 1: Direct update (similar to what was in activity)
-                        // Add a small delay as DataStore operations might need it.
-                        // The save in ViewModel happens, then a signal to Activity, then Activity broadcasts.
-                        // A small delay here can help ensure data is visible.
-                        delay(500) // Increased delay before reading/updating
-                        glanceAppWidget.update(context, glanceId)
-                        Log.d("EventWidgetReceiver", "Force update call 1 for $glanceId completed.")
-                        delay(100) // Second update with delay, this one can remain 100
-                        glanceAppWidget.update(context, glanceId)
-                        Log.d("EventWidgetReceiver", "Force update call 2 for $glanceId completed.")
-
-                        // Option 2: Delegate to onUpdate (might be simpler if complex logic exists in onUpdate)
-                        // val appWidgetManager = AppWidgetManager.getInstance(context)
-                        // this.onUpdate(context, appWidgetManager, intArrayOf(appWidgetId))
-                        // Log.d("EventWidgetReceiver", "Delegated force update to onUpdate for appWidgetId: $appWidgetId")
-
-                    } catch (e: Exception) {
-                        Log.e("EventWidgetReceiver", "Error during force update for widget $appWidgetId: ${e.message}", e)
-                    }
-                }
+                Log.d("EventWidgetReceiver", "Action matched. Delegating to onUpdate for appWidgetId: $appWidgetId")
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                // 'this' is implicit, but can be added for clarity if preferred:
+                onUpdate(context, appWidgetManager, intArrayOf(appWidgetId)) 
             } else {
                 Log.w("EventWidgetReceiver", "Invalid appWidgetId received for force update.")
             }
