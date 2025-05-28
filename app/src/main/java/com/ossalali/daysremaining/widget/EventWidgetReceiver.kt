@@ -2,6 +2,7 @@ package com.ossalali.daysremaining.widget
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -16,6 +17,58 @@ class EventWidgetReceiver : GlanceAppWidgetReceiver() {
 
     // Optional: Add a CoroutineScope for any background work if needed, though usually handled by Glance.
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
+    companion object {
+        const val ACTION_FORCE_WIDGET_UPDATE = "com.ossalali.daysremaining.widget.action.FORCE_WIDGET_UPDATE"
+        const val EXTRA_APP_WIDGET_ID = "com.ossalali.daysremaining.widget.extra.APP_WIDGET_ID"
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        val action = intent.action
+        Log.d("EventWidgetReceiver", "onReceive called with action: $action")
+
+        if (ACTION_FORCE_WIDGET_UPDATE == action) {
+            val appWidgetId = intent.getIntExtra(EXTRA_APP_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+            Log.d("EventWidgetReceiver", "Received action $ACTION_FORCE_WIDGET_UPDATE for appWidgetId: $appWidgetId")
+
+            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                // Launch a coroutine to perform the update, as GlanceAppWidget.update is suspend.
+                // Using the existing 'coroutineScope' defined in the class (Dispatchers.IO)
+                coroutineScope.launch {
+                    try {
+                        Log.d("EventWidgetReceiver", "Processing force update for appWidgetId: $appWidgetId")
+                        val glanceManager = GlanceAppWidgetManager(context)
+                        val glanceId = glanceManager.getGlanceIdBy(appWidgetId)
+                        
+                        // Option 1: Direct update (similar to what was in activity)
+                        // Add a small delay as DataStore operations might need it.
+                        // The save in ViewModel happens, then a signal to Activity, then Activity broadcasts.
+                        // A small delay here can help ensure data is visible.
+                        delay(100) // Small delay before reading/updating
+                        glanceAppWidget.update(context, glanceId)
+                        Log.d("EventWidgetReceiver", "Force update call 1 for $glanceId completed.")
+                        delay(100) // Second update with delay
+                        glanceAppWidget.update(context, glanceId)
+                        Log.d("EventWidgetReceiver", "Force update call 2 for $glanceId completed.")
+
+                        // Option 2: Delegate to onUpdate (might be simpler if complex logic exists in onUpdate)
+                        // val appWidgetManager = AppWidgetManager.getInstance(context)
+                        // this.onUpdate(context, appWidgetManager, intArrayOf(appWidgetId))
+                        // Log.d("EventWidgetReceiver", "Delegated force update to onUpdate for appWidgetId: $appWidgetId")
+
+                    } catch (e: Exception) {
+                        Log.e("EventWidgetReceiver", "Error during force update for widget $appWidgetId: ${e.message}", e)
+                    }
+                }
+            } else {
+                Log.w("EventWidgetReceiver", "Invalid appWidgetId received for force update.")
+            }
+        } else {
+            // Important: Call super.onReceive for all other actions to ensure Glance internal
+            // communication and other widget lifecycle events are handled.
+            super.onReceive(context, intent)
+        }
+    }
 
     override fun onUpdate(
         context: Context,

@@ -2,6 +2,7 @@ package com.ossalali.daysremaining.widget
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -82,18 +83,22 @@ class WidgetPreferenceActivity : ComponentActivity() {
 
     // Inside WidgetPreferenceActivity class
     private suspend fun triggerWidgetUpdateNow() {
-        Log.d("WidgetPrefActivity", "Triggering immediate widget update for $appWidgetId")
+        Log.d("WidgetPrefActivity", "Requesting immediate widget update for $appWidgetId via broadcast.")
         try {
-            delay(250) // Added delay for DataStore persistence
+            // Keep this delay to allow DataStore changes from ViewModel to settle before
+            // the broadcast is handled and widget attempts to read.
+            delay(250) 
 
-            val glanceId = GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
-            EventWidget().update(this@WidgetPreferenceActivity, glanceId)
-            // Add a second update after a short delay to ensure changes are applied
-            delay(100) // Using the same delay as in finishWithSuccess
-            EventWidget().update(this@WidgetPreferenceActivity, glanceId)
-            Log.d("WidgetPrefActivity", "Immediate widget update for $appWidgetId completed.")
+            val intent = Intent(EventWidgetReceiver.ACTION_FORCE_WIDGET_UPDATE).apply {
+                putExtra(EventWidgetReceiver.EXTRA_APP_WIDGET_ID, appWidgetId)
+                // Explicitly target the receiver for this broadcast
+                component = ComponentName(this@WidgetPreferenceActivity, EventWidgetReceiver::class.java)
+            }
+            sendBroadcast(intent)
+            Log.d("WidgetPrefActivity", "Broadcast sent for immediate widget update for appWidgetId $appWidgetId.")
+
         } catch (e: Exception) {
-            Log.e("WidgetPrefActivity", "Error during immediate widget update for $appWidgetId: ${e.message}", e)
+            Log.e("WidgetPrefActivity", "Error sending broadcast for immediate widget update for $appWidgetId: ${e.message}", e)
         }
     }
 

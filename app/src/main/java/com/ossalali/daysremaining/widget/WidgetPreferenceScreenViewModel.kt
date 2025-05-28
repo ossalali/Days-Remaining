@@ -11,9 +11,10 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.infrastructure.EventRepo
+import com.ossalali.daysremaining.model.EventItem
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import com.ossalali.daysremaining.model.EventItem
+import kotlinx.coroutines.flow.firstOrNull
 import com.ossalali.daysremaining.widget.datastore.WidgetDataStore
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -41,6 +42,23 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
         Log.d("ViewModel", "appWidgetId: $appWidgetId, options: $appWidgetOptions")
         maxEventsAllowed = getMaxEvents(appWidgetOptions)
         Log.d("ViewModel", "Max events allowed: $maxEventsAllowed")
+
+        // Load previously selected event IDs
+        viewModelScope.launch {
+            Log.d("ViewModel", "Initializing selectedEventIds for widget $appWidgetId")
+            val previouslySelectedIds = widgetDataStore.getSelectedEventIds(appWidgetId).firstOrNull()
+            if (!previouslySelectedIds.isNullOrEmpty()) {
+                Log.d("ViewModel", "Found previously selected IDs: $previouslySelectedIds for widget $appWidgetId")
+                // Ensure operations on _selectedEventIds are thread-safe if needed,
+                // though viewModelScope typically runs on Main.
+                // For mutableStateListOf, direct modification should be fine from a single thread context.
+                _selectedEventIds.clear()
+                _selectedEventIds.addAll(previouslySelectedIds)
+                Log.d("ViewModel", "Initialized _selectedEventIds to: ${_selectedEventIds.toList()} for widget $appWidgetId")
+            } else {
+                Log.d("ViewModel", "No previously selected IDs found for widget $appWidgetId or list was empty.")
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
