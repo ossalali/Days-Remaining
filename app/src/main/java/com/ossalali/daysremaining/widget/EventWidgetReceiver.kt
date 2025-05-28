@@ -44,10 +44,10 @@ class EventWidgetReceiver : GlanceAppWidgetReceiver() {
                         // Add a small delay as DataStore operations might need it.
                         // The save in ViewModel happens, then a signal to Activity, then Activity broadcasts.
                         // A small delay here can help ensure data is visible.
-                        delay(100) // Small delay before reading/updating
+                        delay(500) // Increased delay before reading/updating
                         glanceAppWidget.update(context, glanceId)
                         Log.d("EventWidgetReceiver", "Force update call 1 for $glanceId completed.")
-                        delay(100) // Second update with delay
+                        delay(100) // Second update with delay, this one can remain 100
                         glanceAppWidget.update(context, glanceId)
                         Log.d("EventWidgetReceiver", "Force update call 2 for $glanceId completed.")
 
