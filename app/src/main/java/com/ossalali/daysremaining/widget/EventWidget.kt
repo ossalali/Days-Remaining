@@ -35,15 +35,30 @@ class EventWidget : GlanceAppWidget() {
         val eventRepo = widgetEntryPoint.eventRepo()
         val widgetDataStore = widgetEntryPoint.widgetDataStore() // Get WidgetDataStore
 
-        // Get the current appWidgetId from the GlanceId
-        val currentAppWidgetId = (id as AppWidgetId).appWidgetId
+        // Get the current appWidgetId from the GlanceId more safely
+        val appWidgetIdFromGlance = (id as? AppWidgetId)?.appWidgetId
+        if (appWidgetIdFromGlance == null) {
+            android.util.Log.e("EventWidget", "GlanceId $id is not an AppWidgetId or could not be resolved. Cannot provide glance.")
+            // Optionally provide an error UI if necessary, e.g.:
+            // provideContent { ErrorUi("Widget ID Error") }
+            return
+        }
+        val currentAppWidgetId = appWidgetIdFromGlance
+        android.util.Log.d("EventWidget", "Providing glance for appWidgetId: $currentAppWidgetId (GlanceId: $id)")
 
         // Get selected event IDs from DataStore
         val selectedEventIds = widgetDataStore.getSelectedEventIds(currentAppWidgetId).first()
+        android.util.Log.d("EventWidget", "Selected event IDs for widget $currentAppWidgetId: $selectedEventIds")
         
         val events = if (selectedEventIds.isNotEmpty()) {
-            eventRepo.getEventsByIds(selectedEventIds)
+            val retrievedEvents = eventRepo.getEventsByIds(selectedEventIds)
+            android.util.Log.d("EventWidget", "Retrieved ${retrievedEvents.size} events for widget $currentAppWidgetId")
+            retrievedEvents.forEach { event ->
+                android.util.Log.d("EventWidget", "Event: ${event.title} (ID: ${event.id})")
+            }
+            retrievedEvents
         } else {
+            android.util.Log.d("EventWidget", "No events selected for widget $currentAppWidgetId")
             emptyList()
         }
 

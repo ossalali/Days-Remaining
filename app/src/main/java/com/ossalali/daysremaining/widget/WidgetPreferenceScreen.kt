@@ -85,10 +85,20 @@ fun WidgetPreferenceScreen(
                 title = { Text("Widget Settings") },
                 actions = {
                     IconButton(onClick = {
+                        Log.d(
+                            "WidgetPreferenceScreen",
+                            "Save button clicked, selected events: ${viewModel.selectedEventIds}"
+                        )
                         scope.launch { // Launch the suspend function
-                            viewModel.saveSelectedEvents()
-                            // Call the callback to finish the activity properly
-                            onSaveComplete()
+                            try {
+                                Log.d("WidgetPreferenceScreen", "About to save selected events")
+                                viewModel.saveSelectedEvents()
+                                Log.d("WidgetPreferenceScreen", "Save completed successfully")
+                                // Call the callback to finish the activity properly
+                                onSaveComplete()
+                            } catch (e: Exception) {
+                                Log.e("WidgetPreferenceScreen", "Error saving events: ${e.message}")
+                            }
                         }
                     }) {
                         Icon(Icons.Filled.Done, contentDescription = "Save")
@@ -121,6 +131,10 @@ fun WidgetPreferenceScreen(
                     key = { event -> event.id }
                 ) { event ->
                     val isSelected = viewModel.selectedEventIds.contains(event.id)
+                    Log.d(
+                        "WidgetPreferenceScreen",
+                        "Composing event ${event.id}, isSelected: $isSelected, selectedIds: ${viewModel.selectedEventIds}"
+                    )
                     Card(
                         border = if (isSelected) {
                             BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
@@ -133,7 +147,15 @@ fun WidgetPreferenceScreen(
                             .padding(8.dp)
                             .combinedClickable(
                                 onClick = {
+                                    Log.d(
+                                        "WidgetPreferenceScreen",
+                                        "Event clicked: ${event.id}, current selection: ${viewModel.selectedEventIds}"
+                                    )
                                     viewModel.toggleSelection(event.id)
+                                    Log.d(
+                                        "WidgetPreferenceScreen",
+                                        "After toggle, selection: ${viewModel.selectedEventIds}"
+                                    )
                                 },
                                 onClickLabel = "Event Selected",
 

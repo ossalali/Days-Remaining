@@ -7,6 +7,7 @@ import android.util.Log
 import android.util.SizeF
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.infrastructure.EventRepo
@@ -110,7 +111,7 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
     }
 
     private val _selectedEventIds = mutableStateListOf<Int>()
-    val selectedEventIds: List<Int> get() = _selectedEventIds
+    val selectedEventIds: SnapshotStateList<Int> get() = _selectedEventIds
 
     fun toggleSelection(eventId: Int) {
         if (_selectedEventIds.contains(eventId)) {
@@ -127,14 +128,13 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
         }
     }
 
-    fun saveSelectedEvents() {
+    suspend fun saveSelectedEvents() {
         if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-            viewModelScope.launch {
-                widgetDataStore.saveSelectedEventIds(appWidgetId, selectedEventIds.toList())
-                Log.d("ViewModel", "Saved selected event IDs for widget $appWidgetId: $selectedEventIds")
-                // TODO: Add logic to trigger widget update after saving (e.g. send broadcast)
-                // TODO: Add logic to finish activity after saving
-            }
+            widgetDataStore.saveSelectedEventIds(appWidgetId, selectedEventIds.toList())
+            Log.d(
+                "ViewModel",
+                "Saved selected event IDs for widget $appWidgetId: $selectedEventIds"
+            )
         } else {
             Log.w("ViewModel", "Cannot save selected events, appWidgetId is invalid.")
         }
