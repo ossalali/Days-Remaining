@@ -62,12 +62,36 @@ class WidgetPreferenceActivity : ComponentActivity() {
             }
         }
 
+        // Inside onCreate method, after viewModel is initialized:
+
+        lifecycleScope.launch {
+            viewModel.widgetUpdateRequest.collect {
+                Log.d("WidgetPrefActivity", "Received request for immediate widget update.")
+                triggerWidgetUpdateNow()
+            }
+        }
+
         setContent {
             // Pass the ViewModel instance and a callback to finish the activity
             WidgetPreferenceScreen(
                 viewModel = viewModel,
                 onSaveComplete = { finishWithSuccess() }
             )
+        }
+    }
+
+    // Inside WidgetPreferenceActivity class
+    private suspend fun triggerWidgetUpdateNow() {
+        Log.d("WidgetPrefActivity", "Triggering immediate widget update for $appWidgetId")
+        try {
+            val glanceId = GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
+            EventWidget().update(this@WidgetPreferenceActivity, glanceId)
+            // Add a second update after a short delay to ensure changes are applied
+            delay(100) // Using the same delay as in finishWithSuccess
+            EventWidget().update(this@WidgetPreferenceActivity, glanceId)
+            Log.d("WidgetPrefActivity", "Immediate widget update for $appWidgetId completed.")
+        } catch (e: Exception) {
+            Log.e("WidgetPrefActivity", "Error during immediate widget update for $appWidgetId: ${e.message}", e)
         }
     }
 

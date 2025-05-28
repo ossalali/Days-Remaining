@@ -11,6 +11,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.infrastructure.EventRepo
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.widget.datastore.WidgetDataStore
 import dagger.assisted.Assisted
@@ -28,6 +30,10 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
     @Assisted val appWidgetId: Int,
     @Assisted val appWidgetOptions: Bundle?
 ) : ViewModel() {
+
+    // Inside WidgetPreferenceScreenViewModel class
+    private val _widgetUpdateRequest = MutableSharedFlow<Unit>() // Use default replay and extraBufferCapacity
+    val widgetUpdateRequest = _widgetUpdateRequest.asSharedFlow()
 
     internal val maxEventsAllowed: Int // Changed to internal for testing
 
@@ -143,5 +149,14 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(appWidgetId: Int, appWidgetOptions: Bundle?): WidgetPreferenceScreenViewModel
+    }
+
+    // Inside WidgetPreferenceScreenViewModel class
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU) // Ensure this annotation is present if not already on the class
+    suspend fun toggleSelectionAndRequestUpdate(eventId: Int) {
+        toggleSelection(eventId) // Call existing selection logic
+        saveSelectedEvents()     // Save immediately
+        _widgetUpdateRequest.emit(Unit) // Signal that an update is needed
+        Log.d("ViewModel", "Requested widget update after toggling event $eventId")
     }
 }

@@ -151,10 +151,18 @@ fun WidgetPreferenceScreen(
                                         "WidgetPreferenceScreen",
                                         "Event clicked: ${event.id}, current selection: ${viewModel.selectedEventIds}"
                                     )
-                                    viewModel.toggleSelection(event.id)
+                                    // Launch a coroutine to call the suspend function
+                                    scope.launch {
+                                        viewModel.toggleSelectionAndRequestUpdate(event.id)
+                                    }
+                                    // The "After toggle" log might be slightly less immediate here if execution yields,
+                                    // but the important logging is now within toggleSelectionAndRequestUpdate.
+                                    // We can keep a simplified version or rely on ViewModel logs.
+                                    // For clarity, let's adjust the logging slightly or confirm it's sufficient from ViewModel.
+                                    // The ViewModel's Log.d in toggleSelectionAndRequestUpdate should cover the "after" state.
                                     Log.d(
                                         "WidgetPreferenceScreen",
-                                        "After toggle, selection: ${viewModel.selectedEventIds}"
+                                        "Requested update for event: ${event.id}. Current selection (may be async): ${viewModel.selectedEventIds}"
                                     )
                                 },
                                 onClickLabel = "Event Selected",
