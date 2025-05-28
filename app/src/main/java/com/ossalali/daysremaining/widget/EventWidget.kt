@@ -8,12 +8,11 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.appwidget.AppWidgetId // Added import
+import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import kotlinx.coroutines.flow.first // Added import
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -25,9 +24,10 @@ import androidx.glance.text.TextStyle
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.widget.di.WidgetRepositoryEntryPoint
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.flow.first
 
 class EventWidget : GlanceAppWidget() {
-    override suspend fun provideGlance(context: Context, id: androidx.glance.GlanceId) {
+    override suspend fun provideGlance(context: Context, id: GlanceId) {
         val widgetEntryPoint = EntryPointAccessors.fromApplication(
             context.applicationContext,
             WidgetRepositoryEntryPoint::class.java

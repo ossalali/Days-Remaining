@@ -1,3 +1,5 @@
+package com.ossalali.daysremaining.widget.datastore
+
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -6,14 +8,15 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.SerializationException // Added for specific exception handling
+import javax.inject.Inject
 
 // Define the DataStore instance at the top level of the file
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "widget_preferences")
 
-class WidgetDataStore(private val context: Context) {
+class WidgetDataStore @Inject constructor(private val context: Context) {
 
     private fun selectedEventsKey(appWidgetId: Int) = stringPreferencesKey("selected_events_for_widget_$appWidgetId")
 

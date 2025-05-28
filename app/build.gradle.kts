@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
-    kotlin("plugin.serialization") version "1.9.22" // Added Kotlin serialization plugin
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -43,7 +43,6 @@ android {
         buildConfig = true
     }
 
-    @Suppress("UnstableApiUsage")
     composeOptions {
         // Use the version that matches your Compose runtime libraries.
         kotlinCompilerExtensionVersion = "1.5.11"
@@ -94,20 +93,20 @@ dependencies {
     // testImplementation("androidx.test.ext:junit:1.1.5") // For AndroidX Test extensions for JUnit
 
     // Room testing
-    testImplementation("androidx.room:room-testing:2.6.1")
+    testImplementation(libs.androidx.room.testing)
 
     // Coroutines testing
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // Mockito for testing
-    testImplementation("org.mockito:mockito-core:5.11.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
 
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
     // DataStore and Kotlinx Serialization
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.kotlinx.serialization.json)
 }

@@ -1,8 +1,8 @@
 [versions]
 accompanistSystemuicontroller = "0.31.2-alpha"
 accompanistNavigationAnimation = "0.31.2-alpha"
-agp = "8.9.1"
-composeBom = "2025.04.00"
+agp = "8.9.3"
+composeBom = "2025.05.01"
 glanceAppwidget = "1.1.1"
 hiltAndroid = "2.56.2"
 hiltAndroidCompiler = "2.56.2"
@@ -17,17 +17,23 @@ appcompat = "1.7.0"
 material = "1.12.0"
 activity = "1.10.1"
 constraintlayout = "2.2.1"
-material3 = "1.4.0-alpha12"
+material3 = "1.4.0-alpha15"
 materialIconsExtended = "1.7.8"
-roomCompiler = "2.7.0"
-runtimeAndroid = "1.7.8"
-foundationLayoutAndroid = "1.7.8"
-uiToolingPreview = "1.7.8"
-roomCommon = "2.7.0"
-roomKtx = "2.7.0"
+roomCompiler = "2.7.1"
+runtimeAndroid = "1.8.2"
+foundationLayoutAndroid = "1.8.2"
+uiToolingPreview = "1.8.2"
+roomCommon = "2.7.1"
+roomKtx = "2.7.1"
 junitJupiter = "5.8.1"
-composeFoundation = "1.7.8"
-composeUi = "1.7.8"
+composeFoundation = "1.8.2"
+composeUi = "1.8.2"
+roomTesting = "2.6.1"
+coroutinesTest = "1.7.3"
+mockitoCore = "5.11.0"
+mockitoKotlin = "5.2.1"
+datastorePreferences = "1.1.1"
+kotlinxSerializationJson = "1.6.3"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -57,6 +63,12 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "composeFoundation" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "composeUi" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "roomTesting" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoCore" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -64,3 +76,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 class EventRepo(private val eventDao: EventDao) {
     val allEventsAsFlow: Flow<List<EventItem>> = eventDao.getAllEventsAsFlow()
+    val allActiveEventsAsFlow: Flow<List<EventItem>> = eventDao.getAllActiveEventsAsFlow()
 
     suspend fun getAllEvents(): List<EventItem> {
         return eventDao.getAllEvents()

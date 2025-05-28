@@ -5,25 +5,25 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.SizeF
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.infrastructure.EventRepo
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.widget.datastore.WidgetDataStore // Added import
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.ossalali.daysremaining.widget.datastore.WidgetDataStore
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch // Added import
+import kotlinx.coroutines.launch
 
-@HiltViewModel(assisted = true)
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class WidgetPreferenceScreenViewModel @AssistedInject constructor(
     private val eventRepo: EventRepo,
-    private val widgetDataStore: WidgetDataStore, // Injected WidgetDataStore
+    private val widgetDataStore: WidgetDataStore,
     @Assisted val appWidgetId: Int,
     @Assisted val appWidgetOptions: Bundle?
 ) : ViewModel() {
@@ -36,6 +36,7 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
         Log.d("ViewModel", "Max events allowed: $maxEventsAllowed")
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun getMaxEvents(options: Bundle?): Int {
         if (options == null) {
             Log.d("ViewModel", "AppWidgetOptions is null, defaulting to 8 events.")
@@ -43,24 +44,34 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
         }
 
         // Threshold in dp for determining small widget
-        val heightThresholdDp = 100 
+        val heightThresholdDp = 100
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val sizes = options.getParcelableArrayList<SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES, SizeF::class.java)
-            if (sizes != null && sizes.isNotEmpty()) {
-                Log.d("ViewModel", "Using OPTION_APPWIDGET_SIZES. Sizes: $sizes")
-                for (size in sizes) {
-                    // Assuming size.height is in dp as per documentation for SizeF for widgets
-                    if (size.height < heightThresholdDp) {
-                        Log.d("ViewModel", "Small widget detected by OPTION_APPWIDGET_SIZES (height: ${size.height}dp), maxEvents = 2")
-                        return 2
-                    }
+        val sizes = options.getParcelableArrayList(
+            AppWidgetManager.OPTION_APPWIDGET_SIZES,
+            SizeF::class.java
+        )
+        if (!sizes.isNullOrEmpty()) {
+            Log.d("ViewModel", "Using OPTION_APPWIDGET_SIZES. Sizes: $sizes")
+            for (size in sizes) {
+                // Assuming size.height is in dp as per documentation for SizeF for widgets
+                if (size.height < heightThresholdDp) {
+                    Log.d(
+                        "ViewModel",
+                        "Small widget detected by OPTION_APPWIDGET_SIZES (height: ${size.height}dp), maxEvents = 2"
+                    )
+                    return 2
                 }
-                Log.d("ViewModel", "Widget not considered small by OPTION_APPWIDGET_SIZES, maxEvents = 8")
-                return 8
-            } else {
-                Log.d("ViewModel", "OPTION_APPWIDGET_SIZES is null or empty, falling back to MIN_HEIGHT.")
             }
+            Log.d(
+                "ViewModel",
+                "Widget not considered small by OPTION_APPWIDGET_SIZES, maxEvents = 8"
+            )
+            return 8
+        } else {
+            Log.d(
+                "ViewModel",
+                "OPTION_APPWIDGET_SIZES is null or empty, falling back to MIN_HEIGHT."
+            )
         }
 
         // Fallback for older APIs or if SIZES API didn't provide data
@@ -77,11 +88,25 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
 
 
     fun getEvents(): StateFlow<List<EventItem>> {
-        return eventRepo.allEventsAsFlow.stateIn(
+        Log.d("ViewModel", "getEvents() called, setting up StateFlow")
+        return eventRepo.allActiveEventsAsFlow.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
-        )
+        ).also { stateFlow ->
+            // Add logging to track when events are emitted
+            viewModelScope.launch {
+                stateFlow.collect { events ->
+                    Log.d("ViewModel", "Events collected: ${events.size} events")
+                    events.forEachIndexed { index, event ->
+                        Log.d(
+                            "ViewModel",
+                            "Event $index: ${event.title} (id=${event.id}, archived=${event.isArchived})"
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private val _selectedEventIds = mutableStateListOf<Int>()
