@@ -2,18 +2,18 @@ package com.ossalali.daysremaining.widget
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels // Add this
-import androidx.lifecycle.ViewModel // Add this
-import androidx.lifecycle.ViewModelProvider // Add this
-import androidx.lifecycle.lifecycleScope
+import androidx.activity.viewModels
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -78,42 +78,30 @@ class WidgetPreferenceActivity : ComponentActivity() {
         }
         setResult(Activity.RESULT_OK, resultValue)
 
-        // Update the specific widget using Glance
         lifecycleScope.launch {
             try {
-                val glanceAppWidgetManager = GlanceAppWidgetManager(this@WidgetPreferenceActivity)
-                val eventWidget = EventWidget()
+                // Wait for DataStore save to complete
+                delay(200)
 
-                // Get the specific glance ID for this app widget ID
-                val glanceIds = glanceAppWidgetManager.getGlanceIds(EventWidget::class.java)
-                val targetGlanceId = glanceIds.find { glanceId ->
-                    (glanceId as? androidx.glance.appwidget.AppWidgetId)?.appWidgetId == appWidgetId
-                }
+                Log.d("WidgetPrefActivity", "Updating widget $appWidgetId")
 
-                if (targetGlanceId != null) {
-                    eventWidget.update(this@WidgetPreferenceActivity, targetGlanceId)
-                    Log.d("WidgetPrefActivity", "Widget $appWidgetId updated successfully")
-                } else {
-                    Log.w("WidgetPrefActivity", "Could not find glance ID for widget $appWidgetId")
-                    // Fallback: update all widgets
-                    glanceIds.forEach { glanceId ->
-                        eventWidget.update(this@WidgetPreferenceActivity, glanceId)
-                    }
-                }
+                // Update only the specific widget that was configured
+                val glanceId =
+                    GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
+                EventWidget().update(this@WidgetPreferenceActivity, glanceId)
 
-                // Send broadcast to update the widget
-                val appWidgetManager = AppWidgetManager.getInstance(this@WidgetPreferenceActivity)
-                val updateIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
-                // Explicitly target our receiver
-                updateIntent.component = ComponentName(this@WidgetPreferenceActivity, EventWidgetReceiver::class.java)
-                updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
-                sendBroadcast(updateIntent)
-                Log.d("WidgetPrefActivity", "Sent widget update broadcast for widget $appWidgetId to ${updateIntent.component}")
+                // Add a second update after a short delay to ensure changes are applied
+                delay(100)
+                EventWidget().update(this@WidgetPreferenceActivity, glanceId)
 
+                Log.d("WidgetPrefActivity", "Widget update completed successfully")
+                
             } catch (e: Exception) {
-                Log.e("WidgetPrefActivity", "Error updating widget: ${e.message}")
+                Log.e("WidgetPrefActivity", "Error during widget update: ${e.message}", e)
             } finally {
-                // Ensure we finish the activity even if widget update fails
+                // Small final delay before finishing
+                delay(100)
+                Log.d("WidgetPrefActivity", "Finishing WidgetPreferenceActivity")
                 finish()
             }
         }
