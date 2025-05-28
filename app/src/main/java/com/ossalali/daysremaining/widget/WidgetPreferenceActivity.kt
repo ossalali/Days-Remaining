@@ -84,6 +84,8 @@ class WidgetPreferenceActivity : ComponentActivity() {
     private suspend fun triggerWidgetUpdateNow() {
         Log.d("WidgetPrefActivity", "Triggering immediate widget update for $appWidgetId")
         try {
+            delay(250) // Added delay for DataStore persistence
+
             val glanceId = GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
             EventWidget().update(this@WidgetPreferenceActivity, glanceId)
             // Add a second update after a short delay to ensure changes are applied
