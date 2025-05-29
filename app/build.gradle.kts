@@ -9,7 +9,7 @@ plugins {
 
 android {
   namespace = "com.ossalali.daysremaining"
-  compileSdk = 35
+  compileSdk = 36
 
   defaultConfig {
     applicationId = "com.ossalali.daysremaining"
@@ -84,7 +84,6 @@ dependencies {
   implementation(libs.androidx.navigation3.ui)
   implementation(libs.androidx.navigation3.runtime)
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-  implementation(libs.androidx.material3.adaptive.navigation3)
   implementation(libs.kotlinx.serialization.core)
 
   debugImplementation(libs.androidx.ui.tooling)
