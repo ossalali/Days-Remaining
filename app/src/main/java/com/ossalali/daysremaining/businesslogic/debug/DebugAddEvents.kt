@@ -1,6 +1,6 @@
 package com.ossalali.daysremaining.businesslogic.debug
 
-import com.ossalali.daysremaining.presentation.topbar.appdrawer.DebugScreenViewModel
+import com.ossalali.daysremaining.presentation.viewmodel.DebugScreenViewModel
 import javax.inject.Inject
 
 class DebugAddEvents @Inject constructor() {
