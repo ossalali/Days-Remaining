@@ -47,7 +47,7 @@ import kotlin.math.roundToInt
 
 /** Main event list screen that displays a grid of events and handles search functionality */
 @Composable
-internal fun EventList(
+internal fun EventListScreen(
     modifier: Modifier = Modifier,
     viewModel: EventListViewModel = hiltViewModel(),
     navController: NavController,
