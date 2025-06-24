@@ -1,15 +1,15 @@
 package com.ossalali.daysremaining.infrastructure
 
 import androidx.room.Dao
-import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import com.ossalali.daysremaining.model.EventItem
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EventDao {
-    @Insert
-    fun insertEvent(eventItem: EventItem)
+    @Upsert
+    fun upsertEvent(eventItem: EventItem)
 
     @Query("SELECT * FROM eventitem WHERE isArchived = 0 order by id desc")
     fun getAllActiveEventsAsFlow(): Flow<List<EventItem>>
