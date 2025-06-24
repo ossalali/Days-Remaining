@@ -28,6 +28,20 @@ class EventDetailsViewModel @Inject constructor(
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
+    /**
+     * Permanently deletes the event with the given [eventId] from the database.
+     */
+    fun deleteEvent(eventId: Int) {
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                eventRepo.deleteEvents(listOf(eventId))
+                _event.value = null // Clear currently loaded event
+            } catch (_: Exception) {
+                // Log the exception if necessary
+            }
+        }
+    }
+
     fun loadEventById(eventId: Int) {
         viewModelScope.launch(ioDispatcher) {
             _isLoading.value = true
