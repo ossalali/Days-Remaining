@@ -168,7 +168,7 @@ fun MainScreen(
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
                     exitTransition = { fadeOut(animationSpec = tween(300)) }
                 ) {
-                    EventList(
+                    EventListScreen(
                         modifier = Modifier.fillMaxSize(),
                         viewModel = eventListViewModel,
                         navController = navController,
