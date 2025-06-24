@@ -46,7 +46,7 @@ import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 fun DraggableBottomBarWithFAB(
     onClick: () -> Unit,
     onDragUp: () -> Unit,
-    onShowDeleted: () -> Unit,
+    onShowSettings: () -> Unit,
     onShowArchived: () -> Unit,
     modifier: Modifier = Modifier,
     fabPositionCallback: ((Offset, IntSize) -> Unit)? = null
@@ -105,7 +105,7 @@ fun DraggableBottomBarWithFAB(
                 NavigationButton(
                     icon = Icons.Default.Delete,
                     label = "Deleted",
-                    onClick = onShowDeleted,
+                    onClick = onShowSettings,
                     modifier = Modifier.weight(1f)
                 )
 

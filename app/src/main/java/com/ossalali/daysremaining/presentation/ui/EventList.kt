@@ -171,7 +171,7 @@ private fun EventListImpl(
                 mainScreenSearchToggle()
             },
             onDragUp = { onInteraction(Interaction.AddEventItem) },
-            onShowDeleted = { /* TODO: Implement show deleted events */ },
+            onShowSettings = { /* TODO: Implement show settings */ },
             onShowArchived = { /* TODO: Implement show archived events */ },
             modifier =
                 Modifier
