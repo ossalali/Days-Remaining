@@ -32,7 +32,8 @@ fun EventsScreen(backStack: SnapshotStateList<Any>) {
                                     title = "NAV EXAMPLE",
                                     date = LocalDate.now().plusDays(12),
                                     description = "THIS IS THE NAV EXAMPLE EVENT"
-                                )
+                                ),
+                                paddingValues
                             )
                         )
                     }) {
