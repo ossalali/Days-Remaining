@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.IntOffset
@@ -31,7 +32,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Event
@@ -45,25 +45,19 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
-/**
- * Main event list screen that displays a grid of events and handles search functionality
- */
+/** Main event list screen that displays a grid of events and handles search functionality */
 @Composable
 internal fun EventList(
     modifier: Modifier = Modifier,
     viewModel: EventListViewModel = hiltViewModel(),
     navController: NavController,
     mainScreenSearchToggle: () -> Unit = {},
-    updateSearchButtonPosition: (Offset, IntSize) -> Unit = { _, _ -> }
+    updateSearchButtonPosition: (Offset, IntSize) -> Unit = { _, _ -> },
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.onInteraction(Interaction.Init)
-    }
+    LaunchedEffect(Unit) { viewModel.onInteraction(Interaction.Init) }
 
     LaunchedEffect(navController, viewModel) {
-        viewModel.navigationEvent.collect { route ->
-            navController.navigate(route)
-        }
+        viewModel.navigationEvent.collect { route -> navController.navigate(route) }
     }
 
     EventListImpl(
@@ -74,13 +68,11 @@ internal fun EventList(
         selectedEventIds = viewModel.selectedEventItemIds,
         currentEventItems = viewModel.currentEventItems,
         mainScreenSearchToggle = mainScreenSearchToggle,
-        updateSearchButtonPosition = updateSearchButtonPosition
+        updateSearchButtonPosition = updateSearchButtonPosition,
     )
 }
 
-/**
- * Implementation of the event list screen with all UI components
- */
+/** Implementation of the event list screen with all UI components */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventListImpl(
@@ -91,7 +83,7 @@ private fun EventListImpl(
     selectedEventIds: List<Int>,
     currentEventItems: List<EventItem>,
     mainScreenSearchToggle: () -> Unit = {},
-    updateSearchButtonPosition: (Offset, IntSize) -> Unit = { _, _ -> }
+    updateSearchButtonPosition: (Offset, IntSize) -> Unit = { _, _ -> },
 ) {
     CollectEvents(eventsFlow) { event: Event ->
         when (event) {
@@ -101,17 +93,16 @@ private fun EventListImpl(
     }
     val state by stateflow.collectAsState()
     val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = false,
-        confirmValueChange = { true }
-    )
+    val sheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = false, confirmValueChange = { true })
     var showBottomSheet by remember { mutableStateOf(false) }
 
     // Bottom bar animation - simplified without searchAnimState
-    val bottomBarOffsetY by animateFloatAsState(
+    val bottomBarOffsetY by
+    animateFloatAsState(
         targetValue = 0f,
         animationSpec = tween(durationMillis = 250, delayMillis = 0),
-        label = "BottomBarAnimation"
+        label = "BottomBarAnimation",
     )
 
     // Show bottom sheet when in AddEventScreen state
@@ -129,13 +120,14 @@ private fun EventListImpl(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = { },
+            topBar = {},
             bottomBar = {
-                // Always show the bottom bar placeholder to maintain layout consistency during animation
+                // Always show the bottom bar placeholder to maintain layout consistency during
+                // animation
                 Box(modifier = Modifier.height(Dimensions.quadruple)) {}
             },
             floatingActionButtonPosition = FabPosition.Center,
-            floatingActionButton = {}
+            floatingActionButton = {},
         ) { paddingValues ->
             Surface(modifier = modifier) {
                 when (val currentState = state) {
@@ -143,36 +135,28 @@ private fun EventListImpl(
                     is State.ShowEventsGrid -> {
                         EventListGrid(
                             onEventItemClick = { eventItemId ->
-                                onInteraction(
-                                    Interaction.OpenEventItemDetails(
-                                        eventItemId
-                                    )
-                                )
+                                onInteraction(Interaction.OpenEventItemDetails(eventItemId))
                             },
                             onEventItemSelection = { onInteraction(Interaction.Select(it)) },
                             events = currentState.eventItems,
                             selectedEventIds = selectedEventIds,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(paddingValues)
+                                .padding(paddingValues),
                         )
                     }
 
                     is State.ShowAddEventScreen -> {
                         EventListGrid(
                             onEventItemClick = { eventItemId ->
-                                onInteraction(
-                                    Interaction.OpenEventItemDetails(
-                                        eventItemId
-                                    )
-                                )
+                                onInteraction(Interaction.OpenEventItemDetails(eventItemId))
                             },
                             onEventItemSelection = { onInteraction(Interaction.Select(it)) },
                             events = currentEventItems,
                             selectedEventIds = selectedEventIds,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(paddingValues)
+                                .padding(paddingValues),
                         )
                     }
                 }
@@ -182,66 +166,71 @@ private fun EventListImpl(
         // Add draggable bottom bar that shows sheet when dragged
         // Apply animation offset to the bottom bar
         DraggableBottomBarWithFAB(
-            onClick = { 
+            onClick = {
                 // Trigger search in MainScreen instead of locally
                 mainScreenSearchToggle()
             },
             onDragUp = { onInteraction(Interaction.AddEventItem) },
             onShowDeleted = { /* TODO: Implement show deleted events */ },
             onShowArchived = { /* TODO: Implement show archived events */ },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset { IntOffset(0, bottomBarOffsetY.roundToInt()) },
-            fabPositionCallback = updateSearchButtonPosition // Pass position to parent for animation
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .offset {
+                        IntOffset(0, bottomBarOffsetY.roundToInt())
+                    },
+            fabPositionCallback = updateSearchButtonPosition, // Pass position to parent for animation
         )
 
         // Show bottom sheet for add event screen
         if (showBottomSheet) {
             ModalBottomSheet(
-                onDismissRequest = {
-                    onInteraction(Interaction.Init)
-                },
+                onDismissRequest = { onInteraction(Interaction.Init) },
                 sheetState = sheetState,
-                dragHandle = { DragHandle() }
+                dragHandle = { DragHandle() },
             ) {
                 AddEventScreen(
                     onEventCreated = { event ->
                         onInteraction(Interaction.EventItemAdded(event))
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        scope
+                            .launch { sheetState.hide() }
+                            .invokeOnCompletion {
                             if (!sheetState.isVisible) {
                                 onInteraction(Interaction.Init)
                             }
                         }
                     },
                     onCancel = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        scope
+                            .launch { sheetState.hide() }
+                            .invokeOnCompletion {
                             if (!sheetState.isVisible) {
                                 onInteraction(Interaction.Init)
                             }
                         }
-                    }
+                    },
                 )
             }
         }
     }
 }
 
-@DefaultPreviews
+@Preview
 @Composable
 internal fun EventListPreview(
-    @PreviewParameter(EventListPreviewParameterProvider::class)
-    state: State
+    @PreviewParameter(EventListPreviewParameterProvider::class) state: State
 ) {
     EventListImpl(
         onInteraction = {},
         stateflow = MutableStateFlow(state),
         eventsFlow = emptyFlow(),
         selectedEventIds = emptyList(),
-        currentEventItems = emptyList()
+        currentEventItems = emptyList(),
     )
 }
 
-internal class EventListPreviewParameterProvider : CollectionPreviewParameterProvider<State>(
+internal class EventListPreviewParameterProvider :
+    CollectionPreviewParameterProvider<State>(
     listOf(
         State.Init,
         State.ShowEventsGrid(
@@ -250,9 +239,9 @@ internal class EventListPreviewParameterProvider : CollectionPreviewParameterPro
                     id = 0,
                     title = "Event 1",
                     description = "Event 1 Description",
-                    date = LocalDate.now().plusDays(5)
+                    date = LocalDate.now().plusDays(5),
                 )
             )
-        )
+        ),
     )
-)
+    )
