@@ -5,6 +5,7 @@
     <application
         android:name=".App"
         android:allowBackup="true"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -12,7 +13,6 @@
         android:theme="@style/Theme.DaysRemaining"
         android:usesCleartextTraffic="true"
         android:windowSoftInputMode="adjustResize"
-        android:enableOnBackInvokedCallback="true"
         tools:targetApi="33">
         <activity
             android:name=".MainActivity"
@@ -24,11 +24,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".Nav3Activity"
-            android:exported="true"
-            android:label="Nav3Activity"
-            android:theme="@style/Theme.DaysRemaining" />
         <activity
             android:name=".widget.WidgetPreferenceActivity"
             android:exported="true" />

@@ -1,74 +1,63 @@
 package com.ossalali.daysremaining.presentation.ui
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
-import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Event
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.State
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
 import java.time.LocalDate
-import kotlin.math.roundToInt
 
 /** Main event list screen that displays a grid of events and handles search functionality */
 @Composable
 internal fun EventListScreen(
-    modifier: Modifier = Modifier,
     viewModel: EventListViewModel = hiltViewModel(),
-    navController: NavController,
-    mainScreenSearchToggle: () -> Unit = {},
-    updateSearchButtonPosition: (Offset, IntSize) -> Unit = { _, _ -> },
+    onNavigateToEventDetails: (Int) -> Unit = {},
 ) {
     LaunchedEffect(Unit) { viewModel.onInteraction(Interaction.Init) }
 
-    LaunchedEffect(navController, viewModel) {
-        viewModel.navigationEvent.collect { route -> navController.navigate(route) }
-    }
-
     EventListImpl(
-        modifier = modifier,
+        modifier = Modifier.fillMaxWidth(),
         onInteraction = viewModel::onInteraction,
         stateflow = viewModel.state,
-        eventsFlow = viewModel.events,
+        eventUiState = viewModel.eventUiState,
         selectedEventIds = viewModel.selectedEventItemIds,
-        currentEventItems = viewModel.currentEventItems,
-        mainScreenSearchToggle = mainScreenSearchToggle,
-        updateSearchButtonPosition = updateSearchButtonPosition,
+        onNavigateToEventDetails = onNavigateToEventDetails,
+        onArchiveEvents = { viewModel::archiveEvents },
+        onDeleteEvents = { viewModel::deleteEvents },
     )
 }
 
@@ -79,52 +68,34 @@ private fun EventListImpl(
     modifier: Modifier = Modifier,
     onInteraction: (Interaction) -> Unit,
     stateflow: StateFlow<State>,
-    eventsFlow: Flow<Event>,
+    eventUiState: StateFlow<List<EventItem>>,
     selectedEventIds: List<Int>,
-    currentEventItems: List<EventItem>,
-    mainScreenSearchToggle: () -> Unit = {},
-    updateSearchButtonPosition: (Offset, IntSize) -> Unit = { _, _ -> },
+    onNavigateToEventDetails: (Int) -> Unit = {},
+    onArchiveEvents: (List<Int>) -> Unit = {},
+    onDeleteEvents: (List<Int>) -> Unit = {},
 ) {
-    CollectEvents(eventsFlow) { event: Event ->
-        when (event) {
-            is Event.EventItemArchived -> TODO()
-            is Event.EventItemDeleted -> TODO()
-        }
-    }
+    val events by eventUiState.collectAsStateWithLifecycle()
     val state by stateflow.collectAsState()
-    val scope = rememberCoroutineScope()
-    val sheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = false, confirmValueChange = { true })
-    var showBottomSheet by remember { mutableStateOf(false) }
-
-    // Bottom bar animation - simplified without searchAnimState
-    val bottomBarOffsetY by
-    animateFloatAsState(
-        targetValue = 0f,
-        animationSpec = tween(durationMillis = 250, delayMillis = 0),
-        label = "BottomBarAnimation",
-    )
-
-    // Show bottom sheet when in AddEventScreen state
-    LaunchedEffect(state) {
-        if (state is State.ShowAddEventScreen) {
-            showBottomSheet = true
-            sheetState.expand()
-        } else {
-            if (showBottomSheet) {
-                sheetState.hide()
-                showBottomSheet = false
-            }
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = {},
-            bottomBar = {
-                // Always show the bottom bar placeholder to maintain layout consistency during
-                // animation
-                Box(modifier = Modifier.height(Dimensions.quadruple)) {}
+            topBar = {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimensions.quarter)) {
+                    AddChips()
+                    IconButton(onClick = { onArchiveEvents(selectedEventIds) }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Archive,
+                            contentDescription = "Archive selected Events",
+                        )
+                    }
+                    IconButton(onClick = { onDeleteEvents(selectedEventIds) }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "Delete selected Events",
+                        )
+                    }
+                }
             },
             floatingActionButtonPosition = FabPosition.Center,
             floatingActionButton = {},
@@ -135,7 +106,7 @@ private fun EventListImpl(
                     is State.ShowEventsGrid -> {
                         EventListGrid(
                             onEventItemClick = { eventItemId ->
-                                onInteraction(Interaction.OpenEventItemDetails(eventItemId))
+                                onNavigateToEventDetails(eventItemId)
                             },
                             onEventItemSelection = { onInteraction(Interaction.Select(it)) },
                             events = currentState.eventItems,
@@ -145,73 +116,70 @@ private fun EventListImpl(
                                 .padding(paddingValues),
                         )
                     }
-
-                    is State.ShowAddEventScreen -> {
-                        EventListGrid(
-                            onEventItemClick = { eventItemId ->
-                                onInteraction(Interaction.OpenEventItemDetails(eventItemId))
-                            },
-                            onEventItemSelection = { onInteraction(Interaction.Select(it)) },
-                            events = currentEventItems,
-                            selectedEventIds = selectedEventIds,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(paddingValues),
-                        )
-                    }
                 }
             }
         }
+    }
+}
 
-        // Add draggable bottom bar that shows sheet when dragged
-        // Apply animation offset to the bottom bar
-        DraggableBottomBarWithFAB(
-            onClick = {
-                // Trigger search in MainScreen instead of locally
-                mainScreenSearchToggle()
-            },
-            onDragUp = { onInteraction(Interaction.AddEventItem) },
-            onShowSettings = { /* TODO: Implement show settings */ },
-            onShowArchived = { /* TODO: Implement show archived events */ },
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset {
-                        IntOffset(0, bottomBarOffsetY.roundToInt())
-                    },
-            fabPositionCallback = updateSearchButtonPosition, // Pass position to parent for animation
+@Composable
+fun AddChips() {
+    var filterActiveSelected by remember { mutableStateOf(false) }
+    var filterArchivedSelected by remember { mutableStateOf(false) }
+    var filterDeletedSelected by remember { mutableStateOf(false) }
+
+    Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+        FilterChip(
+            selected = filterActiveSelected,
+            onClick = { filterActiveSelected = !filterActiveSelected },
+            label = { Text(text = "Active") },
+            leadingIcon =
+                if (filterActiveSelected) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "Done icon",
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                }
+                } else {
+                    null
+                },
         )
-
-        // Show bottom sheet for add event screen
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { onInteraction(Interaction.Init) },
-                sheetState = sheetState,
-                dragHandle = { DragHandle() },
-            ) {
-                AddEventScreen(
-                    onEventCreated = { event ->
-                        onInteraction(Interaction.EventItemAdded(event))
-                        scope
-                            .launch { sheetState.hide() }
-                            .invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                onInteraction(Interaction.Init)
-                            }
-                        }
-                    },
-                    onCancel = {
-                        scope
-                            .launch { sheetState.hide() }
-                            .invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                onInteraction(Interaction.Init)
-                            }
-                        }
-                    },
-                )
-            }
-        }
+        FilterChip(
+            selected = filterArchivedSelected,
+            onClick = { filterArchivedSelected = !filterArchivedSelected },
+            label = { Text(text = "Archived") },
+            leadingIcon =
+                if (filterArchivedSelected) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "Done icon",
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    null
+                },
+        )
+        FilterChip(
+            selected = filterDeletedSelected,
+            onClick = { filterDeletedSelected = !filterDeletedSelected },
+            label = { Text(text = "Deleted") },
+            leadingIcon =
+                if (filterDeletedSelected) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "Done icon",
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    null
+            },
+        )
     }
 }
 
@@ -220,13 +188,12 @@ private fun EventListImpl(
 internal fun EventListPreview(
     @PreviewParameter(EventListPreviewParameterProvider::class) state: State
 ) {
-    EventListImpl(
-        onInteraction = {},
-        stateflow = MutableStateFlow(state),
-        eventsFlow = emptyFlow(),
-        selectedEventIds = emptyList(),
-        currentEventItems = emptyList(),
-    )
+    // EventListImpl(
+    //  onInteraction = {},
+    //  stateflow = kotlinx.coroutines.flow.MutableStateFlow(state),
+    //  eventUiState = flowOf(List<EventItem>(),
+    //  selectedEventIds = emptyList(),
+    // )
 }
 
 internal class EventListPreviewParameterProvider :

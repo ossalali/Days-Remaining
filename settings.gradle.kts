@@ -9,18 +9,18 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven { url = uri("https://androidx.dev/snapshots/builds/latest/artifacts/repository") }
     }
 }
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-        maven {
-            url = uri("https://androidx.dev/snapshots/builds/latest/artifacts/repository")
-        }
+        maven { url = uri("https://androidx.dev/snapshots/builds/latest/artifacts/repository") }
     }
 }
 
-rootProject.name = "DaysRemaining"
+rootProject.name = "Days Remaining"
 include(":app")

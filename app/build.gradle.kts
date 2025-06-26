@@ -74,7 +74,7 @@ dependencies {
   implementation(libs.material)
   implementation(libs.androidx.material3.v140alpha07)
   implementation(libs.androidx.material.icons.extended)
-  implementation(libs.accompanist.navigation.animation)
+
   implementation(libs.accompanist.systemuicontroller)
   implementation(libs.androidx.glance.appwidget)
   implementation(libs.androidx.compose.foundation)
@@ -85,6 +85,10 @@ dependencies {
   implementation(libs.androidx.navigation3.runtime)
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
   implementation(libs.kotlinx.serialization.core)
+
+    // Material3 Adaptive - temporarily disabled due to library availability
+    // implementation(libs.androidx.material3.adaptive.layout)
+    // implementation(libs.androidx.material3.adaptive.navigation3)
 
   debugImplementation(libs.androidx.ui.tooling)
 

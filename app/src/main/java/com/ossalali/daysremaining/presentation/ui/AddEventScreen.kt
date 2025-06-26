@@ -7,16 +7,23 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,8 +38,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviews
+import com.ossalali.daysremaining.presentation.viewmodel.AddEventViewmodel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -40,10 +49,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEventScreen(
-    onEventCreated: (eventItem: EventItem) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun AddEventScreen(viewmodel: AddEventViewmodel = hiltViewModel(), onClose: () -> Unit) {
     val titleFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -66,104 +72,120 @@ fun AddEventScreen(
         keyboardController?.show()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        OutlinedTextField(
-            value = title,
-            onValueChange = {
-                title = it
-                titleError = false
-            },
-            label = { Text("Title") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester = titleFocusRequester),
-            isError = titleError,
-            supportingText = { if (titleError) Text("Title cannot be empty") }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = formattedDate,
-                onValueChange = {},
-                label = { Text("Date") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = dateError,
-                supportingText = { if (dateError) Text("Select a valid date") }
-            )
-            // A transparent overlay to capture click events and open the date picker.
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        showDatePicker = true
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Add Event") },
+                navigationIcon = {
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Cancel",
+                        )
                     }
+                },
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+    ) { paddingValues ->
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(16.dp)) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = {
+                    title = it
+                    titleError = false
+                },
+                label = { Text("Title") },
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester = titleFocusRequester),
+                isError = titleError,
+                supportingText = { if (titleError) Text("Title cannot be empty") },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(onClick = onCancel) {
-                Text("Cancel")
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = formattedDate,
+                    onValueChange = {},
+                    label = { Text("Date") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = dateError,
+                    supportingText = { if (dateError) Text("Select a valid date") },
+                )
+                // A transparent overlay to capture click events and open the date picker.
+                Box(
+                    modifier =
+                        Modifier
+                            .matchParentSize()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                            ) {
+                                showDatePicker = true
+                            }
+                )
             }
-            Button(
-                onClick = {
-                    titleError = title.isBlank()
-                    dateError = selectedDateMillis == 0L
-                    if (!titleError && !dateError) {
-                        onEventCreated(
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Button(onClick = onClose) { Text("Cancel") }
+                Button(
+                    onClick = {
+                        titleError = title.isBlank()
+                        dateError = selectedDateMillis == 0L
+                        if (!titleError && !dateError) {
+                            viewmodel.addEvent(
                             EventItem(
                                 title = title,
                                 date = selectedLocalDate,
-                                description = description
+                                description = description,
                             )
-                        )
-                    }
-                }
-            ) {
-                Text("Create Event")
-            }
-        }
-
-        if (showDatePicker) {
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            selectedDateMillis = millis
+                            )
+                            onClose()
                         }
-                        showDatePicker = false
-                    }) {
-                        Text("OK")
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
-                        Text("Cancel")
-                    }
+                ) {
+                    Text("Create Event")
                 }
-            ) {
-                DatePicker(state = datePickerState)
+            }
+
+            if (showDatePicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                datePickerState.selectedDateMillis?.let { millis ->
+                                    selectedDateMillis = millis
+                                }
+                                showDatePicker = false
+                            }
+                        ) {
+                            Text("OK")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                    },
+                ) {
+                    DatePicker(state = datePickerState)
+                }
             }
         }
     }
@@ -171,9 +193,6 @@ fun AddEventScreen(
 
 @DefaultPreviews
 @Composable
-internal fun AddEventScreenPreview() {
-    AddEventScreen(
-        onEventCreated = {},
-        onCancel = {}
-    )
+fun AddEventScreenPreview() {
+    AddEventScreen(onClose = {})
 }

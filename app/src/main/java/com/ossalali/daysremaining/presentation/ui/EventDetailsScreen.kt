@@ -66,6 +66,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import kotlin.math.ceil
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,7 +125,7 @@ fun EventDetailsContent(
             (event?.date?.toEpochDay() ?: LocalDate.now().toEpochDay()) * 24 * 60 * 60 * 1000
         )
     }
-    var descriptionState =
+    val descriptionState =
         remember(event) { TextFieldState(initialText = event?.description ?: "") }
 
     val originalTitle = event?.title ?: ""
@@ -160,8 +161,7 @@ fun EventDetailsContent(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         DeleteEventFab(
-                            onDelete = { onDeleteEvent(event) },
-                            isKeyboardVisible = isKeyboardVisible,
+                            onDelete = { onDeleteEvent(event) }
                         )
 
                         SaveEventFab(
@@ -254,7 +254,12 @@ private fun SaveEventFab(
 
     FloatingActionButton(
         modifier =
-            Modifier.offset { IntOffset(0, if (isKeyboardVisible) -keyboardHeight + 100 else 0) },
+            Modifier.offset {
+                IntOffset(
+                    0,
+                    if (isKeyboardVisible) -keyboardHeight - ceil(keyboardHeight * 0.015).toInt() else 0,
+                )
+            },
         onClick = {
             if (canSave) {
                 val updatedEvent =
@@ -285,13 +290,8 @@ private fun SaveEventFab(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DeleteEventFab(onDelete: () -> Unit, isKeyboardVisible: Boolean) {
-    val imeInsets = WindowInsets.ime
-    val keyboardHeight = with(LocalDensity.current) { imeInsets.getBottom(this) }
-
+private fun DeleteEventFab(onDelete: () -> Unit) {
     FloatingActionButton(
-        modifier =
-            Modifier.offset { IntOffset(0, if (isKeyboardVisible) -keyboardHeight / 2 else 0) },
         onClick = onDelete,
         containerColor = MaterialTheme.colorScheme.error,
         contentColor = MaterialTheme.colorScheme.onError,
