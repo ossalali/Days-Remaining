@@ -1,13 +1,19 @@
 package com.ossalali.daysremaining.presentation.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,17 +28,37 @@ import com.ossalali.daysremaining.businesslogic.debug.DebugAddEvents
 import com.ossalali.daysremaining.presentation.viewmodel.DebugScreenViewModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DebugScreen(
     debugScreenViewModel: DebugScreenViewModel = hiltViewModel(),
-    addEvents: DebugAddEvents = DebugAddEvents()
+    addEvents: DebugAddEvents = DebugAddEvents(),
+    onBackClick: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
-
     var showSnackbar by remember { mutableStateOf(false) }
-    Column(
-        modifier = Modifier.padding(16.dp)
-    ) {
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Debug") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
         Text("Add Events")
         Button(
             modifier = Modifier.padding(8.dp),
@@ -48,10 +74,12 @@ fun DebugScreen(
                 contentDescription = "Add Events"
             )
         }
-    }
-    if (showSnackbar) {
-        Snackbar {
-            Text("Events added")
+
+            if (showSnackbar) {
+                Snackbar {
+                    Text("Events added")
+                }
+            }
         }
     }
 }
