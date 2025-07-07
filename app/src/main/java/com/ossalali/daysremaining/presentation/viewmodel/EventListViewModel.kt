@@ -1,6 +1,7 @@
 package com.ossalali.daysremaining.presentation.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
 import com.ossalali.daysremaining.model.EventItem
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,9 +51,9 @@ constructor(
                 initialValue = emptyList(),
             )
 
-    private val _selectedEventItemIds = mutableStateListOf<Int>()
-    val selectedEventItemIds: List<Int>
-        get() = _selectedEventItemIds
+    private val _selectedEventItems = mutableStateListOf<EventItem>()
+    val selectedEventItems: List<EventItem>
+        get() = _selectedEventItems
 
     private val _currentEventItems = mutableStateListOf<EventItem>()
 
@@ -109,20 +111,24 @@ constructor(
         }
     }
 
-    private fun handleEventItemSelection(eventItemId: Int) {
-        if (_selectedEventItemIds.contains(eventItemId)) {
-            _selectedEventItemIds.remove(eventItemId)
+    private fun handleEventItemSelection(eventId: Int) {
+        val selectedEventItemIds = _selectedEventItems.map { item -> item.id }.toMutableList()
+        if (selectedEventItemIds.contains(eventId)) {
+            selectedEventItemIds.remove(_selectedEventItems.find { item -> item.id == eventId }?.id)
         } else {
-            _selectedEventItemIds.add(eventItemId)
+            launch {
+                val eventById = eventRepo.getEventById(eventId)
+                _selectedEventItems.add(eventById)
+            }
         }
     }
 
     fun archiveEvents(eventIds: List<Int>) {
-        eventRepo.archiveEvents(eventIds)
+        viewModelScope.launch(ioDispatcher) { eventRepo.archiveEvents(eventIds) }
     }
 
     fun deleteEvents(eventIds: List<Int>) {
-        eventRepo.deleteEvents(eventIds)
+        viewModelScope.launch(ioDispatcher) { eventRepo.deleteEvents(eventIds) }
     }
 
     sealed interface Interaction {

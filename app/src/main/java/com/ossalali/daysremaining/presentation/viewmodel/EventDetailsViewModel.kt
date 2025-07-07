@@ -35,7 +35,7 @@ class EventDetailsViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             try {
                 eventRepo.deleteEvents(listOf(eventId))
-                _event.value = null // Clear currently loaded event
+                _event.value = null
             } catch (_: Exception) {
                 // Log the exception if necessary
             }
