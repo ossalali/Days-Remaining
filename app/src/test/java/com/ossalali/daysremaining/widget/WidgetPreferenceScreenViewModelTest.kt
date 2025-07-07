@@ -49,7 +49,7 @@ class WidgetPreferenceScreenViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         // Mock getEvents behavior for EventRepo, as it's called during ViewModel init
-        `when`(mockEventRepo.allActiveEventsAsFlow).thenReturn(emptyFlow<List<EventItem>>())
+        `when`(mockEventRepo.activeEventsAsFlow).thenReturn(emptyFlow<List<EventItem>>())
     }
 
     @After

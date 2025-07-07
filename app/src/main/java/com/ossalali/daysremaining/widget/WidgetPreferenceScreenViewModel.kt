@@ -90,7 +90,7 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
 
     fun getEvents(): StateFlow<List<EventItem>> {
         Log.d("ViewModel", "getEvents() called, setting up StateFlow")
-        return eventRepo.allActiveEventsAsFlow.stateIn(
+        return eventRepo.activeEventsAsFlow.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()

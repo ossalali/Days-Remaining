@@ -14,6 +14,9 @@ interface EventDao {
     @Query("SELECT * FROM eventitem WHERE isArchived = 0 order by id desc")
     fun getAllActiveEventsAsFlow(): Flow<List<EventItem>>
 
+    @Query("SELECT * FROM eventitem WHERE isArchived = 1 order by id desc")
+    fun getAllArchivedEventsAsFlow(): Flow<List<EventItem>>
+
     @Query("SELECT * FROM eventitem order by id desc")
     fun getAllEventsAsFlow(): Flow<List<EventItem>>
 
