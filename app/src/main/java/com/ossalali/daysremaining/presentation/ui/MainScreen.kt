@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,7 +41,6 @@ import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
-import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import com.ossalali.daysremaining.presentation.viewmodel.MainScreenViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,17 +66,6 @@ fun MainScreen(
     }
 
     val searchText by mainViewModel.searchText.collectAsState()
-    val isSearching by mainViewModel.isSearching.collectAsState()
-
-    LaunchedEffect(searchText, isSearching) {
-        if (eventListViewModel.searchText.value != searchText) {
-            eventListViewModel.onInteraction(Interaction.SearchTextChanged(searchText))
-        }
-
-        if (eventListViewModel.isSearching.value != isSearching) {
-            eventListViewModel.onInteraction(Interaction.ToggleSearch)
-        }
-    }
 
     NavDisplay(
       backStack = backStack,

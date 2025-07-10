@@ -44,9 +44,10 @@ fun EventListGrid(
             Text(text = "No events found", style = MaterialTheme.typography.titleLargeEmphasized)
         }
     }
+
     LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier) {
         items(events, key = { event -> event.id }) { event ->
-            val isSelected = selectedEventItems.map { it.id }.contains(event.id)
+            val isSelected = selectedEventItems.any { it.id == event.id }
             Card(
               border =
                 if (isSelected) {

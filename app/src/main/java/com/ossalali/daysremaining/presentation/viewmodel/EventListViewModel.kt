@@ -55,31 +55,9 @@ constructor(
     val selectedEventItems: List<EventItem>
         get() = _selectedEventItems
 
-    private val _searchText = MutableStateFlow("")
-    val searchText: StateFlow<String> = _searchText
-
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching: StateFlow<Boolean> = _isSearching
-
-    val filteredEventsList: StateFlow<List<EventItem>> =
-      combine(eventUiState, _searchText) { events, searchText ->
-            if (searchText.isEmpty()) {
-                events
-            } else {
-                events.filter { it.title.contains(searchText, ignoreCase = true) }
-            }
-        }
-        .stateIn(
-          scope = scope,
-          started = SharingStarted.WhileSubscribed(5000L),
-          initialValue = emptyList(),
-        )
-
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
             is Interaction.Select -> handleEventItemSelection(interaction.eventId)
-            is Interaction.SearchTextChanged -> onSearchTextChange(interaction.text)
-            Interaction.ToggleSearch -> onToggleSearch()
             is Interaction.ToggleActiveFilter -> toggleActiveFilter()
             is Interaction.ToggleArchivedFilter -> toggleArchivedFilter()
         }
@@ -95,16 +73,7 @@ constructor(
         _archivedFilterEnabled.value = !_archivedFilterEnabled.value
     }
 
-    private fun onToggleSearch() {
-        _isSearching.value = !_isSearching.value
-        if (!_isSearching.value) {
-            _searchText.value = ""
-        }
-    }
 
-    private fun onSearchTextChange(text: String) {
-        _searchText.value = text
-    }
 
     private fun handleEventItemSelection(eventId: Int) {
         val existingItem = _selectedEventItems.find { item -> item.id == eventId }
@@ -137,20 +106,16 @@ constructor(
     }
 
     fun hasArchivedEventItems(): Boolean {
-        return _selectedEventItems.map { it.isArchived }.contains(true)
+        return _selectedEventItems.any { it.isArchived }
     }
 
     fun hasUnarchivedEventItems(): Boolean {
-        return _selectedEventItems.map { it.isArchived }.contains(false)
+        return _selectedEventItems.any { !it.isArchived }
     }
 
     sealed interface Interaction {
 
         data class Select(val eventId: Int) : Interaction
-
-        data class SearchTextChanged(val text: String) : Interaction
-
-        data object ToggleSearch : Interaction
 
         data object ToggleActiveFilter : Interaction
 
