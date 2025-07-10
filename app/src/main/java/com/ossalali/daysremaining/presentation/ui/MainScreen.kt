@@ -45,7 +45,6 @@ import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
 import com.ossalali.daysremaining.presentation.ui.search.SearchAnimationState
 import com.ossalali.daysremaining.presentation.ui.search.rememberSearchAnimationState
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.presentation.viewmodel.MainScreenViewModel
 
@@ -184,7 +183,7 @@ private fun MainScreenContent(
     mainViewModel: MainScreenViewModel,
     eventListViewModel: EventListViewModel,
     isOnEventList: Boolean = false,
-    navigateAddEvent: () -> Unit = {}, // Changed signature
+    navigateAddEvent: () -> Unit = {},
     navigateToEventDetails: (Int) -> Unit = {},
     content: @Composable (() -> Unit)? = null,
 ) {
@@ -212,8 +211,7 @@ private fun MainScreenContent(
             floatingActionButton = {
                 if (isOnEventList && !isSearching) {
                     FloatingActionButton(
-                        modifier = Modifier.padding(bottom = Dimensions.quadruple),
-                        onClick = { navigateAddEvent() },
+                        onClick = { navigateAddEvent() }
                     ) {
                         Icon(Icons.Filled.Add, contentDescription = "Add Event")
                     }

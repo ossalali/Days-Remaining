@@ -36,7 +36,7 @@ fun EventListGrid(
     onEventItemClick: (Int) -> Unit,
     onEventItemSelection: (Int) -> Unit,
     events: List<EventItem>,
-    selectedEventIds: List<Int>,
+    selectedEventItems: List<EventItem>,
     modifier: Modifier = Modifier
 ) {
     if (events.isEmpty()) {
@@ -58,7 +58,7 @@ fun EventListGrid(
             events,
             key = { event -> event.id }
         ) { event ->
-            val isSelected = selectedEventIds.contains(event.id)
+            val isSelected = selectedEventItems.map { it.id }.contains(event.id)
             Card(
                 border = if (isSelected) {
                     BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
@@ -71,7 +71,7 @@ fun EventListGrid(
                     .padding(8.dp)
                     .combinedClickable(
                         onClick = {
-                            if (selectedEventIds.isEmpty()) {
+                            if (selectedEventItems.isEmpty()) {
                                 onEventItemClick(event.id)
                             } else {
                                 onEventItemSelection(event.id)
@@ -135,7 +135,7 @@ internal fun EventListGridPreview(
         onEventItemClick = {},
         onEventItemSelection = {},
         events = listOf(eventItem),
-        selectedEventIds = emptyList(),
+        selectedEventItems = emptyList(),
         modifier = Modifier
     )
 }
