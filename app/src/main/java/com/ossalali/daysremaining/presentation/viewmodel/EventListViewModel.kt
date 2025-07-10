@@ -22,8 +22,8 @@ import javax.inject.Inject
 open class EventListViewModel
 @Inject
 constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val eventRepo: EventRepo,
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+  private val eventRepo: EventRepo,
 ) : BaseViewModel<Interaction>() {
     val scope = CoroutineScope(ioDispatcher + SupervisorJob())
 
@@ -34,22 +34,22 @@ constructor(
     val archivedFilterEnabled: StateFlow<Boolean> = _archivedFilterEnabled
 
     val eventUiState: StateFlow<List<EventItem>> =
-        combine(
-            eventRepo.activeEventsAsFlow,
-            eventRepo.archivedEventsAsFlow,
-            _activeFilterEnabled,
-            _archivedFilterEnabled,
+      combine(
+          eventRepo.activeEventsAsFlow,
+          eventRepo.archivedEventsAsFlow,
+          _activeFilterEnabled,
+          _archivedFilterEnabled,
         ) { activeEvents, archivedEvents, showActive, showArchived ->
             val result = mutableListOf<EventItem>()
             if (showActive) result.addAll(activeEvents)
             if (showArchived) result.addAll(archivedEvents)
             result
         }
-            .stateIn(
-                scope = scope,
-                started = SharingStarted.WhileSubscribed(5000L),
-                initialValue = emptyList(),
-            )
+        .stateIn(
+          scope = scope,
+          started = SharingStarted.WhileSubscribed(5000L),
+          initialValue = emptyList(),
+        )
 
     private val _selectedEventItems = mutableStateListOf<EventItem>()
     val selectedEventItems: List<EventItem>
@@ -104,12 +104,7 @@ constructor(
             _filteredEventsList.value = _currentEventItems
         } else {
             _filteredEventsList.value =
-                _currentEventItems.filter {
-                    it.title.contains(
-                        _searchText.value,
-                        ignoreCase = true
-                    )
-                }
+              _currentEventItems.filter { it.title.contains(_searchText.value, ignoreCase = true) }
         }
     }
 
@@ -125,16 +120,30 @@ constructor(
         }
     }
 
-    fun unarchiveEvents(eventIds: List<Int>) {
-        viewModelScope.launch(ioDispatcher) { eventRepo.unarchiveEvents(eventIds) }
+    fun unarchiveEvents(eventItems: List<EventItem>) {
+        viewModelScope.launch(ioDispatcher) {
+            eventRepo.unarchiveEvents(eventItems.map { it.id })
+            _selectedEventItems.removeAll(eventItems)
+        }
     }
 
-    fun archiveEvents(eventIds: List<Int>) {
-        viewModelScope.launch(ioDispatcher) { eventRepo.archiveEvents(eventIds) }
+    fun archiveEvents(eventItems: List<EventItem>) {
+        viewModelScope.launch(ioDispatcher) {
+            eventRepo.archiveEvents(eventItems.map { it.id })
+            _selectedEventItems.removeAll(eventItems)
+        }
     }
 
     fun deleteEvents(eventIds: List<Int>) {
         viewModelScope.launch(ioDispatcher) { eventRepo.deleteEvents(eventIds) }
+    }
+
+    fun hasArchivedEventItems(): Boolean {
+        return _selectedEventItems.map { it.isArchived }.contains(true)
+    }
+
+    fun hasUnarchivedEventItems(): Boolean {
+        return _selectedEventItems.map { it.isArchived }.contains(false)
     }
 
     sealed interface Interaction {

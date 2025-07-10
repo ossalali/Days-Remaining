@@ -27,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,20 +42,22 @@ import kotlinx.coroutines.flow.StateFlow
 /** Main event list screen that displays a grid of events and handles search functionality */
 @Composable
 internal fun EventListScreen(
-    viewModel: EventListViewModel = hiltViewModel(),
-    onNavigateToEventDetails: (Int) -> Unit = {},
+  viewModel: EventListViewModel = hiltViewModel(),
+  onNavigateToEventDetails: (Int) -> Unit = {},
 ) {
     EventListImpl(
-        modifier = Modifier.fillMaxWidth(),
-        onInteraction = viewModel::onInteraction,
-        eventUiState = viewModel.eventUiState,
-        selectedEventItems = viewModel.selectedEventItems,
-        activeFilterEnabled = viewModel.activeFilterEnabled,
-        archivedFilterEnabled = viewModel.archivedFilterEnabled,
-        onNavigateToEventDetails = onNavigateToEventDetails,
-        onUnarchiveEvents = { eventItems -> viewModel.unarchiveEvents(eventItems.map { it.id }) },
-        onArchiveEventItems = { eventItems -> viewModel.archiveEvents(eventItems.map { it.id }) },
-        onDeleteEventItems = { eventItems -> viewModel.deleteEvents(eventItems.map { it.id }) },
+      modifier = Modifier.fillMaxWidth(),
+      onInteraction = viewModel::onInteraction,
+      eventUiState = viewModel.eventUiState,
+      selectedEventItems = viewModel.selectedEventItems,
+      activeFilterEnabled = viewModel.activeFilterEnabled,
+      archivedFilterEnabled = viewModel.archivedFilterEnabled,
+      onNavigateToEventDetails = onNavigateToEventDetails,
+      onUnarchiveEvents = { eventItems -> viewModel.unarchiveEvents(eventItems) },
+      onArchiveEventItems = { eventItems -> viewModel.archiveEvents(eventItems) },
+      onDeleteEventItems = { eventItems -> viewModel.deleteEvents(eventItems.map { it.id }) },
+      hasArchivedEventItems = viewModel.hasArchivedEventItems(),
+      hasUnarchivedEventItems = viewModel.hasUnarchivedEventItems(),
     )
 }
 
@@ -64,103 +65,97 @@ internal fun EventListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventListImpl(
-    modifier: Modifier = Modifier,
-    onInteraction: (Interaction) -> Unit,
-    eventUiState: StateFlow<List<EventItem>>,
-    selectedEventItems: List<EventItem>,
-    activeFilterEnabled: StateFlow<Boolean>,
-    archivedFilterEnabled: StateFlow<Boolean>,
-    onNavigateToEventDetails: (Int) -> Unit = {},
-    onUnarchiveEvents: (List<EventItem>) -> Unit = {},
-    onArchiveEventItems: (List<EventItem>) -> Unit = {},
-    onDeleteEventItems: (List<EventItem>) -> Unit = {},
+  modifier: Modifier = Modifier,
+  onInteraction: (Interaction) -> Unit,
+  eventUiState: StateFlow<List<EventItem>>,
+  selectedEventItems: List<EventItem>,
+  activeFilterEnabled: StateFlow<Boolean>,
+  archivedFilterEnabled: StateFlow<Boolean>,
+  onNavigateToEventDetails: (Int) -> Unit = {},
+  onUnarchiveEvents: (List<EventItem>) -> Unit = {},
+  onArchiveEventItems: (List<EventItem>) -> Unit = {},
+  onDeleteEventItems: (List<EventItem>) -> Unit = {},
+  hasArchivedEventItems: Boolean,
+  hasUnarchivedEventItems: Boolean,
 ) {
     val events by eventUiState.collectAsStateWithLifecycle()
     val activeFilterState by activeFilterEnabled.collectAsState()
     val archivedFilterState by archivedFilterEnabled.collectAsState()
-    val hasArchivedEventItems = remember { selectedEventItems.map { it.isArchived }.contains(true) }
-    val hasUnarchivedEventItems = remember {
-        selectedEventItems.map { it.isArchived }.contains(false)
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimensions.quarter),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    AddChips(
-                        activeFilterEnabled = activeFilterState,
-                        archivedFilterEnabled = archivedFilterState,
-                        onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
-                        onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
-                    )
-                    if (selectedEventItems.isNotEmpty()) {
-                        Spacer(Modifier.weight(1f))
-                        if (hasUnarchivedEventItems) {
-                            IconButton(
-                                modifier =
-                                    Modifier.border(
-                                        width = 1.dp,
-                                        color = Color.Gray,
-                                        shape = ShapeDefaults.Small,
-                                    ),
-                                onClick = { onArchiveEventItems(selectedEventItems) },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Archive,
-                                    contentDescription = "Archive selected Events",
-                                )
-                            }
-                        }
-                        if (hasArchivedEventItems) {
-                            Spacer(Modifier.width(4.dp))
-                            IconButton(
-                                modifier =
-                                    Modifier.border(
-                                        width = 1.dp,
-                                        color = Color.Gray,
-                                        shape = ShapeDefaults.Small,
-                                    ),
-                                onClick = { onUnarchiveEvents(selectedEventItems) },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Inbox,
-                                    contentDescription = "Unarchive selected Events",
-                                )
-                            }
-                        }
-                        Spacer(Modifier.width(4.dp))
-                        IconButton(
+          topBar = {
+              Row(
+                modifier = Modifier.fillMaxWidth().padding(Dimensions.quarter),
+                verticalAlignment = Alignment.CenterVertically,
+              ) {
+                  AddChips(
+                    activeFilterEnabled = activeFilterState,
+                    archivedFilterEnabled = archivedFilterState,
+                    onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
+                    onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
+                  )
+                  if (selectedEventItems.isNotEmpty()) {
+                      Spacer(Modifier.weight(1f))
+                      if (hasUnarchivedEventItems) {
+                          IconButton(
                             modifier =
-                                Modifier.border(
-                                    width = 1.dp,
-                                    color = Color.Gray,
-                                    shape = ShapeDefaults.Small,
-                                ),
-                            onClick = { onDeleteEventItems(selectedEventItems) },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Delete,
-                                contentDescription = "Delete selected Events",
-                            )
-                        }
-                    }
-                }
-            }
+                              Modifier.border(
+                                width = 1.dp,
+                                color = Color.Gray,
+                                shape = ShapeDefaults.Small,
+                              ),
+                            onClick = { onArchiveEventItems(selectedEventItems) },
+                          ) {
+                              Icon(
+                                imageVector = Icons.Outlined.Archive,
+                                contentDescription = "Archive selected Events",
+                              )
+                          }
+                      }
+                      if (hasArchivedEventItems) {
+                          Spacer(Modifier.width(4.dp))
+                          IconButton(
+                            modifier =
+                              Modifier.border(
+                                width = 1.dp,
+                                color = Color.Gray,
+                                shape = ShapeDefaults.Small,
+                              ),
+                            onClick = { onUnarchiveEvents(selectedEventItems) },
+                          ) {
+                              Icon(
+                                imageVector = Icons.Outlined.Inbox,
+                                contentDescription = "Unarchive selected Events",
+                              )
+                          }
+                      }
+                      Spacer(Modifier.width(4.dp))
+                      IconButton(
+                        modifier =
+                          Modifier.border(
+                            width = 1.dp,
+                            color = Color.Gray,
+                            shape = ShapeDefaults.Small,
+                          ),
+                        onClick = { onDeleteEventItems(selectedEventItems) },
+                      ) {
+                          Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "Delete selected Events",
+                          )
+                      }
+                  }
+              }
+          }
         ) { paddingValues ->
             Surface(modifier = modifier) {
                 EventListGrid(
-                    onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
-                    onEventItemSelection = { onInteraction(Interaction.Select(it)) },
-                    events = events,
-                    selectedEventItems = selectedEventItems,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                  onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
+                  onEventItemSelection = { onInteraction(Interaction.Select(it)) },
+                  events = events,
+                  selectedEventItems = selectedEventItems,
+                  modifier = Modifier.fillMaxSize().padding(paddingValues),
                 )
             }
         }
@@ -169,48 +164,48 @@ private fun EventListImpl(
 
 @Composable
 fun AddChips(
-    activeFilterEnabled: Boolean,
-    archivedFilterEnabled: Boolean,
-    onToggleActiveFilter: () -> Unit,
-    onToggleArchivedFilter: () -> Unit,
+  activeFilterEnabled: Boolean,
+  archivedFilterEnabled: Boolean,
+  onToggleActiveFilter: () -> Unit,
+  onToggleArchivedFilter: () -> Unit,
 ) {
     Row(horizontalArrangement = Arrangement.Start) {
         FilterChip(
-            selected = activeFilterEnabled,
-            onClick = onToggleActiveFilter,
-            label = { Text(text = "Active") },
-            leadingIcon =
-                if (activeFilterEnabled) {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = "Done icon",
-                            modifier = Modifier.size(FilterChipDefaults.IconSize),
-                        )
+          selected = activeFilterEnabled,
+          onClick = onToggleActiveFilter,
+          label = { Text(text = "Active") },
+          leadingIcon =
+            if (activeFilterEnabled) {
+                {
+                    Icon(
+                      imageVector = Icons.Filled.Done,
+                      contentDescription = "Done icon",
+                      modifier = Modifier.size(FilterChipDefaults.IconSize),
+                    )
                 }
-                } else {
-                    null
-                },
+            } else {
+                null
+            },
         )
 
         Spacer(Modifier.width(4.dp))
 
         FilterChip(
-            selected = archivedFilterEnabled,
-            onClick = onToggleArchivedFilter,
-            label = { Text(text = "Archived") },
-            leadingIcon =
-                if (archivedFilterEnabled) {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = "Done icon",
-                            modifier = Modifier.size(FilterChipDefaults.IconSize),
-                        )
-                    }
-                } else {
-                    null
-                },
+          selected = archivedFilterEnabled,
+          onClick = onToggleArchivedFilter,
+          label = { Text(text = "Archived") },
+          leadingIcon =
+            if (archivedFilterEnabled) {
+                {
+                    Icon(
+                      imageVector = Icons.Filled.Done,
+                      contentDescription = "Done icon",
+                      modifier = Modifier.size(FilterChipDefaults.IconSize),
+                    )
+                }
+            } else {
+                null
+            },
         )
     }
 }

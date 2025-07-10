@@ -33,11 +33,11 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun EventListGrid(
-    onEventItemClick: (Int) -> Unit,
-    onEventItemSelection: (Int) -> Unit,
-    events: List<EventItem>,
-    selectedEventItems: List<EventItem>,
-    modifier: Modifier = Modifier,
+  onEventItemClick: (Int) -> Unit,
+  onEventItemSelection: (Int) -> Unit,
+  events: List<EventItem>,
+  selectedEventItems: List<EventItem>,
+  modifier: Modifier = Modifier,
 ) {
     if (events.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -48,62 +48,51 @@ fun EventListGrid(
         items(events, key = { event -> event.id }) { event ->
             val isSelected = selectedEventItems.map { it.id }.contains(event.id)
             Card(
-                border =
-                    if (isSelected) {
+              border =
+                if (isSelected) {
                     BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
                 } else {
                     null
                 },
-                shape = MaterialTheme.shapes.medium,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                        .combinedClickable(
-                            onClick = {
-                                if (selectedEventItems.isEmpty()) {
-                                    onEventItemClick(event.id)
-                                } else {
-                                    onEventItemSelection(event.id)
-                                }
-                            },
-                            onLongClickLabel = "Event Selected",
-                            onLongClick = { onEventItemSelection(event.id) },
-                        ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+              shape = MaterialTheme.shapes.medium,
+              modifier =
+                Modifier.fillMaxWidth()
+                  .padding(8.dp)
+                  .combinedClickable(
+                    onClick = {
+                        if (selectedEventItems.isEmpty()) {
+                            onEventItemClick(event.id)
+                        } else {
+                            onEventItemSelection(event.id)
+                        }
+                    },
+                    onLongClickLabel = "Event Selected",
+                    onLongClick = { onEventItemSelection(event.id) },
+                  ),
+              elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                  modifier = Modifier.fillMaxSize().padding(8.dp),
+                  verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                         Text(
-                            text = event.title,
-                            style = MaterialTheme.typography.titleLarge,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 4.dp),
+                          text = event.title,
+                          style = MaterialTheme.typography.titleLarge,
+                          textAlign = TextAlign.Center,
+                          modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                         )
                         Text(
-                            text = event.getNumberOfDays().toString(),
-                            fontSize = TextUnit(16f, TextUnitType.Em),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 4.dp),
+                          text = event.getNumberOfDays().toString(),
+                          fontSize = TextUnit(16f, TextUnitType.Em),
+                          textAlign = TextAlign.Center,
+                          modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                         )
                         Text(
-                            text = "Days",
-                            style = MaterialTheme.typography.bodyMediumEmphasized,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 4.dp),
+                          text = "Days",
+                          style = MaterialTheme.typography.bodyMediumEmphasized,
+                          textAlign = TextAlign.Center,
+                          modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                         )
                     }
                 }
@@ -115,25 +104,25 @@ fun EventListGrid(
 @DefaultPreviews
 @Composable
 internal fun EventListGridPreview(
-    @PreviewParameter(EventListGridPreviewParameterProvider::class) eventItem: EventItem
+  @PreviewParameter(EventListGridPreviewParameterProvider::class) eventItem: EventItem
 ) {
     EventListGrid(
-        onEventItemClick = {},
-        onEventItemSelection = {},
-        events = listOf(eventItem),
-        selectedEventItems = emptyList(),
-        modifier = Modifier,
+      onEventItemClick = {},
+      onEventItemSelection = {},
+      events = listOf(eventItem),
+      selectedEventItems = emptyList(),
+      modifier = Modifier,
     )
 }
 
 internal class EventListGridPreviewParameterProvider :
-    CollectionPreviewParameterProvider<EventItem>(
-        listOf(
-            EventItem(
-                id = 0,
-                title = "Event 1",
-                description = "Event 1 Description",
-                date = LocalDate.now().plusDays(5),
-            )
-        )
+  CollectionPreviewParameterProvider<EventItem>(
+    listOf(
+      EventItem(
+        id = 0,
+        title = "Event 1",
+        description = "Event 1 Description",
+        date = LocalDate.now().plusDays(5),
+      )
     )
+  )

@@ -51,8 +51,8 @@ import com.ossalali.daysremaining.presentation.viewmodel.MainScreenViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    mainViewModel: MainScreenViewModel = hiltViewModel(),
-    eventListViewModel: EventListViewModel = hiltViewModel(),
+  mainViewModel: MainScreenViewModel = hiltViewModel(),
+  eventListViewModel: EventListViewModel = hiltViewModel(),
 ) {
     val backStack = rememberNavBackStack(EventListRoute)
     val systemUiController = rememberSystemUiController()
@@ -60,11 +60,11 @@ fun MainScreen(
     val colorScheme = MaterialTheme.colorScheme
 
     val statusBarColor =
-        if (isDarkMode) {
-            colorScheme.inverseOnSurface
-        } else {
-            colorScheme.onSurface
-        }
+      if (isDarkMode) {
+          colorScheme.inverseOnSurface
+      } else {
+          colorScheme.onSurface
+      }
 
     SideEffect {
         systemUiController.setStatusBarColor(color = statusBarColor, darkIcons = !isDarkMode)
@@ -79,7 +79,7 @@ fun MainScreen(
     LaunchedEffect(searchText, isSearching) {
         if (eventListViewModel.searchText.value != searchText) {
             eventListViewModel.onInteraction(
-                EventListViewModel.Interaction.SearchTextChanged(searchText)
+              EventListViewModel.Interaction.SearchTextChanged(searchText)
             )
         }
 
@@ -89,140 +89,134 @@ fun MainScreen(
     }
 
     NavDisplay(
-        backStack = backStack,
-        onBack = {
-            Log.d(
-                "MainScreen",
-                "System back pressed. Current backStack: ${backStack.map { it::class.simpleName }}",
-            )
-            val removed = backStack.removeLastOrNull()
-            Log.d(
-                "MainScreen",
-                "Called removeLastOrNull. Removed: ${removed?.let { it::class.simpleName }}. New backStack: ${backStack.map { it::class.simpleName }}",
-            )
+      backStack = backStack,
+      onBack = {
+          Log.d(
+            "MainScreen",
+            "System back pressed. Current backStack: ${backStack.map { it::class.simpleName }}",
+          )
+          val removed = backStack.removeLastOrNull()
+          Log.d(
+            "MainScreen",
+            "Called removeLastOrNull. Removed: ${removed?.let { it::class.simpleName }}. New backStack: ${backStack.map { it::class.simpleName }}",
+          )
+      },
+      entryDecorators =
+        listOf(rememberSceneSetupNavEntryDecorator(), rememberSavedStateNavEntryDecorator()),
+      transitionSpec = { slideInFromRight() togetherWith slideOutToLeft() },
+      popTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
+      predictivePopTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
+      entryProvider =
+        entryProvider {
+            entry<EventListRoute> {
+                MainScreenContent(
+                  isSearching = isSearching,
+                  searchText = searchText,
+                  currentEvents = currentEvents,
+                  searchAnimState = searchAnimState,
+                  mainViewModel = mainViewModel,
+                  eventListViewModel = eventListViewModel,
+                  isOnEventList = true,
+                  navigateToEventDetails = { eventId -> backStack.add(EventDetailsRoute(eventId)) },
+                  navigateAddEvent = { backStack.add(AddEventRoute) },
+                )
+            }
+
+            entry<EventDetailsRoute> { route ->
+                MainScreenContent(
+                  searchAnimState = searchAnimState,
+                  mainViewModel = mainViewModel,
+                  eventListViewModel = eventListViewModel,
+                  content = {
+                      EventDetailsScreen(
+                        eventId = route.eventId,
+                        onBackClick = { backStack.removeLastOrNull() },
+                      )
+                  },
+                )
+            }
+
+            entry<AddEventRoute> { route ->
+                MainScreenContent(
+                  searchAnimState = searchAnimState,
+                  mainViewModel = mainViewModel,
+                  eventListViewModel = eventListViewModel,
+                  navigateAddEvent = { backStack.add(AddEventRoute) },
+                  content = { AddEventScreen(onClose = { backStack.removeLastOrNull() }) },
+                )
+            }
+
+            entry<SettingsRoute> {
+                MainScreenContent(
+                  searchAnimState = searchAnimState,
+                  mainViewModel = mainViewModel,
+                  eventListViewModel = eventListViewModel,
+                  content = { SettingsScreen() },
+                )
+            }
+
+            entry<DebugRoute> {
+                MainScreenContent(
+                  searchAnimState = searchAnimState,
+                  mainViewModel = mainViewModel,
+                  eventListViewModel = eventListViewModel,
+                  content = { DebugScreen() },
+                )
+            }
         },
-        entryDecorators =
-            listOf(rememberSceneSetupNavEntryDecorator(), rememberSavedStateNavEntryDecorator()),
-        transitionSpec = { slideInFromRight() togetherWith slideOutToLeft() },
-        popTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
-        predictivePopTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
-        entryProvider =
-            entryProvider {
-                entry<EventListRoute> {
-                    MainScreenContent(
-                        isSearching = isSearching,
-                        searchText = searchText,
-                        currentEvents = currentEvents,
-                        searchAnimState = searchAnimState,
-                        mainViewModel = mainViewModel,
-                        eventListViewModel = eventListViewModel,
-                        isOnEventList = true,
-                        navigateToEventDetails = { eventId ->
-                            backStack.add(
-                                EventDetailsRoute(
-                                    eventId
-                                )
-                            )
-                        },
-                        navigateAddEvent = { backStack.add(AddEventRoute) },
-                    )
-                }
-
-                entry<EventDetailsRoute> { route ->
-                    MainScreenContent(
-                        searchAnimState = searchAnimState,
-                        mainViewModel = mainViewModel,
-                        eventListViewModel = eventListViewModel,
-                        content = {
-                            EventDetailsScreen(
-                                eventId = route.eventId,
-                                onBackClick = { backStack.removeLastOrNull() },
-                            )
-                        },
-                    )
-                }
-
-                entry<AddEventRoute> { route ->
-                    MainScreenContent(
-                        searchAnimState = searchAnimState,
-                        mainViewModel = mainViewModel,
-                        eventListViewModel = eventListViewModel,
-                        navigateAddEvent = { backStack.add(AddEventRoute) },
-                        content = { AddEventScreen(onClose = { backStack.removeLastOrNull() }) },
-                    )
-                }
-
-                entry<SettingsRoute> {
-                    MainScreenContent(
-                        searchAnimState = searchAnimState,
-                        mainViewModel = mainViewModel,
-                        eventListViewModel = eventListViewModel,
-                        content = { SettingsScreen() },
-                    )
-                }
-
-                entry<DebugRoute> {
-                    MainScreenContent(
-                        searchAnimState = searchAnimState,
-                        mainViewModel = mainViewModel,
-                        eventListViewModel = eventListViewModel,
-                        content = { DebugScreen() },
-                    )
-                }
-            },
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainScreenContent(
-    isSearching: Boolean = false,
-    searchText: String = "",
-    currentEvents: List<EventItem> = emptyList(),
-    searchAnimState: SearchAnimationState,
-    mainViewModel: MainScreenViewModel,
-    eventListViewModel: EventListViewModel,
-    isOnEventList: Boolean = false,
-    navigateAddEvent: () -> Unit = {},
-    navigateToEventDetails: (Int) -> Unit = {},
-    content: @Composable (() -> Unit)? = null,
+  isSearching: Boolean = false,
+  searchText: String = "",
+  currentEvents: List<EventItem> = emptyList(),
+  searchAnimState: SearchAnimationState,
+  mainViewModel: MainScreenViewModel,
+  eventListViewModel: EventListViewModel,
+  isOnEventList: Boolean = false,
+  navigateAddEvent: () -> Unit = {},
+  navigateToEventDetails: (Int) -> Unit = {},
+  content: @Composable (() -> Unit)? = null,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = {
-                if (isSearching && isOnEventList) {
-                    AnimatedSearchBar(
-                        isSearching = true,
-                        searchText = searchText,
-                        onSearchTextChanged = { text -> mainViewModel.updateSearchText(text) },
-                        onSearchActiveChanged = { active ->
-                            if (!active) {
-                                mainViewModel.toggleSearch(false)
-                            }
-                        },
-                        searchAnimState = searchAnimState,
-                        filteredEvents = currentEvents,
-                        onEventClicked = { eventId -> navigateToEventDetails(eventId) },
-                    )
-                } else {
-                    CenterAlignedTopAppBar(title = { Text("Days Remaining") })
-                }
-            },
-            floatingActionButton = {
-                if (isOnEventList && !isSearching) {
-                    FloatingActionButton(onClick = { navigateAddEvent() }) {
-                        Icon(Icons.Filled.Add, contentDescription = "Add Event")
-                    }
-                }
-            },
-            floatingActionButtonPosition = FabPosition.End,
+          topBar = {
+              if (isSearching && isOnEventList) {
+                  AnimatedSearchBar(
+                    isSearching = true,
+                    searchText = searchText,
+                    onSearchTextChanged = { text -> mainViewModel.updateSearchText(text) },
+                    onSearchActiveChanged = { active ->
+                        if (!active) {
+                            mainViewModel.toggleSearch(false)
+                        }
+                    },
+                    searchAnimState = searchAnimState,
+                    filteredEvents = currentEvents,
+                    onEventClicked = { eventId -> navigateToEventDetails(eventId) },
+                  )
+              } else {
+                  CenterAlignedTopAppBar(title = { Text("Days Remaining") })
+              }
+          },
+          floatingActionButton = {
+              if (isOnEventList && !isSearching) {
+                  FloatingActionButton(onClick = { navigateAddEvent() }) {
+                      Icon(Icons.Filled.Add, contentDescription = "Add Event")
+                  }
+              }
+          },
+          floatingActionButtonPosition = FabPosition.End,
         ) { paddingValues ->
             Box(modifier = Modifier.padding(paddingValues)) {
                 if (content != null) content()
                 else {
                     EventListScreen(
-                        viewModel = eventListViewModel,
-                        onNavigateToEventDetails = navigateToEventDetails,
+                      viewModel = eventListViewModel,
+                      onNavigateToEventDetails = navigateToEventDetails,
                     )
                 }
             }
@@ -232,28 +226,28 @@ private fun MainScreenContent(
 
 private fun slideInFromRight(): EnterTransition {
     return slideInHorizontally(
-        initialOffsetX = { fullWidth -> fullWidth },
-        animationSpec = tween(300),
+      initialOffsetX = { fullWidth -> fullWidth },
+      animationSpec = tween(300),
     ) + fadeIn(animationSpec = tween(300))
 }
 
 private fun slideOutToLeft(): ExitTransition {
     return slideOutHorizontally(
-        targetOffsetX = { fullWidth -> -fullWidth },
-        animationSpec = tween(300),
+      targetOffsetX = { fullWidth -> -fullWidth },
+      animationSpec = tween(300),
     ) + fadeOut(animationSpec = tween(300))
 }
 
 private fun slideInFromLeft(): EnterTransition {
     return slideInHorizontally(
-        initialOffsetX = { fullWidth -> -fullWidth },
-        animationSpec = tween(300),
+      initialOffsetX = { fullWidth -> -fullWidth },
+      animationSpec = tween(300),
     ) + fadeIn(animationSpec = tween(300))
 }
 
 private fun slideOutToRight(): ExitTransition {
     return slideOutHorizontally(
-        targetOffsetX = { fullWidth -> fullWidth },
-        animationSpec = tween(300),
+      targetOffsetX = { fullWidth -> fullWidth },
+      animationSpec = tween(300),
     ) + fadeOut(animationSpec = tween(300))
 }
