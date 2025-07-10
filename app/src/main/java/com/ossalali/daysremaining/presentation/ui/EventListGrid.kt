@@ -37,70 +37,57 @@ fun EventListGrid(
     onEventItemSelection: (Int) -> Unit,
     events: List<EventItem>,
     selectedEventItems: List<EventItem>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (events.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "No events found",
-                style = MaterialTheme.typography.titleLargeEmphasized,
-            )
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = "No events found", style = MaterialTheme.typography.titleLargeEmphasized)
         }
     }
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = modifier
-    ) {
-        items(
-            events,
-            key = { event -> event.id }
-        ) { event ->
+    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier) {
+        items(events, key = { event -> event.id }) { event ->
             val isSelected = selectedEventItems.map { it.id }.contains(event.id)
             Card(
-                border = if (isSelected) {
+                border =
+                    if (isSelected) {
                     BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
                 } else {
                     null
                 },
                 shape = MaterialTheme.shapes.medium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .combinedClickable(
-                        onClick = {
-                            if (selectedEventItems.isEmpty()) {
-                                onEventItemClick(event.id)
-                            } else {
-                                onEventItemSelection(event.id)
-                            }
-                        },
-                        onLongClickLabel = "Event Selected",
-                        onLongClick = { onEventItemSelection(event.id) }
-
-                    ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .combinedClickable(
+                            onClick = {
+                                if (selectedEventItems.isEmpty()) {
+                                    onEventItemClick(event.id)
+                                } else {
+                                    onEventItemSelection(event.id)
+                                }
+                            },
+                            onLongClickLabel = "Event Selected",
+                            onLongClick = { onEventItemSelection(event.id) },
+                        ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 8.dp)
-                    ) {
+                    Column(modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)) {
                         Text(
                             text = event.title,
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 4.dp)
+                                .padding(bottom = 4.dp),
                         )
                         Text(
                             text = event.getNumberOfDays().toString(),
@@ -108,7 +95,7 @@ fun EventListGrid(
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 4.dp)
+                                .padding(bottom = 4.dp),
                         )
                         Text(
                             text = "Days",
@@ -116,7 +103,7 @@ fun EventListGrid(
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 4.dp)
+                                .padding(bottom = 4.dp),
                         )
                     }
                 }
@@ -128,18 +115,16 @@ fun EventListGrid(
 @DefaultPreviews
 @Composable
 internal fun EventListGridPreview(
-    @PreviewParameter(EventListGridPreviewParameterProvider::class)
-    eventItem: EventItem
+    @PreviewParameter(EventListGridPreviewParameterProvider::class) eventItem: EventItem
 ) {
     EventListGrid(
         onEventItemClick = {},
         onEventItemSelection = {},
         events = listOf(eventItem),
         selectedEventItems = emptyList(),
-        modifier = Modifier
+        modifier = Modifier,
     )
 }
-
 
 internal class EventListGridPreviewParameterProvider :
     CollectionPreviewParameterProvider<EventItem>(
@@ -148,7 +133,7 @@ internal class EventListGridPreviewParameterProvider :
                 id = 0,
                 title = "Event 1",
                 description = "Event 1 Description",
-                date = LocalDate.now().plusDays(5)
+                date = LocalDate.now().plusDays(5),
             )
         )
     )

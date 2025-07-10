@@ -79,8 +79,9 @@ private fun EventListImpl(
     val activeFilterState by activeFilterEnabled.collectAsState()
     val archivedFilterState by archivedFilterEnabled.collectAsState()
     val hasArchivedEventItems = remember { selectedEventItems.map { it.isArchived }.contains(true) }
-    val hasUnarchivedEventItems =
-        remember { selectedEventItems.map { it.isArchived }.contains(false) }
+    val hasUnarchivedEventItems = remember {
+        selectedEventItems.map { it.isArchived }.contains(false)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -101,12 +102,14 @@ private fun EventListImpl(
                         Spacer(Modifier.weight(1f))
                         if (hasUnarchivedEventItems) {
                             IconButton(
-                                modifier = Modifier.border(
-                                    width = 1.dp,
-                                    color = Color.Gray,
-                                    shape = ShapeDefaults.Small
-                                ),
-                                onClick = { onArchiveEventItems(selectedEventItems) }) {
+                                modifier =
+                                    Modifier.border(
+                                        width = 1.dp,
+                                        color = Color.Gray,
+                                        shape = ShapeDefaults.Small,
+                                    ),
+                                onClick = { onArchiveEventItems(selectedEventItems) },
+                            ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Archive,
                                     contentDescription = "Archive selected Events",
@@ -116,12 +119,14 @@ private fun EventListImpl(
                         if (hasArchivedEventItems) {
                             Spacer(Modifier.width(4.dp))
                             IconButton(
-                                modifier = Modifier.border(
-                                    width = 1.dp,
-                                    color = Color.Gray,
-                                    shape = ShapeDefaults.Small
-                                ),
-                                onClick = { onUnarchiveEvents(selectedEventItems) }) {
+                                modifier =
+                                    Modifier.border(
+                                        width = 1.dp,
+                                        color = Color.Gray,
+                                        shape = ShapeDefaults.Small,
+                                    ),
+                                onClick = { onUnarchiveEvents(selectedEventItems) },
+                            ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Inbox,
                                     contentDescription = "Unarchive selected Events",
@@ -130,12 +135,14 @@ private fun EventListImpl(
                         }
                         Spacer(Modifier.width(4.dp))
                         IconButton(
-                            modifier = Modifier.border(
-                                width = 1.dp,
-                                color = Color.Gray,
-                                shape = ShapeDefaults.Small
-                            ),
-                            onClick = { onDeleteEventItems(selectedEventItems) }) {
+                            modifier =
+                                Modifier.border(
+                                    width = 1.dp,
+                                    color = Color.Gray,
+                                    shape = ShapeDefaults.Small,
+                                ),
+                            onClick = { onDeleteEventItems(selectedEventItems) },
+                        ) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
                                 contentDescription = "Delete selected Events",

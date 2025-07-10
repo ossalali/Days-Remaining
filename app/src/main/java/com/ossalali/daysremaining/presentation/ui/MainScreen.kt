@@ -210,9 +210,7 @@ private fun MainScreenContent(
             },
             floatingActionButton = {
                 if (isOnEventList && !isSearching) {
-                    FloatingActionButton(
-                        onClick = { navigateAddEvent() }
-                    ) {
+                    FloatingActionButton(onClick = { navigateAddEvent() }) {
                         Icon(Icons.Filled.Add, contentDescription = "Add Event")
                     }
                 }
