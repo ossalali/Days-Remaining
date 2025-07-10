@@ -26,24 +26,24 @@ class EventRepo(private val eventDao: EventDao) {
         return eventDao.getAllArchivedEvents()
     }
 
-    fun insertEvent(eventItem: EventItem) {
+    suspend fun insertEvent(eventItem: EventItem) {
         eventDao.upsertEvent(eventItem)
     }
 
-    fun deleteEvents(eventIds: List<Int>) {
+    suspend fun deleteEvents(eventIds: List<Int>) {
         eventDao.deleteEvents(eventIds)
     }
 
-    fun archiveEvents(eventIds: List<Int>) {
+    suspend fun archiveEvents(eventIds: List<Int>) {
         eventDao.archiveEvents(eventIds)
     }
 
-    fun unarchiveEvents(eventId: List<Int>) {
+    suspend fun unarchiveEvents(eventId: List<Int>) {
         eventDao.unarchiveEvents(eventId)
     }
 
-    fun insertEvents(eventItemList: List<EventItem>) {
-        eventItemList.forEach { event -> eventDao.upsertEvent(event) }
+    suspend fun insertEvents(eventItemList: List<EventItem>) {
+        eventDao.upsertEvents(eventItemList)
     }
 
     suspend fun getEventById(eventId: Int): EventItem {
@@ -52,5 +52,13 @@ class EventRepo(private val eventDao: EventDao) {
 
     suspend fun getEventsByIds(eventIds: List<Int>): List<EventItem> {
         return eventDao.getEventsByIds(eventIds)
+    }
+
+    suspend fun getActiveEventsByIds(eventIds: List<Int>): List<EventItem> {
+        return if (eventIds.isEmpty()) {
+            emptyList()
+        } else {
+            eventDao.getActiveEventsByIds(eventIds)
+        }
     }
 }

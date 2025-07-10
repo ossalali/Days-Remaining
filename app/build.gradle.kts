@@ -80,6 +80,9 @@ dependencies {
   implementation(libs.androidx.compose.foundation)
   implementation(libs.androidx.compose.ui)
 
+  // Lifecycle dependencies
+  implementation(libs.androidx.lifecycle.process)
+
   // Nav3
   implementation(libs.androidx.navigation3.ui)
   implementation(libs.androidx.navigation3.runtime)

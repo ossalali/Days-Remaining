@@ -89,7 +89,7 @@ fun EventDetailsScreen(
       isSaving = isSaving,
       onBackClick = onBackClick,
       onUpdateEvent = { updatedEvent ->
-          viewModel.updateEvent(updatedEvent)
+          viewModel.saveEvent(updatedEvent)
           onBackClick()
       },
       onDeleteEvent = { eventToDelete ->

@@ -1,6 +1,5 @@
 package com.ossalali.daysremaining.presentation.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
@@ -13,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -51,9 +51,8 @@ constructor(
           initialValue = emptyList(),
         )
 
-    private val _selectedEventItems = mutableStateListOf<EventItem>()
-    val selectedEventItems: List<EventItem>
-        get() = _selectedEventItems
+    private val _selectedEventItems = MutableStateFlow<List<EventItem>>(emptyList())
+    val selectedEventItems: StateFlow<List<EventItem>> = _selectedEventItems.asStateFlow()
 
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
@@ -73,16 +72,18 @@ constructor(
         _archivedFilterEnabled.value = !_archivedFilterEnabled.value
     }
 
-
-
     private fun handleEventItemSelection(eventId: Int) {
-        val existingItem = _selectedEventItems.find { item -> item.id == eventId }
+        val currentSelection = _selectedEventItems.value.toMutableList()
+        val existingItem = currentSelection.find { item -> item.id == eventId }
+        
         if (existingItem != null) {
-            _selectedEventItems.remove(existingItem)
+            currentSelection.remove(existingItem)
+            _selectedEventItems.value = currentSelection
         } else {
-            launch {
+            launch(ioDispatcher) {
                 val eventById = eventRepo.getEventById(eventId)
-                _selectedEventItems.add(eventById)
+                currentSelection.add(eventById)
+                _selectedEventItems.value = currentSelection
             }
         }
     }
@@ -90,27 +91,36 @@ constructor(
     fun unarchiveEvents(eventItems: List<EventItem>) {
         viewModelScope.launch(ioDispatcher) {
             eventRepo.unarchiveEvents(eventItems.map { it.id })
-            _selectedEventItems.removeAll(eventItems)
+            val currentSelection = _selectedEventItems.value.toMutableList()
+            currentSelection.removeAll(eventItems)
+            _selectedEventItems.value = currentSelection
         }
     }
 
     fun archiveEvents(eventItems: List<EventItem>) {
         viewModelScope.launch(ioDispatcher) {
             eventRepo.archiveEvents(eventItems.map { it.id })
-            _selectedEventItems.removeAll(eventItems)
+            val currentSelection = _selectedEventItems.value.toMutableList()
+            currentSelection.removeAll(eventItems)
+            _selectedEventItems.value = currentSelection
         }
     }
 
-    fun deleteEvents(eventIds: List<Int>) {
-        viewModelScope.launch(ioDispatcher) { eventRepo.deleteEvents(eventIds) }
+    fun deleteEvents(eventItems: List<EventItem>) {
+        viewModelScope.launch(ioDispatcher) { 
+            eventRepo.deleteEvents(eventItems.map { it.id })
+            val currentSelection = _selectedEventItems.value.toMutableList()
+            currentSelection.removeAll(eventItems)
+            _selectedEventItems.value = currentSelection
+        }
     }
 
     fun hasArchivedEventItems(): Boolean {
-        return _selectedEventItems.any { it.isArchived }
+        return _selectedEventItems.value.any { it.isArchived }
     }
 
     fun hasUnarchivedEventItems(): Boolean {
-        return _selectedEventItems.any { !it.isArchived }
+        return _selectedEventItems.value.any { !it.isArchived }
     }
 
     sealed interface Interaction {

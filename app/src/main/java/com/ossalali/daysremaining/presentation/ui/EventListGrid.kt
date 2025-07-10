@@ -18,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -43,11 +44,29 @@ fun EventListGrid(
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text = "No events found", style = MaterialTheme.typography.titleLargeEmphasized)
         }
+        return
     }
 
-    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier) {
-        items(events, key = { event -> event.id }) { event ->
-            val isSelected = selectedEventItems.any { it.id == event.id }
+    val selectedEventIds = remember(selectedEventItems) {
+        selectedEventItems.map { it.id }.toSet()
+    }
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2), 
+        modifier = modifier
+    ) {
+        items(
+            items = events,
+            key = { event -> event.id }
+        ) { event ->
+            val isSelected = remember(event.id, selectedEventIds) {
+                selectedEventIds.contains(event.id)
+            }
+            
+            val numberOfDays = remember(event.date) {
+                event.getNumberOfDays()
+            }
+            
             Card(
               border =
                 if (isSelected) {
@@ -84,7 +103,7 @@ fun EventListGrid(
                           modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                         )
                         Text(
-                          text = event.getNumberOfDays().toString(),
+                          text = numberOfDays.toString(),
                           fontSize = TextUnit(16f, TextUnitType.Em),
                           textAlign = TextAlign.Center,
                           modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),

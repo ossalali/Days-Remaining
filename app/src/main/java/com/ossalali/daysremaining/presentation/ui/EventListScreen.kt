@@ -26,7 +26,6 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -52,15 +51,23 @@ internal fun EventListScreen(
   focusRequester: FocusRequester = FocusRequester(),
   paddingValues: PaddingValues,
 ) {
-    val onUnarchiveEvents = remember { { eventItems: List<EventItem> -> viewModel.unarchiveEvents(eventItems) } }
-    val onArchiveEventItems = remember { { eventItems: List<EventItem> -> viewModel.archiveEvents(eventItems) } }
-    val onDeleteEventItems = remember { { eventItems: List<EventItem> -> viewModel.deleteEvents(eventItems.map { it.id }) } }
-    
+    val selectedEventItems by viewModel.selectedEventItems.collectAsStateWithLifecycle()
+
+    val onUnarchiveEvents = remember {
+        { eventItems: List<EventItem> -> viewModel.unarchiveEvents(eventItems) }
+    }
+    val onArchiveEventItems = remember {
+        { eventItems: List<EventItem> -> viewModel.archiveEvents(eventItems) }
+    }
+    val onDeleteEventItems = remember {
+        { eventItems: List<EventItem> -> viewModel.deleteEvents(eventItems) }
+    }
+
     EventListImpl(
       modifier = Modifier.fillMaxWidth(),
       onInteraction = viewModel::onInteraction,
       eventUiState = viewModel.eventUiState,
-      selectedEventItems = viewModel.selectedEventItems,
+      selectedEventItems = selectedEventItems,
       activeFilterEnabled = viewModel.activeFilterEnabled,
       archivedFilterEnabled = viewModel.archivedFilterEnabled,
       onNavigateToEventDetails = onNavigateToEventDetails,
@@ -100,16 +107,15 @@ private fun EventListImpl(
     val allEvents by eventUiState.collectAsStateWithLifecycle()
     val activeFilterState by activeFilterEnabled.collectAsStateWithLifecycle()
     val archivedFilterState by archivedFilterEnabled.collectAsStateWithLifecycle()
-    
-    val events by remember {
-        derivedStateOf {
-            if (searchText.isEmpty()) {
-                allEvents
-            } else {
-                allEvents.filter { it.title.contains(searchText, ignoreCase = true) }
-            }
-        }
-    }
+
+    val events =
+      remember(allEvents, searchText) {
+          if (searchText.isEmpty()) {
+              allEvents
+          } else {
+              allEvents.filter { it.title.contains(searchText, ignoreCase = true) }
+          }
+      }
 
     Scaffold(
       modifier = Modifier.padding(paddingValues),

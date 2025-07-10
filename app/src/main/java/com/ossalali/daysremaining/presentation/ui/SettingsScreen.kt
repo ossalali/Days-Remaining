@@ -26,83 +26,62 @@ import com.ossalali.daysremaining.presentation.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
-    viewModel: SettingsViewModel = hiltViewModel(),
-    onBackClick: () -> Unit = {}
-) {
+fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel(), onBackClick: () -> Unit = {}) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
+      topBar = {
+          TopAppBar(
+            title = { Text("Settings") },
+            navigationIcon = {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                      imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                      contentDescription = "Back",
+                    )
                 }
-            )
-        }
+            },
+          )
+      }
     ) { paddingValues ->
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp)
-            ) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
+                SettingItem(
+                  title = "Dark Mode",
+                  description = "Enable dark theme",
+                  checked = false, // Should come from viewModel
+                  onCheckedChange = { /* Implement in viewModel */ },
+                )
 
-            SettingItem(
-                title = "Dark Mode",
-                description = "Enable dark theme",
-                checked = false,  // Should come from viewModel
-                onCheckedChange = { /* Implement in viewModel */ }
-            )
+                SettingItem(
+                  title = "Notifications",
+                  description = "Enable notification reminders",
+                  checked = false, // Should come from viewModel
+                  onCheckedChange = { /* Implement in viewModel */ },
+                )
 
-            SettingItem(
-                title = "Notifications",
-                description = "Enable notification reminders",
-                checked = false,  // Should come from viewModel
-                onCheckedChange = { /* Implement in viewModel */ }
-            )
-
-            SettingItem(
-                title = "Automatically archive events",
-                description = "Archive events after they've passed",
-                checked = false,  // Should come from viewModel
-                onCheckedChange = { /* Implement in viewModel */ }
-            )
+                SettingItem(
+                  title = "Automatically archive events",
+                  description = "Archive events after they've passed",
+                  checked = false, // Should come from viewModel
+                  onCheckedChange = { /* Implement in viewModel */ },
+                )
+            }
         }
     }
-}
 }
 
 @Composable
 fun SettingItem(
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+  title: String,
+  description: String,
+  checked: Boolean,
+  onCheckedChange: (Boolean) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         ListItem(
-            headlineContent = { Text(text = title) },
-            supportingContent = { Text(text = description) },
-            trailingContent = {
-                Switch(
-                    checked = checked,
-                    onCheckedChange = onCheckedChange
-                )
-            }
+          headlineContent = { Text(text = title) },
+          supportingContent = { Text(text = description) },
+          trailingContent = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
         )
         Spacer(modifier = Modifier.height(8.dp))
     }
-} 
+}

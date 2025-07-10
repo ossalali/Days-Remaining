@@ -80,27 +80,19 @@ class EventWidget : GlanceAppWidget() {
                     Log.d("EventWidget", "No events selected for widget")
                     emptyList<EventItem>()
                 } else {
-                    // Get events data with timeout - use getAllEvents() directly since it returns List<EventItem>
-                    val allEvents = withTimeoutOrNull(2000) {
-                        eventRepo.getAllEvents()
+                    val selectedEvents = withTimeoutOrNull(2000) {
+                        eventRepo.getActiveEventsByIds(selectedEventIds)
                     } ?: emptyList()
 
-                    Log.d("EventWidget", "Fetched ${allEvents.size} total events from repository")
-
-                    // Filter selected events
-                    val filteredEvents = allEvents
-                        .filter { it.id in selectedEventIds && !it.isArchived }
-                        .sortedBy { it.getNumberOfDays() }
-
-                    Log.d("EventWidget", "Filtered ${filteredEvents.size} selected events")
-                    filteredEvents.forEach { item ->
+                    Log.d("EventWidget", "Fetched ${selectedEvents.size} selected active events")
+                    selectedEvents.forEach { item ->
                         Log.d(
                             "EventWidget",
                             "Event: ${item.title} (ID: ${item.id}) - Days: ${item.getNumberOfDays()}"
                         )
                     }
 
-                    filteredEvents
+                    selectedEvents
                 }
             }
         } catch (e: Exception) {

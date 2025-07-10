@@ -1,6 +1,5 @@
 package com.ossalali.daysremaining.presentation.ui
 
-import android.util.Log
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
@@ -9,20 +8,20 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -34,7 +33,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.ossalali.daysremaining.BuildConfig
 import com.ossalali.daysremaining.navigation.AddEventRoute
 import com.ossalali.daysremaining.navigation.DebugRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
@@ -50,36 +49,10 @@ fun MainScreen(
   eventListViewModel: EventListViewModel = hiltViewModel(),
 ) {
     val backStack = rememberNavBackStack(EventListRoute)
-    val systemUiController = rememberSystemUiController()
-    val isDarkMode = isSystemInDarkTheme()
-    val colorScheme = MaterialTheme.colorScheme
-
-    val statusBarColor =
-      if (isDarkMode) {
-          colorScheme.inverseOnSurface
-      } else {
-          colorScheme.onSurface
-      }
-
-    SideEffect {
-        systemUiController.setStatusBarColor(color = statusBarColor, darkIcons = !isDarkMode)
-    }
-
     val searchText by mainViewModel.searchText.collectAsState()
 
     NavDisplay(
       backStack = backStack,
-      onBack = {
-          Log.d(
-            "MainScreen",
-            "System back pressed. Current backStack: ${backStack.map { it::class.simpleName }}",
-          )
-          val removed = backStack.removeLastOrNull()
-          Log.d(
-            "MainScreen",
-            "Called removeLastOrNull. Removed: ${removed?.let { it::class.simpleName }}. New backStack: ${backStack.map { it::class.simpleName }}",
-          )
-      },
       entryDecorators =
         listOf(rememberSceneSetupNavEntryDecorator(), rememberSavedStateNavEntryDecorator()),
       transitionSpec = { slideInFromRight() togetherWith slideOutToLeft() },
@@ -94,7 +67,9 @@ fun MainScreen(
                   eventListViewModel = eventListViewModel,
                   isOnEventList = true,
                   navigateToEventDetails = { eventId -> backStack.add(EventDetailsRoute(eventId)) },
-                  navigateAddEvent = { backStack.add(AddEventRoute) },
+                  navigateToAddEvent = { backStack.add(AddEventRoute) },
+                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
+                  navigateToDebugScreen = { backStack.add(DebugRoute) },
                 )
             }
 
@@ -111,11 +86,11 @@ fun MainScreen(
                 )
             }
 
-            entry<AddEventRoute> { route ->
+            entry<AddEventRoute> {
                 MainScreenContent(
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
-                  navigateAddEvent = { backStack.add(AddEventRoute) },
+                  navigateToAddEvent = { backStack.add(AddEventRoute) },
                   content = { AddEventScreen(onClose = { backStack.removeLastOrNull() }) },
                 )
             }
@@ -124,6 +99,7 @@ fun MainScreen(
                 MainScreenContent(
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
+                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                   content = { SettingsScreen() },
                 )
             }
@@ -132,7 +108,8 @@ fun MainScreen(
                 MainScreenContent(
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
-                  content = { DebugScreen() },
+                  navigateToDebugScreen = { backStack.add(DebugRoute) },
+                  content = { DebugScreen(onBackClick = { backStack.removeLastOrNull() }) },
                 )
             }
         },
@@ -146,16 +123,38 @@ private fun MainScreenContent(
   mainViewModel: MainScreenViewModel,
   eventListViewModel: EventListViewModel,
   isOnEventList: Boolean = false,
-  navigateAddEvent: () -> Unit = {},
+  navigateToAddEvent: () -> Unit = {},
   navigateToEventDetails: (Int) -> Unit = {},
+  navigateToDebugScreen: () -> Unit = {},
+  navigateToSettingsScreen: () -> Unit = {},
   content: @Composable (() -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
     Scaffold(
-      topBar = { CenterAlignedTopAppBar(title = { Text("Days Remaining") }) },
+      topBar = {
+          CenterAlignedTopAppBar(
+            title = { Text("Days Remaining") },
+            actions = {
+                IconButton(onClick = { navigateToSettingsScreen() }) {
+                    Icon(
+                      imageVector = Icons.Filled.Settings,
+                      contentDescription = "Open Settings screen",
+                    )
+                }
+                if (BuildConfig.DEBUG) {
+                    IconButton(onClick = { navigateToDebugScreen() }) {
+                        Icon(
+                          imageVector = Icons.Filled.BugReport,
+                          contentDescription = "Open Debug screen",
+                        )
+                    }
+                }
+            },
+          )
+      },
       floatingActionButton = {
           if (isOnEventList) {
-              FloatingActionButton(onClick = { navigateAddEvent() }) {
+              FloatingActionButton(onClick = { navigateToAddEvent() }) {
                   Icon(Icons.Filled.Add, contentDescription = "Add Event")
               }
           }

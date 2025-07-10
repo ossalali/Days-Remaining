@@ -6,8 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.ossalali.daysremaining.model.EventItem
+import java.util.concurrent.Executors
 
-@Database(entities = [EventItem::class], version = 1, exportSchema = false)
+@Database(entities = [EventItem::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class MyDatabase : RoomDatabase() {
 
@@ -24,6 +25,9 @@ abstract class MyDatabase : RoomDatabase() {
                     MyDatabase::class.java,
                     "myDatabase"
                 )
+                    .fallbackToDestructiveMigration(false)
+                    .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
+                    .setQueryExecutor(Executors.newFixedThreadPool(4))
                     .build()
                 INSTANCE = instance
                 instance

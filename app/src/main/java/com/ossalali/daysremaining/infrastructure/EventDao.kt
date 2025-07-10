@@ -9,7 +9,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface EventDao {
     @Upsert
-    fun upsertEvent(eventItem: EventItem)
+    suspend fun upsertEvent(eventItem: EventItem)
+
+    @Upsert
+    suspend fun upsertEvents(eventItems: List<EventItem>)
 
     @Query("SELECT * FROM eventitem WHERE isArchived = 0 order by id desc")
     fun getAllActiveEventsAsFlow(): Flow<List<EventItem>>
@@ -32,14 +35,17 @@ interface EventDao {
     @Query("SELECT * FROM eventitem WHERE id = :eventId")
     suspend fun getEventById(eventId: Int): EventItem
 
+    @Query("SELECT * FROM eventitem WHERE id IN (:eventIds) AND isArchived = 0 ORDER BY date ASC")
+    suspend fun getActiveEventsByIds(eventIds: List<Int>): List<EventItem>
+
     @Query("DELETE FROM eventitem WHERE id in (:eventIds)")
-    fun deleteEvents(eventIds: List<Int>)
+    suspend fun deleteEvents(eventIds: List<Int>)
 
     @Query("UPDATE eventitem SET isArchived = 1 WHERE id in (:eventIds)")
-    fun archiveEvents(eventIds: List<Int>)
+    suspend fun archiveEvents(eventIds: List<Int>)
 
     @Query("UPDATE eventitem SET isArchived = 0 WHERE id in (:eventIds)")
-    fun unarchiveEvents(eventIds: List<Int>)
+    suspend fun unarchiveEvents(eventIds: List<Int>)
 
     @Query("SELECT * FROM eventitem ORDER BY id DESC LIMIT 1")
     suspend fun getFirstEvent(): EventItem
