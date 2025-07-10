@@ -1,7 +1,6 @@
 package com.ossalali.daysremaining.presentation.ui
 
-// import androidx.compose.foundation.layout.height // No longer directly needed for the changed
-// Spacer
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,20 +14,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,12 +50,13 @@ internal fun EventListScreen(
         modifier = Modifier.fillMaxWidth(),
         onInteraction = viewModel::onInteraction,
         eventUiState = viewModel.eventUiState,
-        selectedEventIds = viewModel.selectedEventItemIds,
+        selectedEventItems = viewModel.selectedEventItems,
         activeFilterEnabled = viewModel.activeFilterEnabled,
         archivedFilterEnabled = viewModel.archivedFilterEnabled,
         onNavigateToEventDetails = onNavigateToEventDetails,
-        onArchiveEvents = { viewModel.archiveEvents(it) },
-        onDeleteEvents = { viewModel.deleteEvents(it) },
+        onUnarchiveEvents = { eventItems -> viewModel.unarchiveEvents(eventItems.map { it.id }) },
+        onArchiveEventItems = { eventItems -> viewModel.archiveEvents(eventItems.map { it.id }) },
+        onDeleteEventItems = { eventItems -> viewModel.deleteEvents(eventItems.map { it.id }) },
     )
 }
 
@@ -64,16 +67,20 @@ private fun EventListImpl(
     modifier: Modifier = Modifier,
     onInteraction: (Interaction) -> Unit,
     eventUiState: StateFlow<List<EventItem>>,
-    selectedEventIds: List<Int>,
+    selectedEventItems: List<EventItem>,
     activeFilterEnabled: StateFlow<Boolean>,
     archivedFilterEnabled: StateFlow<Boolean>,
     onNavigateToEventDetails: (Int) -> Unit = {},
-    onArchiveEvents: (List<Int>) -> Unit = {},
-    onDeleteEvents: (List<Int>) -> Unit = {},
+    onUnarchiveEvents: (List<EventItem>) -> Unit = {},
+    onArchiveEventItems: (List<EventItem>) -> Unit = {},
+    onDeleteEventItems: (List<EventItem>) -> Unit = {},
 ) {
     val events by eventUiState.collectAsStateWithLifecycle()
     val activeFilterState by activeFilterEnabled.collectAsState()
     val archivedFilterState by archivedFilterEnabled.collectAsState()
+    val hasArchivedEventItems = remember { selectedEventItems.map { it.isArchived }.contains(true) }
+    val hasUnarchivedEventItems =
+        remember { selectedEventItems.map { it.isArchived }.contains(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -90,30 +97,60 @@ private fun EventListImpl(
                         onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
                         onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
                     )
-                    Spacer(Modifier.weight(1f))
-                    IconButton(onClick = { onArchiveEvents(selectedEventIds) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Archive,
-                            contentDescription = "Archive selected Events",
-                        )
-                    }
-                    IconButton(onClick = { onDeleteEvents(selectedEventIds) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = "Delete selected Events",
-                        )
+                    if (selectedEventItems.isNotEmpty()) {
+                        Spacer(Modifier.weight(1f))
+                        if (hasUnarchivedEventItems) {
+                            IconButton(
+                                modifier = Modifier.border(
+                                    width = 1.dp,
+                                    color = Color.Gray,
+                                    shape = ShapeDefaults.Small
+                                ),
+                                onClick = { onArchiveEventItems(selectedEventItems) }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Archive,
+                                    contentDescription = "Archive selected Events",
+                                )
+                            }
+                        }
+                        if (hasArchivedEventItems) {
+                            Spacer(Modifier.width(4.dp))
+                            IconButton(
+                                modifier = Modifier.border(
+                                    width = 1.dp,
+                                    color = Color.Gray,
+                                    shape = ShapeDefaults.Small
+                                ),
+                                onClick = { onUnarchiveEvents(selectedEventItems) }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Inbox,
+                                    contentDescription = "Unarchive selected Events",
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(4.dp))
+                        IconButton(
+                            modifier = Modifier.border(
+                                width = 1.dp,
+                                color = Color.Gray,
+                                shape = ShapeDefaults.Small
+                            ),
+                            onClick = { onDeleteEventItems(selectedEventItems) }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "Delete selected Events",
+                            )
+                        }
                     }
                 }
-            },
-            floatingActionButtonPosition = FabPosition.Center,
-            floatingActionButton = {},
+            }
         ) { paddingValues ->
             Surface(modifier = modifier) {
                 EventListGrid(
                     onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
                     onEventItemSelection = { onInteraction(Interaction.Select(it)) },
                     events = events,
-                    selectedEventIds = selectedEventIds,
+                    selectedEventItems = selectedEventItems,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
