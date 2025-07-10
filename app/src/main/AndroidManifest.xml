@@ -12,12 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DaysRemaining"
         android:usesCleartextTraffic="true"
-        android:windowSoftInputMode="adjustResize"
         tools:targetApi="33">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.DaysRemaining">
+            android:theme="@style/Theme.DaysRemaining"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -10,13 +10,11 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -28,7 +26,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.FocusRequester
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
@@ -37,15 +36,13 @@ import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.navigation.AddEventRoute
 import com.ossalali.daysremaining.navigation.DebugRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
-import com.ossalali.daysremaining.presentation.ui.search.SearchAnimationState
-import com.ossalali.daysremaining.presentation.ui.search.rememberSearchAnimationState
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
+import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import com.ossalali.daysremaining.presentation.viewmodel.MainScreenViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,19 +69,14 @@ fun MainScreen(
 
     val searchText by mainViewModel.searchText.collectAsState()
     val isSearching by mainViewModel.isSearching.collectAsState()
-    val currentEvents by eventListViewModel.filteredEventsList.collectAsState()
-
-    val searchAnimState = rememberSearchAnimationState()
 
     LaunchedEffect(searchText, isSearching) {
         if (eventListViewModel.searchText.value != searchText) {
-            eventListViewModel.onInteraction(
-              EventListViewModel.Interaction.SearchTextChanged(searchText)
-            )
+            eventListViewModel.onInteraction(Interaction.SearchTextChanged(searchText))
         }
 
         if (eventListViewModel.isSearching.value != isSearching) {
-            eventListViewModel.onInteraction(EventListViewModel.Interaction.ToggleSearch)
+            eventListViewModel.onInteraction(Interaction.ToggleSearch)
         }
     }
 
@@ -110,10 +102,7 @@ fun MainScreen(
         entryProvider {
             entry<EventListRoute> {
                 MainScreenContent(
-                  isSearching = isSearching,
                   searchText = searchText,
-                  currentEvents = currentEvents,
-                  searchAnimState = searchAnimState,
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   isOnEventList = true,
@@ -124,7 +113,6 @@ fun MainScreen(
 
             entry<EventDetailsRoute> { route ->
                 MainScreenContent(
-                  searchAnimState = searchAnimState,
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   content = {
@@ -138,7 +126,6 @@ fun MainScreen(
 
             entry<AddEventRoute> { route ->
                 MainScreenContent(
-                  searchAnimState = searchAnimState,
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   navigateAddEvent = { backStack.add(AddEventRoute) },
@@ -148,7 +135,6 @@ fun MainScreen(
 
             entry<SettingsRoute> {
                 MainScreenContent(
-                  searchAnimState = searchAnimState,
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   content = { SettingsScreen() },
@@ -157,7 +143,6 @@ fun MainScreen(
 
             entry<DebugRoute> {
                 MainScreenContent(
-                  searchAnimState = searchAnimState,
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   content = { DebugScreen() },
@@ -167,13 +152,10 @@ fun MainScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MainScreenContent(
-  isSearching: Boolean = false,
   searchText: String = "",
-  currentEvents: List<EventItem> = emptyList(),
-  searchAnimState: SearchAnimationState,
   mainViewModel: MainScreenViewModel,
   eventListViewModel: EventListViewModel,
   isOnEventList: Boolean = false,
@@ -181,45 +163,28 @@ private fun MainScreenContent(
   navigateToEventDetails: (Int) -> Unit = {},
   content: @Composable (() -> Unit)? = null,
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-          topBar = {
-              if (isSearching && isOnEventList) {
-                  AnimatedSearchBar(
-                    isSearching = true,
-                    searchText = searchText,
-                    onSearchTextChanged = { text -> mainViewModel.updateSearchText(text) },
-                    onSearchActiveChanged = { active ->
-                        if (!active) {
-                            mainViewModel.toggleSearch(false)
-                        }
-                    },
-                    searchAnimState = searchAnimState,
-                    filteredEvents = currentEvents,
-                    onEventClicked = { eventId -> navigateToEventDetails(eventId) },
-                  )
-              } else {
-                  CenterAlignedTopAppBar(title = { Text("Days Remaining") })
+    val focusRequester = remember { FocusRequester() }
+    Scaffold(
+      topBar = { CenterAlignedTopAppBar(title = { Text("Days Remaining") }) },
+      floatingActionButton = {
+          if (isOnEventList) {
+              FloatingActionButton(onClick = { navigateAddEvent() }) {
+                  Icon(Icons.Filled.Add, contentDescription = "Add Event")
               }
-          },
-          floatingActionButton = {
-              if (isOnEventList && !isSearching) {
-                  FloatingActionButton(onClick = { navigateAddEvent() }) {
-                      Icon(Icons.Filled.Add, contentDescription = "Add Event")
-                  }
-              }
-          },
-          floatingActionButtonPosition = FabPosition.End,
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
-                if (content != null) content()
-                else {
-                    EventListScreen(
-                      viewModel = eventListViewModel,
-                      onNavigateToEventDetails = navigateToEventDetails,
-                    )
-                }
-            }
+          }
+      },
+      floatingActionButtonPosition = FabPosition.End,
+    ) { paddingValues ->
+        if (content != null) content()
+        else {
+            EventListScreen(
+              viewModel = eventListViewModel,
+              onNavigateToEventDetails = navigateToEventDetails,
+              searchText = searchText,
+              onSearchTextChanged = { text -> mainViewModel.updateSearchText(text) },
+              focusRequester = focusRequester,
+              paddingValues,
+            )
         }
     }
 }

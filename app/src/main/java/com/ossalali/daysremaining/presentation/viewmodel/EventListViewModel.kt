@@ -55,16 +55,25 @@ constructor(
     val selectedEventItems: List<EventItem>
         get() = _selectedEventItems
 
-    private val _currentEventItems = mutableStateListOf<EventItem>()
-
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = _isSearching
 
-    private val _filteredEventsList = MutableStateFlow<List<EventItem>>(emptyList())
-    val filteredEventsList: StateFlow<List<EventItem>> = _filteredEventsList
+    val filteredEventsList: StateFlow<List<EventItem>> =
+      combine(eventUiState, _searchText) { events, searchText ->
+            if (searchText.isEmpty()) {
+                events
+            } else {
+                events.filter { it.title.contains(searchText, ignoreCase = true) }
+            }
+        }
+        .stateIn(
+          scope = scope,
+          started = SharingStarted.WhileSubscribed(5000L),
+          initialValue = emptyList(),
+        )
 
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
@@ -90,22 +99,11 @@ constructor(
         _isSearching.value = !_isSearching.value
         if (!_isSearching.value) {
             _searchText.value = ""
-            filterEvents()
         }
     }
 
     private fun onSearchTextChange(text: String) {
         _searchText.value = text
-        filterEvents()
-    }
-
-    private fun filterEvents() {
-        if (_searchText.value.isEmpty()) {
-            _filteredEventsList.value = _currentEventItems
-        } else {
-            _filteredEventsList.value =
-              _currentEventItems.filter { it.title.contains(_searchText.value, ignoreCase = true) }
-        }
     }
 
     private fun handleEventItemSelection(eventId: Int) {
