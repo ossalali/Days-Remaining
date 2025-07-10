@@ -167,7 +167,8 @@ private fun EventListImpl(
             searchText = searchText,
             onSearchTextChanged = onSearchTextChanged,
             focusRequester = focusRequester,
-            modifier = Modifier.imePadding().padding(bottom = Dimensions.default),
+            modifier =
+              Modifier.imePadding().padding(bottom = Dimensions.default, start = Dimensions.default),
           )
       },
     ) { paddingValues ->

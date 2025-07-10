@@ -52,7 +52,7 @@ fun WidgetPreferenceScreen(
     onSaveComplete: () -> Unit
 ) {
     val systemUiController = rememberSystemUiController()
-    val scope = rememberCoroutineScope() // For launching suspend functions from compose
+    val scope = rememberCoroutineScope()
     val isDarkMode = isSystemInDarkTheme()
     val colorScheme = MaterialTheme.colorScheme
 
