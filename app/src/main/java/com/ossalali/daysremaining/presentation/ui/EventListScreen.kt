@@ -113,7 +113,10 @@ private fun EventListImpl(
           if (searchText.isEmpty()) {
               allEvents
           } else {
-              allEvents.filter { it.title.contains(searchText, ignoreCase = true) }
+              allEvents.filter {
+                  it.title.contains(searchText, ignoreCase = true) ||
+                    it.description.contains(searchText, ignoreCase = true)
+              }
           }
       }
 

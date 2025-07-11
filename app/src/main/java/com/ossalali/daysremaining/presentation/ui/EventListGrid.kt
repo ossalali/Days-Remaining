@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -49,7 +49,7 @@ fun EventListGrid(
 
     val selectedEventIds = remember(selectedEventItems) { selectedEventItems.map { it.id }.toSet() }
 
-    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier) {
+    LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(2), modifier = modifier) {
         items(items = events, key = { event -> event.id }) { event ->
             val isSelected =
               remember(event.id, selectedEventIds) { selectedEventIds.contains(event.id) }
@@ -98,7 +98,7 @@ fun EventListGrid(
                           modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                         )
                         Text(
-                          text = "Days",
+                          text = event.description,
                           style = MaterialTheme.typography.bodyMediumEmphasized,
                           textAlign = TextAlign.Center,
                           modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),

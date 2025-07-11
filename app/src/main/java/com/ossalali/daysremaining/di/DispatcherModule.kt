@@ -26,7 +26,7 @@ annotation class MainDispatcher
 object DispatcherModule {
 
     @Provides
-    @IoDispatcher
+    @IODispatcher
     fun providesIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
 
     @Provides

@@ -3,7 +3,7 @@ package com.ossalali.daysremaining.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ossalali.daysremaining.di.IoDispatcher
+import com.ossalali.daysremaining.di.IODispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
 import com.ossalali.daysremaining.model.EventItem
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,8 +18,8 @@ import javax.inject.Inject
 class EventDetailsViewModel
 @Inject
 constructor(
-  private val eventRepo: EventRepo,
-  @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val eventRepo: EventRepo,
+    @IODispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _event = MutableStateFlow<EventItem?>(null)

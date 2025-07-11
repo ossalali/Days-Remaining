@@ -22,7 +22,7 @@ import javax.inject.Inject
 open class EventListViewModel
 @Inject
 constructor(
-  @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+  @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
   private val eventRepo: EventRepo,
 ) : BaseViewModel<Interaction>() {
     val scope = CoroutineScope(ioDispatcher + SupervisorJob())
@@ -70,6 +70,9 @@ constructor(
 
     private fun toggleArchivedFilter() {
         _archivedFilterEnabled.value = !_archivedFilterEnabled.value
+        if (!_archivedFilterEnabled.value && !_activeFilterEnabled.value) {
+            _activeFilterEnabled.value = true
+        }
     }
 
     private fun handleEventItemSelection(eventId: Int) {

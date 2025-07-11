@@ -1,116 +1,61 @@
 # Days Remaining
 
-**Days Remaining** is a modern Android app for tracking important events and counting down the days
-until (or since) they occur. Built with Jetpack Compose, Hilt, Room, and the latest AndroidX
-libraries, it offers a clean, responsive UI and robust event management features.
+**Days Remaining** is a modern Android app designed to help you track important events and see how many days remain until they occur (or how many days have passed since they happened). Whether you're counting down to a vacation, anniversary, birthday, or any other significant date, this app keeps all your important events organized in one place.
 
-## Features
+## What Does This App Do?
 
-- **Event Tracking:** Add, view, and manage events with titles, descriptions, and target dates.
-- **Days Counter:** See at a glance how many days remain until each event, or how many days have
-  passed.
-- **Search & Filter:** Quickly find events using the animated search bar and filter chips (Active,
-  Archived, Deleted).
-- **Event Details:** Tap any event to view its details.
-- **Archive & Delete:** Archive or delete events with a single tap.
-- **Material You Design:** Uses Material 3 and theming for a beautiful, adaptive UI.
-- **Navigation:** Modern navigation using Navigation3.
-- **Debug & Settings Screens:** Access debug and settings screens for advanced options.
-- **Widget Support:** Add a home screen widget to see your events at a glance.
-- **Dark Mode:** Full support for light and dark themes.
+Days Remaining lets you create and manage a personalized collection of events with countdown timers. You can see at a glance how much time is left until your important dates, helping you stay prepared and organized for upcoming events.
 
-## Screenshots
+## Key Features
 
-<!-- Add screenshots here if available -->
+### 📅 **Event Management**
+- **Add Events**: Create new events with titles, descriptions, and target dates
+- **Event Details**: View detailed information about each event with full descriptions
+- **Days Calculation**: Automatically calculates and displays days remaining (or days passed)
+- **Date Picker**: Easy-to-use date selection when creating events
 
-## Getting Started
+### 🔍 **Search & Organization**
+- **Real-time Search**: Find events quickly by searching titles or descriptions
+- **Smart Filtering**: Filter events by status using filter chips:
+  - Active events (upcoming)
+  - Archived events (completed or past)
+- **Event List View**: Clean, organized grid display of all your events
 
-### Prerequisites
+### 📱 **User Experience**
+- **Modern Design**: Beautiful Material Design 3 interface that adapts to your device's theme
+- **Dark Mode**: Full support for both light and dark themes
+- **Responsive Layout**: Optimized for different screen sizes
+- **Smooth Navigation**: Intuitive navigation between screens
 
-- Android Studio Giraffe or newer
-- Android SDK 29+
-- Kotlin 1.9+
-- Gradle 8+
+### 🏠 **Home Screen Widget**
+- **Quick Access**: Add a widget to your home screen to view events without opening the app
+- **Customizable**: Select which events to display on your widget
+- **Auto-refresh**: Widget updates automatically to show current day counts
 
-### Build & Run
+### 🗂️ **Event Organization**
+- **Archive System**: Archive completed or past events to keep your main list clean
+- **Bulk Actions**: Select multiple events to archive or delete at once
+- **Persistent Storage**: All your events are safely stored on your device
 
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/yourusername/days-remaining.git
-   cd days-remaining
-   ```
-2. Open in Android Studio.
-3. Sync Gradle and run the app on an emulator or device.
+### ⚙️ **Settings & Configuration**
+- **Settings Screen**: Access to app preferences and configuration options
+- **Debug Features**: Developer tools for troubleshooting (in debug builds)
 
-## Project Structure
+## How It Works
 
-```
-app/
-  src/
-    main/
-      java/com/ossalali/daysremaining/
-        businesslogic/      # Use cases and business logic
-        di/                 # Dependency injection modules (Hilt)
-        infrastructure/     # Data layer (Room, DAOs, Repos)
-        model/              # Data models (EventItem, etc.)
-        navigation/         # Navigation keys/routes
-        presentation/
-          ui/               # Jetpack Compose UI screens & components
-          viewmodel/        # ViewModels (MVVM)
-        widget/             # App widget code
-      res/                  # Resources (drawables, layouts, values)
-```
+1. **Add Your Events**: Tap the add button to create new events with titles, descriptions, and target dates
+2. **View Countdowns**: See all your events in a clean grid layout with days remaining prominently displayed
+3. **Search & Filter**: Use the search bar to find specific events or filter by active/archived status
+4. **Manage Events**: Archive completed events or delete ones you no longer need
+5. **Widget Setup**: Add the home screen widget for quick access to your most important countdowns
 
-## Tech Stack
+## Perfect For
 
-- **Kotlin** & **Jetpack Compose** for UI
-- **Hilt** for dependency injection
-- **Room** for local data storage
-- **Navigation3** for navigation
-- **Material 3** for theming
-- **Accompanist** for system UI control
-- **DataStore** for preferences
-- **JUnit, Mockito** for testing
+- **Personal Milestones**: Birthdays, anniversaries, graduations
+- **Travel Planning**: Vacation countdowns, flight dates
+- **Work & School**: Project deadlines, exam dates, important meetings
+- **Health & Fitness**: Workout goals, diet milestones
+- **Special Occasions**: Holidays, concerts, events you're attending
 
-## Architecture
-
-The app follows Clean Architecture principles with MVVM pattern:
-
-- **Presentation Layer:** Jetpack Compose UI with ViewModels
-- **Domain Layer:** Use cases and business logic
-- **Data Layer:** Room database, repositories, and data sources
-
-## Key Components
-
-### EventItem Model
-
-The core data model representing events with:
-
-- Title and description
-- Target date
-- Archive status
-- Automatic days calculation
-
-### Navigation
-
-Uses Navigation3 for type-safe navigation between:
-
-- Event List Screen
-- Event Details Screen
-- Archive Screen
-- Settings Screen
-- Debug Screen
-
-### Widget
-
-Home screen widget for quick event viewing without opening the app.
-
-## Contributing
-
-Contributions are welcome! Please open issues or pull requests for new features, bug fixes, or
-suggestions.
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details. 
+Days Remaining helps you stay organized and never miss another important date! 
 

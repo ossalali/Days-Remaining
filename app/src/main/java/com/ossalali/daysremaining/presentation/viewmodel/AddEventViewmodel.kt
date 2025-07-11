@@ -2,7 +2,7 @@ package com.ossalali.daysremaining.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ossalali.daysremaining.di.IoDispatcher
+import com.ossalali.daysremaining.di.IODispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
 import com.ossalali.daysremaining.model.EventItem
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +14,7 @@ import javax.inject.Inject
 class AddEventViewmodel
 @Inject
 constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @IODispatcher private val ioDispatcher: CoroutineDispatcher,
     private val eventRepo: EventRepo,
 ) : ViewModel() {
     fun addEvent(eventItem: EventItem) {
