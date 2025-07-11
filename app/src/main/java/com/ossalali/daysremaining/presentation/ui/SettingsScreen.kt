@@ -23,7 +23,6 @@ import com.ossalali.daysremaining.presentation.viewmodel.SettingsViewModel
 @Composable
 fun SettingsScreen(
   viewModel: SettingsViewModel = hiltViewModel(),
-  onBackClick: () -> Unit = {},
   paddingValues: PaddingValues = PaddingValues(),
 ) {
     Surface(
