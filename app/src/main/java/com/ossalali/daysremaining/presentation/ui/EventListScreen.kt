@@ -3,12 +3,11 @@ package com.ossalali.daysremaining.presentation.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -20,15 +19,12 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Inbox
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -127,111 +122,91 @@ private fun EventListImpl(
           }
       }
 
-    Scaffold(
-      modifier = Modifier.padding(paddingValues).imePadding().background(Color.Transparent),
-      topBar = {
-          Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.quarter),
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-              AddChips(
-                activeFilterEnabled = activeFilterState,
-                archivedFilterEnabled = archivedFilterState,
-                onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
-                onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
-              )
-              if (selectedEventItems.isNotEmpty()) {
-                  Spacer(Modifier.weight(1f))
-                  if (hasUnarchivedEventItems) {
-                      IconButton(
-                        modifier =
-                          Modifier.border(
-                            width = 1.dp,
-                            color = Color.Gray,
-                            shape = ShapeDefaults.Small,
-                          ),
-                        onClick = { onArchiveEventItems(selectedEventItems) },
-                      ) {
-                          Icon(
-                            imageVector = Icons.Outlined.Archive,
-                            contentDescription = "Archive selected Events",
-                          )
-                      }
-                  }
-                  if (hasArchivedEventItems) {
-                      Spacer(Modifier.width(4.dp))
-                      IconButton(
-                        modifier =
-                          Modifier.border(
-                            width = 1.dp,
-                            color = Color.Gray,
-                            shape = ShapeDefaults.Small,
-                          ),
-                        onClick = { onUnarchiveEvents(selectedEventItems) },
-                      ) {
-                          Icon(
-                            imageVector = Icons.Outlined.Inbox,
-                            contentDescription = "Unarchive selected Events",
-                          )
-                      }
-                  }
-                  Spacer(Modifier.width(4.dp))
-                  IconButton(
-                    modifier =
-                      Modifier.border(
-                        width = 1.dp,
-                        color = Color.Gray,
-                        shape = ShapeDefaults.Small,
-                      ),
-                    onClick = { onDeleteEventItems(selectedEventItems) },
-                  ) {
-                      Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "Delete selected Events",
-                      )
-                  }
-              }
-          }
-      },
-      bottomBar = {
-          BottomAppBar(
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp,
-            contentPadding = PaddingValues(0.dp),
-          ) {
-              EventSearchBar(
-                searchText = searchText,
-                onSearchTextChanged = onSearchTextChanged,
-                focusRequester = focusRequester,
-                modifier =
-                  Modifier.fillMaxWidth()
-                    .padding(
-                      start = Dimensions.default,
-                      end = if (showFab) 72.dp + Dimensions.default else Dimensions.default,
-                      bottom = Dimensions.default,
-                    ),
-              )
-          }
-      },
-    ) { innerPadding ->
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column {
-                val layoutDirection = LocalLayoutDirection.current
-
-                EventListGrid(
-                  onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
-                  onEventItemSelection = { onInteraction(Interaction.Select(it)) },
-                  events = events,
-                  selectedEventItems = selectedEventItems,
+    Column(
+      modifier =
+        Modifier.fillMaxSize().padding(paddingValues).imePadding().background(Color.Transparent)
+    ) {
+        Row(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.quarter),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AddChips(
+              activeFilterEnabled = activeFilterState,
+              archivedFilterEnabled = archivedFilterState,
+              onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
+              onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
+            )
+            if (selectedEventItems.isNotEmpty()) {
+                Spacer(Modifier.weight(1f))
+                if (hasUnarchivedEventItems) {
+                    IconButton(
+                      modifier =
+                        Modifier.border(
+                          width = 1.dp,
+                          color = Color.Gray,
+                          shape = ShapeDefaults.Small,
+                        ),
+                      onClick = { onArchiveEventItems(selectedEventItems) },
+                    ) {
+                        Icon(
+                          imageVector = Icons.Outlined.Archive,
+                          contentDescription = "Archive selected Events",
+                        )
+                    }
+                }
+                if (hasArchivedEventItems) {
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(
+                      modifier =
+                        Modifier.border(
+                          width = 1.dp,
+                          color = Color.Gray,
+                          shape = ShapeDefaults.Small,
+                        ),
+                      onClick = { onUnarchiveEvents(selectedEventItems) },
+                    ) {
+                        Icon(
+                          imageVector = Icons.Outlined.Inbox,
+                          contentDescription = "Unarchive selected Events",
+                        )
+                    }
+                }
+                Spacer(Modifier.width(4.dp))
+                IconButton(
                   modifier =
-                    Modifier.fillMaxSize()
-                      .padding(
-                        top = innerPadding.calculateTopPadding(),
-                        start = innerPadding.calculateStartPadding(layoutDirection),
-                        end = innerPadding.calculateEndPadding(layoutDirection),
-                      ),
-                )
+                    Modifier.border(width = 1.dp, color = Color.Gray, shape = ShapeDefaults.Small),
+                  onClick = { onDeleteEventItems(selectedEventItems) },
+                ) {
+                    Icon(
+                      imageVector = Icons.Outlined.Delete,
+                      contentDescription = "Delete selected Events",
+                    )
+                }
             }
+        }
+
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            EventListGrid(
+              onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
+              onEventItemSelection = { onInteraction(Interaction.Select(it)) },
+              events = events,
+              selectedEventItems = selectedEventItems,
+              modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.default),
+            )
+
+            EventSearchBar(
+              searchText = searchText,
+              onSearchTextChanged = onSearchTextChanged,
+              focusRequester = focusRequester,
+              modifier =
+                Modifier.fillMaxWidth()
+                  .align(Alignment.BottomCenter)
+                  .padding(
+                    start = Dimensions.default,
+                    end = if (showFab) 72.dp + Dimensions.default else Dimensions.default,
+                    bottom = Dimensions.default,
+                  ),
+            )
         }
     }
 }
