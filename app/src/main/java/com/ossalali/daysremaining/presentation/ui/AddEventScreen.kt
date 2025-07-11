@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,7 +44,11 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEventScreen(viewmodel: AddEventViewmodel = hiltViewModel(), onClose: () -> Unit) {
+fun AddEventScreen(
+  viewmodel: AddEventViewmodel = hiltViewModel(),
+  onClose: () -> Unit,
+  paddingValues: PaddingValues,
+) {
     val titleFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -66,7 +71,7 @@ fun AddEventScreen(viewmodel: AddEventViewmodel = hiltViewModel(), onClose: () -
         keyboardController?.show()
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
         OutlinedTextField(
           value = title,
           onValueChange = {
@@ -161,5 +166,5 @@ fun AddEventScreen(viewmodel: AddEventViewmodel = hiltViewModel(), onClose: () -
 @DefaultPreviews
 @Composable
 fun AddEventScreenPreview() {
-    AddEventScreen(onClose = {})
+    AddEventScreen(onClose = {}, paddingValues = PaddingValues(16.dp))
 }

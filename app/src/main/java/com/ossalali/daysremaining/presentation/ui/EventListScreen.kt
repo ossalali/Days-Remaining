@@ -2,9 +2,12 @@ package com.ossalali.daysremaining.presentation.ui
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -16,6 +19,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -32,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -50,6 +55,7 @@ internal fun EventListScreen(
   onSearchTextChanged: (String) -> Unit = {},
   focusRequester: FocusRequester = FocusRequester(),
   paddingValues: PaddingValues,
+  showFab: Boolean = false,
 ) {
     val selectedEventItems by viewModel.selectedEventItems.collectAsStateWithLifecycle()
 
@@ -64,7 +70,6 @@ internal fun EventListScreen(
     }
 
     EventListImpl(
-      modifier = Modifier.fillMaxWidth(),
       onInteraction = viewModel::onInteraction,
       eventUiState = viewModel.eventUiState,
       selectedEventItems = selectedEventItems,
@@ -80,6 +85,7 @@ internal fun EventListScreen(
       onSearchTextChanged = onSearchTextChanged,
       focusRequester = focusRequester,
       paddingValues = paddingValues,
+      showFab = showFab,
     )
 }
 
@@ -87,7 +93,6 @@ internal fun EventListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventListImpl(
-  modifier: Modifier = Modifier,
   onInteraction: (Interaction) -> Unit,
   eventUiState: StateFlow<List<EventItem>>,
   selectedEventItems: List<EventItem>,
@@ -103,6 +108,7 @@ private fun EventListImpl(
   onSearchTextChanged: (String) -> Unit = {},
   focusRequester: FocusRequester = FocusRequester(),
   paddingValues: PaddingValues,
+  showFab: Boolean = false,
 ) {
     val allEvents by eventUiState.collectAsStateWithLifecycle()
     val activeFilterState by activeFilterEnabled.collectAsStateWithLifecycle()
@@ -124,7 +130,7 @@ private fun EventListImpl(
       modifier = Modifier.padding(paddingValues),
       topBar = {
           Row(
-            modifier = Modifier.fillMaxWidth().padding(Dimensions.quarter),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.quarter),
             verticalAlignment = Alignment.CenterVertically,
           ) {
               AddChips(
@@ -187,23 +193,44 @@ private fun EventListImpl(
           }
       },
       bottomBar = {
-          EventSearchBar(
-            searchText = searchText,
-            onSearchTextChanged = onSearchTextChanged,
-            focusRequester = focusRequester,
-            modifier =
-              Modifier.imePadding().padding(bottom = Dimensions.default, start = Dimensions.default),
-          )
+          BottomAppBar(
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+            modifier = Modifier.imePadding(),
+            contentPadding = PaddingValues(0.dp),
+          ) {
+              EventSearchBar(
+                searchText = searchText,
+                onSearchTextChanged = onSearchTextChanged,
+                focusRequester = focusRequester,
+                modifier =
+                  Modifier.fillMaxWidth()
+                    .padding(
+                      start = Dimensions.default,
+                      end = if (showFab) 72.dp + Dimensions.default else Dimensions.default,
+                    ),
+              )
+          }
       },
-    ) { paddingValues ->
-        Surface(modifier = modifier) {
-            EventListGrid(
-              onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
-              onEventItemSelection = { onInteraction(Interaction.Select(it)) },
-              events = events,
-              selectedEventItems = selectedEventItems,
-              modifier = Modifier.fillMaxSize().padding(paddingValues),
-            )
+    ) { innerPadding ->
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column {
+                val layoutDirection = LocalLayoutDirection.current
+
+                EventListGrid(
+                  onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
+                  onEventItemSelection = { onInteraction(Interaction.Select(it)) },
+                  events = events,
+                  selectedEventItems = selectedEventItems,
+                  modifier =
+                    Modifier.fillMaxSize()
+                      .padding(
+                        top = innerPadding.calculateTopPadding(),
+                        start = innerPadding.calculateStartPadding(layoutDirection),
+                        end = innerPadding.calculateEndPadding(layoutDirection),
+                      ),
+                )
+            }
         }
     }
 }

@@ -1,14 +1,13 @@
 package com.ossalali.daysremaining.presentation.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +32,7 @@ fun EventSearchBar(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    DockedSearchBar(
+    SearchBar(
       inputField = {
           SearchBarDefaults.InputField(
             query = searchText,
@@ -41,7 +40,7 @@ fun EventSearchBar(
             onSearch = {},
             expanded = false,
             onExpandedChange = {},
-            placeholder = { Text("Search events") },
+            placeholder = { Text("Search titles and descriptions") },
             leadingIcon = {
                 Icon(
                   imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -52,7 +51,7 @@ fun EventSearchBar(
             trailingIcon = {
                 Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
             },
-            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            modifier = Modifier.focusRequester(focusRequester),
           )
       },
       expanded = false,

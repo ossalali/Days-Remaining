@@ -104,7 +104,10 @@ fun MainScreen(
                   showBackButton = true,
                   onBackClick = { backStack.removeLastOrNull() },
                   content = { paddingValues ->
-                      AddEventScreen(onClose = { backStack.removeLastOrNull() })
+                      AddEventScreen(
+                        onClose = { backStack.removeLastOrNull() },
+                        paddingValues = paddingValues,
+                      )
                   },
                 )
             }
@@ -204,7 +207,8 @@ private fun MainScreenContent(
               searchText = searchText,
               onSearchTextChanged = { text -> mainViewModel.updateSearchText(text) },
               focusRequester = focusRequester,
-              paddingValues,
+              paddingValues = paddingValues,
+              showFab = isOnEventList,
             )
         }
     }
