@@ -23,13 +23,13 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
         // Add implementation to save preference
     }
 
-    fun toggleNotifications(enabled: Boolean) {
-        _notificationsEnabled.value = enabled
+    fun toggleNotifications() {
+        _notificationsEnabled.value = !_notificationsEnabled.value
         // Add implementation to save preference
     }
 
-    fun toggleAutoArchive(enabled: Boolean) {
-        _autoArchiveEnabled.value = enabled
+    fun toggleAutoArchive() {
+        _autoArchiveEnabled.value = !_autoArchiveEnabled.value
         // Add implementation to save preference
     }
 }
