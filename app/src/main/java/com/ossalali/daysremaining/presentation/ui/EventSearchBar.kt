@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-/** Simple search bar component without animation logic */
+/** Simple search bar component */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventSearchBar(
@@ -40,7 +40,7 @@ fun EventSearchBar(
           SearchBarDefaults.InputField(
             query = searchText,
             onQueryChange = onSearchTextChanged,
-            onSearch = {},
+            onSearch = { keyboardController?.hide() },
             expanded = false,
             onExpandedChange = {},
             placeholder = { Text("Search titles and descriptions") },
@@ -52,7 +52,11 @@ fun EventSearchBar(
                 )
             },
             trailingIcon = {
-                Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                Icon(
+                  imageVector = Icons.Default.Search,
+                  contentDescription = "Search",
+                  modifier = Modifier.clickable { keyboardController?.hide() },
+                )
             },
             modifier = Modifier.focusRequester(focusRequester).shadow(4.dp, shape = CircleShape),
           )
