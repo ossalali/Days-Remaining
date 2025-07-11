@@ -20,57 +20,37 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.ossalali.daysremaining.model.EventItem
 
-/**
- * Item displayed in search results
- */
+/** Item displayed in search results */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SearchEventItem(
-    event: EventItem,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun SearchEventItem(event: EventItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
-        shape = MaterialTheme.shapes.medium,
-        modifier = modifier
-            .padding(8.dp)
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+      shape = MaterialTheme.shapes.medium,
+      modifier = modifier.padding(8.dp).clickable(onClick = onClick),
+      elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+          modifier = Modifier.fillMaxSize().padding(8.dp),
+          verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-            ) {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                 Text(
-                    text = event.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp)
+                  text = event.title,
+                  style = MaterialTheme.typography.titleLarge,
+                  textAlign = TextAlign.Center,
+                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                 )
                 Text(
-                    text = event.getNumberOfDays().toString(),
-                    fontSize = TextUnit(16f, TextUnitType.Em),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp)
+                  text = event.numberOfDays.toString(),
+                  fontSize = TextUnit(16f, TextUnitType.Em),
+                  textAlign = TextAlign.Center,
+                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                 )
                 Text(
-                    text = "Days",
-                    style = MaterialTheme.typography.bodyMediumEmphasized,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp)
+                  text = "Days",
+                  style = MaterialTheme.typography.bodyMediumEmphasized,
+                  textAlign = TextAlign.Center,
+                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                 )
             }
         }

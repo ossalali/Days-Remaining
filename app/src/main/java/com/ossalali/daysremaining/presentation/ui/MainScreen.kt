@@ -25,8 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -45,16 +43,11 @@ import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
-import com.ossalali.daysremaining.presentation.viewmodel.MainScreenViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(
-  mainViewModel: MainScreenViewModel = hiltViewModel(),
-  eventListViewModel: EventListViewModel = hiltViewModel(),
-) {
+fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
     val backStack = rememberNavBackStack(EventListRoute)
-    val searchText by mainViewModel.searchText.collectAsState()
 
     NavDisplay(
       backStack = backStack,
@@ -67,8 +60,6 @@ fun MainScreen(
         entryProvider {
             entry<EventListRoute> {
                 MainScreenContent(
-                  searchText = searchText,
-                  mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   isOnEventList = true,
                   navigateToEventDetails = { eventId -> backStack.add(EventDetailsRoute(eventId)) },
@@ -80,7 +71,6 @@ fun MainScreen(
 
             entry<EventDetailsRoute> { route ->
                 MainScreenContent(
-                  mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
@@ -98,7 +88,6 @@ fun MainScreen(
 
             entry<AddEventRoute> {
                 MainScreenContent(
-                  mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   navigateToAddEvent = { backStack.add(AddEventRoute) },
                   navigateToSettingsScreen = { backStack.add(SettingsRoute) },
@@ -117,7 +106,6 @@ fun MainScreen(
 
             entry<SettingsRoute> {
                 MainScreenContent(
-                  mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
@@ -130,7 +118,6 @@ fun MainScreen(
 
             entry<DebugRoute> {
                 MainScreenContent(
-                  mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
                   navigateToSettingsScreen = { backStack.add(SettingsRoute) },
@@ -147,8 +134,6 @@ fun MainScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MainScreenContent(
-  searchText: String = "",
-  mainViewModel: MainScreenViewModel,
   eventListViewModel: EventListViewModel,
   isOnEventList: Boolean = false,
   navigateToAddEvent: () -> Unit = {},
@@ -208,8 +193,6 @@ private fun MainScreenContent(
             EventListScreen(
               viewModel = eventListViewModel,
               onNavigateToEventDetails = navigateToEventDetails,
-              searchText = searchText,
-              onSearchTextChanged = { text -> mainViewModel.updateSearchText(text) },
               focusRequester = focusRequester,
               paddingValues = paddingValues,
               showFab = isOnEventList,

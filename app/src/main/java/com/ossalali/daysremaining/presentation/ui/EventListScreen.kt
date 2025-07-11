@@ -28,7 +28,6 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -47,23 +46,12 @@ import kotlinx.coroutines.flow.StateFlow
 internal fun EventListScreen(
   viewModel: EventListViewModel = hiltViewModel(),
   onNavigateToEventDetails: (Int) -> Unit = {},
-  searchText: String = "",
-  onSearchTextChanged: (String) -> Unit = {},
   focusRequester: FocusRequester = FocusRequester(),
   paddingValues: PaddingValues,
   showFab: Boolean = false,
 ) {
     val selectedEventItems by viewModel.selectedEventItems.collectAsStateWithLifecycle()
-
-    val onUnarchiveEvents = remember {
-        { eventItems: List<EventItem> -> viewModel.unarchiveEvents(eventItems) }
-    }
-    val onArchiveEventItems = remember {
-        { eventItems: List<EventItem> -> viewModel.archiveEvents(eventItems) }
-    }
-    val onDeleteEventItems = remember {
-        { eventItems: List<EventItem> -> viewModel.deleteEvents(eventItems) }
-    }
+    val searchText by viewModel.searchText.collectAsStateWithLifecycle()
 
     EventListImpl(
       onInteraction = viewModel::onInteraction,
@@ -72,13 +60,13 @@ internal fun EventListScreen(
       activeFilterEnabled = viewModel.activeFilterEnabled,
       archivedFilterEnabled = viewModel.archivedFilterEnabled,
       onNavigateToEventDetails = onNavigateToEventDetails,
-      onUnarchiveEvents = onUnarchiveEvents,
-      onArchiveEventItems = onArchiveEventItems,
-      onDeleteEventItems = onDeleteEventItems,
+      onUnarchiveEvents = viewModel::unarchiveEvents,
+      onArchiveEventItems = viewModel::archiveEvents,
+      onDeleteEventItems = viewModel::deleteEvents,
       hasArchivedEventItems = viewModel.hasArchivedEventItems(),
       hasUnarchivedEventItems = viewModel.hasUnarchivedEventItems(),
       searchText = searchText,
-      onSearchTextChanged = onSearchTextChanged,
+      onSearchTextChanged = { text -> viewModel.onInteraction(Interaction.UpdateSearchText(text)) },
       focusRequester = focusRequester,
       paddingValues = paddingValues,
       showFab = showFab,
@@ -106,21 +94,9 @@ private fun EventListImpl(
   paddingValues: PaddingValues,
   showFab: Boolean = false,
 ) {
-    val allEvents by eventUiState.collectAsStateWithLifecycle()
+    val events by eventUiState.collectAsStateWithLifecycle()
     val activeFilterState by activeFilterEnabled.collectAsStateWithLifecycle()
     val archivedFilterState by archivedFilterEnabled.collectAsStateWithLifecycle()
-
-    val events =
-      remember(allEvents, searchText) {
-          if (searchText.isEmpty()) {
-              allEvents
-          } else {
-              allEvents.filter {
-                  it.title.contains(searchText, ignoreCase = true) ||
-                    it.description.contains(searchText, ignoreCase = true)
-              }
-          }
-      }
 
     Column(
       modifier =

@@ -47,20 +47,18 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun WidgetPreferenceScreen(
-    viewModel: WidgetPreferenceScreenViewModel,
-    onSaveComplete: () -> Unit
-) {
+fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveComplete: () -> Unit) {
     val systemUiController = rememberSystemUiController()
     val scope = rememberCoroutineScope()
     val isDarkMode = isSystemInDarkTheme()
     val colorScheme = MaterialTheme.colorScheme
 
-    val statusBarColor = if (isDarkMode) {
-        colorScheme.inverseOnSurface  // Light color for dark mode
-    } else {
-        colorScheme.onSurface  // Dark color for light mode
-    }
+    val statusBarColor =
+      if (isDarkMode) {
+          colorScheme.inverseOnSurface // Light color for dark mode
+      } else {
+          colorScheme.onSurface // Dark color for light mode
+      }
 
     val inputEvents by viewModel.getEvents().collectAsState()
 
@@ -73,129 +71,109 @@ fun WidgetPreferenceScreen(
     }
 
     SideEffect {
-        systemUiController.setStatusBarColor(
-            color = statusBarColor,
-            darkIcons = !isDarkMode
-        )
+        systemUiController.setStatusBarColor(color = statusBarColor, darkIcons = !isDarkMode)
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Widget Settings") },
-                actions = {
-                    IconButton(onClick = {
-                        Log.d(
-                            "WidgetPreferenceScreen",
-                            "Save button clicked, selected events: ${viewModel.selectedEventIds}"
-                        )
-                        scope.launch { // Launch the suspend function
-                            try {
-                                Log.d("WidgetPreferenceScreen", "About to save selected events")
-                                viewModel.saveSelectedEvents()
-                                Log.d("WidgetPreferenceScreen", "Save completed successfully")
-                                // Call the callback to finish the activity properly
-                                onSaveComplete()
-                            } catch (e: Exception) {
-                                Log.e("WidgetPreferenceScreen", "Error saving events: ${e.message}")
-                            }
-                        }
-                    }) {
-                        Icon(Icons.Filled.Done, contentDescription = "Save")
-                    }
+      topBar = {
+          TopAppBar(
+            title = { Text("Widget Settings") },
+            actions = {
+                IconButton(
+                  onClick = {
+                      Log.d(
+                        "WidgetPreferenceScreen",
+                        "Save button clicked, selected events: ${viewModel.selectedEventIds}",
+                      )
+                      scope.launch { // Launch the suspend function
+                          try {
+                              Log.d("WidgetPreferenceScreen", "About to save selected events")
+                              viewModel.saveSelectedEvents()
+                              Log.d("WidgetPreferenceScreen", "Save completed successfully")
+                              // Call the callback to finish the activity properly
+                              onSaveComplete()
+                          } catch (e: Exception) {
+                              Log.e("WidgetPreferenceScreen", "Error saving events: ${e.message}")
+                          }
+                      }
+                  }
+                ) {
+                    Icon(Icons.Filled.Done, contentDescription = "Save")
                 }
-            )
-        }
+            },
+          )
+      }
     ) { paddingValues ->
         if (inputEvents.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
+              modifier = Modifier.fillMaxSize().padding(paddingValues),
+              contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "No events found",
-                    style = MaterialTheme.typography.titleLargeEmphasized,
+                  text = "No events found",
+                  style = MaterialTheme.typography.titleLargeEmphasized,
                 )
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+              columns = GridCells.Fixed(2),
+              modifier = Modifier.fillMaxSize().padding(paddingValues),
             ) {
-                items(
-                    inputEvents,
-                    key = { event -> event.id }
-                ) { event ->
+                items(inputEvents, key = { event -> event.id }) { event ->
                     val isSelected = viewModel.selectedEventIds.contains(event.id)
                     Log.d(
-                        "WidgetPreferenceScreen",
-                        "Composing event ${event.id}, isSelected: $isSelected, selectedIds: ${viewModel.selectedEventIds}"
+                      "WidgetPreferenceScreen",
+                      "Composing event ${event.id}, isSelected: $isSelected, selectedIds: ${viewModel.selectedEventIds}",
                     )
                     Card(
-                        border = if (isSelected) {
+                      border =
+                        if (isSelected) {
                             BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
                         } else {
                             null
                         },
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                            .combinedClickable(
-                                onClick = {
-                                    Log.d(
-                                        "WidgetPreferenceScreen",
-                                        "Event clicked: ${event.id}, current selection: ${viewModel.selectedEventIds}"
-                                    )
-                                    viewModel.toggleSelection(event.id)
-                                    Log.d(
-                                        "WidgetPreferenceScreen",
-                                        "After toggle, selection: ${viewModel.selectedEventIds}"
-                                    )
-                                },
-                                onClickLabel = "Event Selected",
-
-                                ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                      shape = MaterialTheme.shapes.medium,
+                      modifier =
+                        Modifier.fillMaxWidth()
+                          .padding(8.dp)
+                          .combinedClickable(
+                            onClick = {
+                                Log.d(
+                                  "WidgetPreferenceScreen",
+                                  "Event clicked: ${event.id}, current selection: ${viewModel.selectedEventIds}",
+                                )
+                                viewModel.toggleSelection(event.id)
+                                Log.d(
+                                  "WidgetPreferenceScreen",
+                                  "After toggle, selection: ${viewModel.selectedEventIds}",
+                                )
+                            },
+                            onClickLabel = "Event Selected",
+                          ),
+                      elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                          modifier = Modifier.fillMaxSize().padding(8.dp),
+                          verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(end = 8.dp)
-                            ) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                                 Text(
-                                    text = event.title,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 4.dp)
+                                  text = event.title,
+                                  style = MaterialTheme.typography.titleLarge,
+                                  textAlign = TextAlign.Center,
+                                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                                 )
                                 Text(
-                                    text = event.getNumberOfDays().toString(),
-                                    fontSize = TextUnit(16f, TextUnitType.Em),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 4.dp)
+                                  text = event.numberOfDays.toString(),
+                                  fontSize = TextUnit(16f, TextUnitType.Em),
+                                  textAlign = TextAlign.Center,
+                                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                                 )
                                 Text(
-                                    text = "Days",
-                                    style = MaterialTheme.typography.bodyMediumEmphasized,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 4.dp)
+                                  text = "Days",
+                                  style = MaterialTheme.typography.bodyMediumEmphasized,
+                                  textAlign = TextAlign.Center,
+                                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                                 )
                             }
                         }
@@ -205,9 +183,3 @@ fun WidgetPreferenceScreen(
         }
     }
 }
-
-// @Preview
-// @Composable
-// fun WidgetPreferenceScreenPreview() {
-    // WidgetPreferenceScreen() // Preview will need a ViewModel instance
-// }

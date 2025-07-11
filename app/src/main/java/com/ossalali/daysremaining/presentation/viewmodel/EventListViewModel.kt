@@ -7,8 +7,6 @@ import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +23,6 @@ constructor(
   @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
   private val eventRepo: EventRepo,
 ) : BaseViewModel<Interaction>() {
-    val scope = CoroutineScope(ioDispatcher + SupervisorJob())
 
     private val _activeFilterEnabled = MutableStateFlow(true)
     val activeFilterEnabled: StateFlow<Boolean> = _activeFilterEnabled
@@ -33,7 +30,10 @@ constructor(
     private val _archivedFilterEnabled = MutableStateFlow(false)
     val archivedFilterEnabled: StateFlow<Boolean> = _archivedFilterEnabled
 
-    val eventUiState: StateFlow<List<EventItem>> =
+    private val _searchText = MutableStateFlow("")
+    val searchText: StateFlow<String> = _searchText.asStateFlow()
+
+    private val allEventsFlow: StateFlow<List<EventItem>> =
       combine(
           eventRepo.activeEventsAsFlow,
           eventRepo.archivedEventsAsFlow,
@@ -46,7 +46,24 @@ constructor(
             result
         }
         .stateIn(
-          scope = scope,
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5000L),
+          initialValue = emptyList(),
+        )
+
+    val eventUiState: StateFlow<List<EventItem>> =
+      combine(allEventsFlow, _searchText) { events, searchQuery ->
+            if (searchQuery.isEmpty()) {
+                events
+            } else {
+                events.filter { event ->
+                    event.title.contains(searchQuery, ignoreCase = true) ||
+                      event.description.contains(searchQuery, ignoreCase = true)
+                }
+            }
+        }
+        .stateIn(
+          scope = viewModelScope,
           started = SharingStarted.WhileSubscribed(5000L),
           initialValue = emptyList(),
         )
@@ -59,7 +76,12 @@ constructor(
             is Interaction.Select -> handleEventItemSelection(interaction.eventId)
             is Interaction.ToggleActiveFilter -> toggleActiveFilter()
             is Interaction.ToggleArchivedFilter -> toggleArchivedFilter()
+            is Interaction.UpdateSearchText -> updateSearchText(interaction.searchText)
         }
+    }
+
+    private fun updateSearchText(text: String) {
+        _searchText.value = text
     }
 
     private fun toggleActiveFilter() {
@@ -83,7 +105,7 @@ constructor(
             currentSelection.remove(existingItem)
             _selectedEventItems.value = currentSelection
         } else {
-            launch(ioDispatcher) {
+            viewModelScope.launch(ioDispatcher) {
                 val eventById = eventRepo.getEventById(eventId)
                 currentSelection.add(eventById)
                 _selectedEventItems.value = currentSelection
@@ -133,5 +155,7 @@ constructor(
         data object ToggleActiveFilter : Interaction
 
         data object ToggleArchivedFilter : Interaction
+
+        data class UpdateSearchText(val searchText: String) : Interaction
     }
 }
