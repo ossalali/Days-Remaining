@@ -52,9 +52,9 @@ fun EventListGrid(
     LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(2), modifier = modifier) {
         items(items = events, key = { event -> event.id }) { event ->
             val isSelected =
-              remember(event.id, selectedEventIds) { selectedEventIds.contains(event.id) }
+              remember(selectedEventIds, event.id) { selectedEventIds.contains(event.id) }
 
-            val numberOfDays = remember(event.date) { event.getNumberOfDays() }
+            val numberOfDays = event.numberOfDays
 
             Card(
               border =

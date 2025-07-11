@@ -6,7 +6,15 @@ import androidx.room.PrimaryKey
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-@Entity(indices = [Index(value = ["isArchived"]), Index(value = ["date"])])
+@Entity(
+  indices =
+    [
+      Index(value = ["isArchived"]),
+      Index(value = ["date"]),
+      Index(value = ["title"]),
+      Index(value = ["description"]),
+    ]
+)
 data class EventItem(
   @PrimaryKey(autoGenerate = true) val id: Int = 0,
   val title: String,
@@ -14,8 +22,8 @@ data class EventItem(
   val description: String,
   val isArchived: Boolean = false,
 ) {
-    fun getNumberOfDays(): Long {
+    val numberOfDays: Long by lazy {
         val today = LocalDate.now()
-        return ChronoUnit.DAYS.between(today, date)
+        ChronoUnit.DAYS.between(today, date)
     }
 }
