@@ -10,12 +10,12 @@ class AddDebugEventsUseCase @Inject constructor() {
         val eventItemList = mutableListOf<EventItem>()
         for (i in numberOfEvents..numberOfEvents + startNumber) {
             eventItemList.add(
-                EventItem(
-                    id = 0,
-                    title = "Event $i",
-                    description = "Event $i Description",
-                    date = LocalDate.now().plus(i.toLong() * 10, ChronoUnit.DAYS),
-                )
+              EventItem(
+                id = 0,
+                title = "Event $i",
+                description = "Event $i Description",
+                date = LocalDate.now().plus(i.toLong() * 10, ChronoUnit.DAYS),
+              )
             )
         }
         return eventItemList

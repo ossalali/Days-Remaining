@@ -11,14 +11,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class DebugScreenViewModel @Inject constructor(
-    private val eventRepo: EventRepo,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+class DebugScreenViewModel
+@Inject
+constructor(
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+  private val eventRepo: EventRepo,
 ) : ViewModel() {
     fun insertEvents(eventItemList: List<EventItem>) {
-        viewModelScope.launch(ioDispatcher) {
-            eventRepo.insertEvents(eventItemList)
-        }
+        viewModelScope.launch(ioDispatcher) { eventRepo.insertEvents(eventItemList) }
     }
 
     suspend fun getNumberOfEvents(): Int {

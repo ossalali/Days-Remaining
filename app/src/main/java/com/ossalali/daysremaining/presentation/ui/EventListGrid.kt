@@ -47,26 +47,15 @@ fun EventListGrid(
         return
     }
 
-    val selectedEventIds = remember(selectedEventItems) {
-        selectedEventItems.map { it.id }.toSet()
-    }
+    val selectedEventIds = remember(selectedEventItems) { selectedEventItems.map { it.id }.toSet() }
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2), 
-        modifier = modifier
-    ) {
-        items(
-            items = events,
-            key = { event -> event.id }
-        ) { event ->
-            val isSelected = remember(event.id, selectedEventIds) {
-                selectedEventIds.contains(event.id)
-            }
-            
-            val numberOfDays = remember(event.date) {
-                event.getNumberOfDays()
-            }
-            
+    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier) {
+        items(items = events, key = { event -> event.id }) { event ->
+            val isSelected =
+              remember(event.id, selectedEventIds) { selectedEventIds.contains(event.id) }
+
+            val numberOfDays = remember(event.date) { event.getNumberOfDays() }
+
             Card(
               border =
                 if (isSelected) {

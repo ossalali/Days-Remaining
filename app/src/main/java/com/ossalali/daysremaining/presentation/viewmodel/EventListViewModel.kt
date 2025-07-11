@@ -75,7 +75,7 @@ constructor(
     private fun handleEventItemSelection(eventId: Int) {
         val currentSelection = _selectedEventItems.value.toMutableList()
         val existingItem = currentSelection.find { item -> item.id == eventId }
-        
+
         if (existingItem != null) {
             currentSelection.remove(existingItem)
             _selectedEventItems.value = currentSelection
@@ -107,7 +107,7 @@ constructor(
     }
 
     fun deleteEvents(eventItems: List<EventItem>) {
-        viewModelScope.launch(ioDispatcher) { 
+        viewModelScope.launch(ioDispatcher) {
             eventRepo.deleteEvents(eventItems.map { it.id })
             val currentSelection = _selectedEventItems.value.toMutableList()
             currentSelection.removeAll(eventItems)

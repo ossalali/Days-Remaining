@@ -11,19 +11,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,7 +57,7 @@ fun AddEventScreen(viewmodel: AddEventViewmodel = hiltViewModel(), onClose: () -
     var dateError by rememberSaveable { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDateMillis)
     val selectedLocalDate =
-        Instant.ofEpochMilli(selectedDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+      Instant.ofEpochMilli(selectedDateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
     val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val formattedDate = selectedLocalDate.format(dateFormatter)
 
@@ -72,120 +66,93 @@ fun AddEventScreen(viewmodel: AddEventViewmodel = hiltViewModel(), onClose: () -
         keyboardController?.show()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Event") },
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Cancel",
-                        )
-                    }
-                },
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        OutlinedTextField(
+          value = title,
+          onValueChange = {
+              title = it
+              titleError = false
+          },
+          label = { Text("Title") },
+          modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = titleFocusRequester),
+          isError = titleError,
+          supportingText = { if (titleError) Text("Title cannot be empty") },
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+              value = formattedDate,
+              onValueChange = {},
+              label = { Text("Date") },
+              readOnly = true,
+              modifier = Modifier.fillMaxWidth(),
+              isError = dateError,
+              supportingText = { if (dateError) Text("Select a valid date") },
+            )
+            // A transparent overlay to capture click events and open the date picker.
+            Box(
+              modifier =
+                Modifier.matchParentSize().clickable(
+                  indication = null,
+                  interactionSource = remember { MutableInteractionSource() },
+                ) {
+                    showDatePicker = true
+                }
             )
         }
-    ) { paddingValues ->
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(16.dp)) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = {
-                    title = it
-                    titleError = false
-                },
-                label = { Text("Title") },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester = titleFocusRequester),
-                isError = titleError,
-                supportingText = { if (titleError) Text("Title cannot be empty") },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = formattedDate,
-                    onValueChange = {},
-                    label = { Text("Date") },
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = dateError,
-                    supportingText = { if (dateError) Text("Select a valid date") },
-                )
-                // A transparent overlay to capture click events and open the date picker.
-                Box(
-                    modifier =
-                        Modifier
-                            .matchParentSize()
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
-                            ) {
-                                showDatePicker = true
-                            }
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+          value = description,
+          onValueChange = { description = it },
+          label = { Text("Description") },
+          modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Button(onClick = onClose) { Text("Cancel") }
+            Button(
+              onClick = {
+                  titleError = title.isBlank()
+                  dateError = selectedDateMillis == 0L
+                  if (!titleError && !dateError) {
+                      viewmodel.addEvent(
+                        EventItem(
+                          title = title,
+                          date = selectedLocalDate,
+                          description = description,
+                        )
+                      )
+                      onClose()
+                  }
+              }
             ) {
-                Button(onClick = onClose) { Text("Cancel") }
-                Button(
-                    onClick = {
-                        titleError = title.isBlank()
-                        dateError = selectedDateMillis == 0L
-                        if (!titleError && !dateError) {
-                            viewmodel.addEvent(
-                            EventItem(
-                                title = title,
-                                date = selectedLocalDate,
-                                description = description,
-                            )
-                            )
-                            onClose()
-                        }
-                    }
-                ) {
-                    Text("Create Event")
-                }
+                Text("Create Event")
             }
+        }
 
-            if (showDatePicker) {
-                DatePickerDialog(
-                    onDismissRequest = { showDatePicker = false },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                datePickerState.selectedDateMillis?.let { millis ->
-                                    selectedDateMillis = millis
-                                }
-                                showDatePicker = false
-                            }
-                        ) {
-                            Text("OK")
+        if (showDatePicker) {
+            DatePickerDialog(
+              onDismissRequest = { showDatePicker = false },
+              confirmButton = {
+                  TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            selectedDateMillis = millis
                         }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
-                    },
-                ) {
-                    DatePicker(state = datePickerState)
-                }
+                        showDatePicker = false
+                    }
+                  ) {
+                      Text("OK")
+                  }
+              },
+              dismissButton = {
+                  TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+              },
+            ) {
+                DatePicker(state = datePickerState)
             }
         }
     }

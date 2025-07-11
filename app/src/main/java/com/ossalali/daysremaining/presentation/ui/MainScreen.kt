@@ -8,7 +8,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Settings
@@ -77,6 +79,11 @@ fun MainScreen(
                 MainScreenContent(
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
+                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
+                  navigateToDebugScreen = { backStack.add(DebugRoute) },
+                  title = "Event Details",
+                  showBackButton = true,
+                  onBackClick = { backStack.removeLastOrNull() },
                   content = {
                       EventDetailsScreen(
                         eventId = route.eventId,
@@ -91,7 +98,14 @@ fun MainScreen(
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   navigateToAddEvent = { backStack.add(AddEventRoute) },
-                  content = { AddEventScreen(onClose = { backStack.removeLastOrNull() }) },
+                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
+                  navigateToDebugScreen = { backStack.add(DebugRoute) },
+                  title = "Add Event",
+                  showBackButton = true,
+                  onBackClick = { backStack.removeLastOrNull() },
+                  content = { paddingValues ->
+                      AddEventScreen(onClose = { backStack.removeLastOrNull() })
+                  },
                 )
             }
 
@@ -100,7 +114,11 @@ fun MainScreen(
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   navigateToSettingsScreen = { backStack.add(SettingsRoute) },
-                  content = { SettingsScreen() },
+                  navigateToDebugScreen = { backStack.add(DebugRoute) },
+                  title = "Settings",
+                  showBackButton = true,
+                  onBackClick = { backStack.removeLastOrNull() },
+                  content = { paddingValues -> SettingsScreen(paddingValues = paddingValues) },
                 )
             }
 
@@ -109,7 +127,11 @@ fun MainScreen(
                   mainViewModel = mainViewModel,
                   eventListViewModel = eventListViewModel,
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
-                  content = { DebugScreen(onBackClick = { backStack.removeLastOrNull() }) },
+                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
+                  title = "Debug",
+                  showBackButton = true,
+                  onBackClick = { backStack.removeLastOrNull() },
+                  content = { paddingValues -> DebugScreen(paddingValues = paddingValues) },
                 )
             }
         },
@@ -127,13 +149,26 @@ private fun MainScreenContent(
   navigateToEventDetails: (Int) -> Unit = {},
   navigateToDebugScreen: () -> Unit = {},
   navigateToSettingsScreen: () -> Unit = {},
-  content: @Composable (() -> Unit)? = null,
+  title: String = "Days Remaining",
+  showBackButton: Boolean = false,
+  onBackClick: () -> Unit = {},
+  content: @Composable ((PaddingValues) -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
     Scaffold(
       topBar = {
           CenterAlignedTopAppBar(
-            title = { Text("Days Remaining") },
+            title = { Text(title) },
+            navigationIcon = {
+                if (showBackButton) {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                          contentDescription = "Back",
+                        )
+                    }
+                }
+            },
             actions = {
                 IconButton(onClick = { navigateToSettingsScreen() }) {
                     Icon(
@@ -161,7 +196,7 @@ private fun MainScreenContent(
       },
       floatingActionButtonPosition = FabPosition.End,
     ) { paddingValues ->
-        if (content != null) content()
+        if (content != null) content(paddingValues)
         else {
             EventListScreen(
               viewModel = eventListViewModel,

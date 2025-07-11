@@ -15,13 +15,13 @@ class EventWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = EventWidget()
 
     override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
+      context: Context,
+      appWidgetManager: AppWidgetManager,
+      appWidgetIds: IntArray,
     ) {
         Log.d(
-            "EventWidgetReceiver",
-            "onUpdate received for appWidgetIds: ${appWidgetIds.joinToString()}"
+          "EventWidgetReceiver",
+          "onUpdate received for appWidgetIds: ${appWidgetIds.joinToString()}",
         )
 
         super.onUpdate(context, appWidgetManager, appWidgetIds)
@@ -29,28 +29,28 @@ class EventWidgetReceiver : GlanceAppWidgetReceiver() {
         ProcessLifecycleOwner.get().lifecycleScope.launch {
             appWidgetIds.forEach { appWidgetId ->
                 Log.d(
-                    "EventWidgetReceiver",
-                    "Explicitly triggering update for appWidgetId: $appWidgetId"
+                  "EventWidgetReceiver",
+                  "Explicitly triggering update for appWidgetId: $appWidgetId",
                 )
                 try {
                     val glanceId = GlanceAppWidgetManager(context).getGlanceIdBy(appWidgetId)
                     Log.d(
-                        "EventWidgetReceiver",
-                        "Got GlanceId $glanceId for appWidgetId $appWidgetId"
+                      "EventWidgetReceiver",
+                      "Got GlanceId $glanceId for appWidgetId $appWidgetId",
                     )
 
                     delay(500)
 
                     glanceAppWidget.update(context, glanceId)
                     Log.d(
-                        "EventWidgetReceiver",
-                        "Successfully triggered update for appWidgetId $appWidgetId"
+                      "EventWidgetReceiver",
+                      "Successfully triggered update for appWidgetId $appWidgetId",
                     )
                 } catch (e: Exception) {
                     Log.e(
-                        "EventWidgetReceiver",
-                        "Error updating widget $appWidgetId: ${e.message}",
-                        e
+                      "EventWidgetReceiver",
+                      "Error updating widget $appWidgetId: ${e.message}",
+                      e,
                     )
                 }
             }

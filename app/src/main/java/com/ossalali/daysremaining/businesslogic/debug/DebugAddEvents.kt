@@ -5,11 +5,11 @@ import javax.inject.Inject
 
 class DebugAddEvents @Inject constructor() {
     suspend operator fun invoke(
-        debugScreenViewModel: DebugScreenViewModel,
-        addDebugEventsUseCase: AddDebugEventsUseCase
+      debugScreenViewModel: DebugScreenViewModel,
+      addDebugEventsUseCase: AddDebugEventsUseCase,
     ) {
-        val allEvents = debugScreenViewModel.getNumberOfEvents()
-        val eventList = addDebugEventsUseCase(allEvents, 5)
+        val allEventsSize = debugScreenViewModel.getNumberOfEvents()
+        val eventList = addDebugEventsUseCase(allEventsSize, 5)
         debugScreenViewModel.insertEvents(eventList)
     }
 }
