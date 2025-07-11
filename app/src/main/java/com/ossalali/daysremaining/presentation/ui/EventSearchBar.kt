@@ -43,7 +43,7 @@ fun EventSearchBar(
             onSearch = { keyboardController?.hide() },
             expanded = false,
             onExpandedChange = {},
-            placeholder = { Text("Search titles and descriptions") },
+            placeholder = { Text("Search events") },
             leadingIcon = {
                 Icon(
                   imageVector = Icons.AutoMirrored.Filled.ArrowBack,
