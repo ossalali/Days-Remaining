@@ -1,5 +1,6 @@
 package com.ossalali.daysremaining.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -127,7 +128,7 @@ private fun EventListImpl(
       }
 
     Scaffold(
-      modifier = Modifier.padding(paddingValues),
+      modifier = Modifier.padding(paddingValues).imePadding().background(Color.Transparent),
       topBar = {
           Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.quarter),
@@ -196,7 +197,6 @@ private fun EventListImpl(
           BottomAppBar(
             containerColor = Color.Transparent,
             tonalElevation = 0.dp,
-            modifier = Modifier.imePadding(),
             contentPadding = PaddingValues(0.dp),
           ) {
               EventSearchBar(
@@ -208,6 +208,7 @@ private fun EventListImpl(
                     .padding(
                       start = Dimensions.default,
                       end = if (showFab) 72.dp + Dimensions.default else Dimensions.default,
+                      bottom = Dimensions.default,
                     ),
               )
           }

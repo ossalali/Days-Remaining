@@ -1,6 +1,7 @@
 package com.ossalali.daysremaining.presentation.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
@@ -16,10 +17,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 
 /** Simple search bar component without animation logic */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +54,7 @@ fun EventSearchBar(
             trailingIcon = {
                 Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
             },
-            modifier = Modifier.focusRequester(focusRequester),
+            modifier = Modifier.focusRequester(focusRequester).shadow(4.dp, shape = CircleShape),
           )
       },
       expanded = false,
