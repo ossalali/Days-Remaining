@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -26,6 +28,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -95,43 +99,71 @@ private fun EventListImpl(
     val events by eventUiState.collectAsStateWithLifecycle()
     val activeFilterState by activeFilterEnabled.collectAsStateWithLifecycle()
     val archivedFilterState by archivedFilterEnabled.collectAsStateWithLifecycle()
+    val selectedChips = remember { mutableStateMapOf<String, Boolean>() }
 
     Column(
       modifier =
         Modifier.fillMaxSize().padding(paddingValues).imePadding().background(Color.Transparent)
     ) {
-        Row(
-          modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.quarter),
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AddChips(
-              activeFilterEnabled = activeFilterState,
-              archivedFilterEnabled = archivedFilterState,
-              onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
-              onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
-            )
-            if (selectedEventItems.isNotEmpty()) {
-                Spacer(Modifier.weight(1f))
-                if (hasUnarchivedEventItems) {
-                    IconButton(onClick = { onArchiveEventItems(selectedEventItems) }) {
+        Column {
+            Row(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.quarter),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+                AddChips(
+                  activeFilterEnabled = activeFilterState,
+                  archivedFilterEnabled = archivedFilterState,
+                  onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
+                  onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
+                )
+                if (selectedEventItems.isNotEmpty()) {
+                    Spacer(Modifier.weight(1f))
+                    if (hasUnarchivedEventItems) {
+                        IconButton(onClick = { onArchiveEventItems(selectedEventItems) }) {
+                            Icon(
+                              imageVector = Icons.Outlined.Archive,
+                              contentDescription = "Archive selected Events",
+                            )
+                        }
+                    }
+                    if (hasArchivedEventItems) {
+                        IconButton(onClick = { onUnarchiveEvents(selectedEventItems) }) {
+                            Icon(
+                              imageVector = Icons.Outlined.Inbox,
+                              contentDescription = "Unarchive selected Events",
+                            )
+                        }
+                    }
+                    IconButton(onClick = { onDeleteEventItems(selectedEventItems) }) {
                         Icon(
-                          imageVector = Icons.Outlined.Archive,
-                          contentDescription = "Archive selected Events",
+                          imageVector = Icons.Filled.Delete,
+                          contentDescription = "Delete selected Events",
                         )
                     }
                 }
-                if (hasArchivedEventItems) {
-                    IconButton(onClick = { onUnarchiveEvents(selectedEventItems) }) {
-                        Icon(
-                          imageVector = Icons.Outlined.Inbox,
-                          contentDescription = "Unarchive selected Events",
-                        )
-                    }
-                }
-                IconButton(onClick = { onDeleteEventItems(selectedEventItems) }) {
-                    Icon(
-                      imageVector = Icons.Filled.Delete,
-                      contentDescription = "Delete selected Events",
+            }
+            LazyRow(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.half),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(Dimensions.quarter),
+            ) {
+                val customChips =
+                  listOf(
+                    "Private",
+                    "Work",
+                    "Event",
+                    "Meeting",
+                    "Birthday",
+                    "Anniversary",
+                    "Graduation",
+                    "Deadline",
+                    "Goal",
+                  )
+                items(customChips) { chipText ->
+                    CustomChip(
+                      chipText = chipText,
+                      isSelected = selectedChips[chipText] ?: false,
+                      onSelectionChanged = { isSelected -> selectedChips[chipText] = isSelected },
                     )
                 }
             }
@@ -164,13 +196,37 @@ private fun EventListImpl(
 }
 
 @Composable
+fun CustomChip(chipText: String, isSelected: Boolean, onSelectionChanged: (Boolean) -> Unit) {
+    FilterChip(
+      selected = isSelected,
+      onClick = { onSelectionChanged(!isSelected) },
+      label = { Text(text = chipText) },
+      leadingIcon =
+        if (isSelected) {
+            {
+                Icon(
+                  imageVector = Icons.Filled.Done,
+                  contentDescription = "Done icon",
+                  modifier = Modifier.size(FilterChipDefaults.IconSize),
+                )
+            }
+        } else {
+            null
+        },
+    )
+}
+
+@Composable
 fun AddChips(
   activeFilterEnabled: Boolean,
   archivedFilterEnabled: Boolean,
   onToggleActiveFilter: () -> Unit,
   onToggleArchivedFilter: () -> Unit,
 ) {
-    Row(horizontalArrangement = Arrangement.Start) {
+    Row(
+      modifier = Modifier.padding(horizontal = Dimensions.quarter),
+      horizontalArrangement = Arrangement.Start,
+    ) {
         FilterChip(
           selected = activeFilterEnabled,
           onClick = onToggleActiveFilter,

@@ -97,12 +97,15 @@ fun EventListGrid(
                           textAlign = TextAlign.Center,
                           modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                         )
-                        Text(
-                          text = event.description,
-                          style = MaterialTheme.typography.bodyMediumEmphasized,
-                          textAlign = TextAlign.Center,
-                          modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
-                        )
+                        if (event.description.isNotEmpty()) {
+                            Text(
+                              text = event.description,
+                              maxLines = 4,
+                              style = MaterialTheme.typography.bodyMediumEmphasized,
+                              textAlign = TextAlign.Center,
+                              modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                            )
+                        }
                     }
                 }
             }
