@@ -1,7 +1,6 @@
 package com.ossalali.daysremaining.presentation.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,16 +14,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -115,15 +113,7 @@ private fun EventListImpl(
             if (selectedEventItems.isNotEmpty()) {
                 Spacer(Modifier.weight(1f))
                 if (hasUnarchivedEventItems) {
-                    IconButton(
-                      modifier =
-                        Modifier.border(
-                          width = 1.dp,
-                          color = Color.Gray,
-                          shape = ShapeDefaults.Small,
-                        ),
-                      onClick = { onArchiveEventItems(selectedEventItems) },
-                    ) {
+                    IconButton(onClick = { onArchiveEventItems(selectedEventItems) }) {
                         Icon(
                           imageVector = Icons.Outlined.Archive,
                           contentDescription = "Archive selected Events",
@@ -131,30 +121,16 @@ private fun EventListImpl(
                     }
                 }
                 if (hasArchivedEventItems) {
-                    Spacer(Modifier.width(4.dp))
-                    IconButton(
-                      modifier =
-                        Modifier.border(
-                          width = 1.dp,
-                          color = Color.Gray,
-                          shape = ShapeDefaults.Small,
-                        ),
-                      onClick = { onUnarchiveEvents(selectedEventItems) },
-                    ) {
+                    IconButton(onClick = { onUnarchiveEvents(selectedEventItems) }) {
                         Icon(
                           imageVector = Icons.Outlined.Inbox,
                           contentDescription = "Unarchive selected Events",
                         )
                     }
                 }
-                Spacer(Modifier.width(4.dp))
-                IconButton(
-                  modifier =
-                    Modifier.border(width = 1.dp, color = Color.Gray, shape = ShapeDefaults.Small),
-                  onClick = { onDeleteEventItems(selectedEventItems) },
-                ) {
+                IconButton(onClick = { onDeleteEventItems(selectedEventItems) }) {
                     Icon(
-                      imageVector = Icons.Outlined.Delete,
+                      imageVector = Icons.Filled.Delete,
                       contentDescription = "Delete selected Events",
                     )
                 }
