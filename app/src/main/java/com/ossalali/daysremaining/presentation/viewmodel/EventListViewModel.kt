@@ -6,6 +6,10 @@ import com.ossalali.daysremaining.infrastructure.EventRepo
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,7 +37,7 @@ constructor(
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText.asStateFlow()
 
-    private val allEventsFlow: StateFlow<List<EventItem>> =
+    private val allEventsFlow: StateFlow<ImmutableList<EventItem>> =
       combine(
           eventRepo.activeEventsAsFlow,
           eventRepo.archivedEventsAsFlow,
@@ -43,33 +47,35 @@ constructor(
             val result = mutableListOf<EventItem>()
             if (showActive) result.addAll(activeEvents)
             if (showArchived) result.addAll(archivedEvents)
-            result
+            result.toPersistentList()
         }
         .stateIn(
           scope = viewModelScope,
           started = SharingStarted.WhileSubscribed(5000L),
-          initialValue = emptyList(),
+          initialValue = persistentListOf(),
         )
 
-    val eventUiState: StateFlow<List<EventItem>> =
+    val eventUiState: StateFlow<ImmutableList<EventItem>> =
       combine(allEventsFlow, _searchText) { events, searchQuery ->
             if (searchQuery.isEmpty()) {
-                events
+                events.toImmutableList()
             } else {
-                events.filter { event ->
-                    event.title.contains(searchQuery, ignoreCase = true) ||
-                      event.description.contains(searchQuery, ignoreCase = true)
-                }
+                events
+                  .filter { event ->
+                      event.title.contains(searchQuery, ignoreCase = true) ||
+                        event.description.contains(searchQuery, ignoreCase = true)
+                  }
+                  .toImmutableList()
             }
         }
         .stateIn(
           scope = viewModelScope,
           started = SharingStarted.WhileSubscribed(5000L),
-          initialValue = emptyList(),
+          initialValue = persistentListOf(),
         )
 
-    private val _selectedEventItems = MutableStateFlow<List<EventItem>>(emptyList())
-    val selectedEventItems: StateFlow<List<EventItem>> = _selectedEventItems.asStateFlow()
+    private val _selectedEventItems = MutableStateFlow<ImmutableList<EventItem>>(persistentListOf())
+    val selectedEventItems: StateFlow<ImmutableList<EventItem>> = _selectedEventItems.asStateFlow()
 
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
@@ -103,40 +109,40 @@ constructor(
 
         if (existingItem != null) {
             currentSelection.remove(existingItem)
-            _selectedEventItems.value = currentSelection
+            _selectedEventItems.value = currentSelection.toPersistentList()
         } else {
             viewModelScope.launch(ioDispatcher) {
                 val eventById = eventRepo.getEventById(eventId)
                 currentSelection.add(eventById)
-                _selectedEventItems.value = currentSelection
+                _selectedEventItems.value = currentSelection.toPersistentList()
             }
         }
     }
 
-    fun unarchiveEvents(eventItems: List<EventItem>) {
+    fun unarchiveEvents(eventItems: ImmutableList<EventItem>) {
         viewModelScope.launch(ioDispatcher) {
             eventRepo.unarchiveEvents(eventItems.map { it.id })
             val currentSelection = _selectedEventItems.value.toMutableList()
             currentSelection.removeAll(eventItems)
-            _selectedEventItems.value = currentSelection
+            _selectedEventItems.value = currentSelection.toPersistentList()
         }
     }
 
-    fun archiveEvents(eventItems: List<EventItem>) {
+    fun archiveEvents(eventItems: ImmutableList<EventItem>) {
         viewModelScope.launch(ioDispatcher) {
             eventRepo.archiveEvents(eventItems.map { it.id })
             val currentSelection = _selectedEventItems.value.toMutableList()
             currentSelection.removeAll(eventItems)
-            _selectedEventItems.value = currentSelection
+            _selectedEventItems.value = currentSelection.toPersistentList()
         }
     }
 
-    fun deleteEvents(eventItems: List<EventItem>) {
+    fun deleteEvents(eventItems: ImmutableList<EventItem>) {
         viewModelScope.launch(ioDispatcher) {
             eventRepo.deleteEvents(eventItems.map { it.id })
             val currentSelection = _selectedEventItems.value.toMutableList()
             currentSelection.removeAll(eventItems)
-            _selectedEventItems.value = currentSelection
+            _selectedEventItems.value = currentSelection.toPersistentList()
         }
     }
 

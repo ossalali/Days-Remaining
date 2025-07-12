@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "com.ossalali.daysremaining"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -23,36 +23,30 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
               getDefaultProguardFile("proguard-android-optimize.txt"),
               "proguard-rules.pro",
             )
         }
+        debug {
+            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlin { compilerOptions { jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11 } }
+    kotlin { compilerOptions { jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17 } }
 
     buildFeatures {
         compose = true
         buildConfig = true
     }
 
-    @Suppress("UnstableApiUsage")
-    composeOptions {
-        // Use the version that matches your Compose runtime libraries.
-        kotlinCompilerExtensionVersion = "1.5.11"
-    }
-
-    packaging {
-        resources {
-            // Exclude the duplicate incremental annotation processors file.
-            excludes += "META-INF/gradle/incremental.annotation.processors"
-        }
-    }
+    packaging { resources { excludes += "META-INF/gradle/incremental.annotation.processors" } }
 }
 
 dependencies {
@@ -78,10 +72,10 @@ dependencies {
     implementation(libs.androidx.material3.v140alpha07)
     implementation(libs.androidx.material.icons.extended)
 
-    implementation(libs.accompanist.systemuicontroller)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.profileinstaller)
 
     // Lifecycle dependencies
     implementation(libs.androidx.lifecycle.process)
@@ -91,6 +85,7 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.collections.immutable)
 
     // Material3 Adaptive - temporarily disabled due to library availability
     // implementation(libs.androidx.material3.adaptive.layout)

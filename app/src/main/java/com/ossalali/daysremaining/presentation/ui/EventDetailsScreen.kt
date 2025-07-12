@@ -1,21 +1,24 @@
 package com.ossalali.daysremaining.presentation.ui
 
 import android.util.Log
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,6 +30,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -50,12 +54,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.BuildConfig
 import com.ossalali.daysremaining.MyAppTheme
+import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventDetailsViewModel
@@ -296,6 +303,8 @@ private fun EventContent(
 
     val titleError by remember { derivedStateOf { titleState.text.isBlank() } }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showDate by rememberSaveable { mutableStateOf(false) }
+
     Column {
         Text(
           modifier = Modifier.fillMaxWidth(),
@@ -305,11 +314,12 @@ private fun EventContent(
         )
         Text(
           modifier = Modifier.fillMaxWidth(),
-          text = "Days Remaining",
+          text = stringResource(R.string.days_remaining),
           style = MaterialTheme.typography.headlineSmall,
           textAlign = TextAlign.Center,
         )
 
+        Spacer(modifier = Modifier.height(Dimensions.default))
         if (BuildConfig.DEBUG) {
             Text(
               text = "Id: ${event.id}",
@@ -332,25 +342,26 @@ private fun EventContent(
           keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
 
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-              value = formattedDate,
-              onValueChange = {},
-              label = { Text("Date") },
-              readOnly = true,
-              modifier = Modifier.fillMaxWidth(),
-            )
-            // A transparent overlay to capture click events and open the date picker.
-            Box(
-              modifier =
-                Modifier.matchParentSize().clickable(
-                  indication = null,
-                  interactionSource = remember { MutableInteractionSource() },
-                ) {
-                    showDatePicker = true
-                }
-            )
-        }
+        InputChip(
+          modifier = Modifier.height(Dimensions.triple).width(Dimensions.nonuple),
+          selected = showDate,
+          onClick = { showDatePicker = true },
+          label = {
+              if (showDate) {
+                  Text(formattedDate)
+              } else {
+                  Text("Add Date")
+              }
+          },
+          leadingIcon = {
+              Icon(
+                modifier = Modifier.offset(y = (-2).dp),
+                imageVector = Icons.Filled.CalendarToday,
+                contentDescription = "Add Date to event",
+              )
+          },
+        )
+        Spacer(modifier = Modifier.height(Dimensions.default))
 
         OutlinedTextField(
           state = descriptionState,
@@ -367,6 +378,7 @@ private fun EventContent(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis -> onDateChanged(millis) }
                         showDatePicker = false
+                        showDate = true
                     }
                   ) {
                       Text("OK")

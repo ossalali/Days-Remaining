@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DaysRemaining</string>
+    <string name="days_remaining">days remaining</string>
 </resources>

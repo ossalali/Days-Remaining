@@ -1,6 +1,4 @@
 [versions]
-accompanistSystemuicontroller = "0.36.0"
-accompanistNavigationAnimation = "0.36.0"
 agp = "8.11.1"
 composeBom = "2025.06.01"
 glanceAppwidget = "1.1.1"
@@ -8,6 +6,7 @@ hiltAndroid = "2.56.2"
 hiltAndroidCompiler = "2.56.2"
 hiltNavigationCompose = "1.2.0"
 kotlin = "2.2.0"
+kotlinxCollectionsImmutable = "0.4.0"
 ksp = "2.2.0-2.0.2"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -19,6 +18,7 @@ activity = "1.10.1"
 constraintlayout = "2.2.1"
 material3 = "1.4.0-alpha17"
 materialIconsExtended = "1.7.8"
+profileinstaller = "1.4.1"
 roomCompiler = "2.7.2"
 runtimeAndroid = "1.8.3"
 foundationLayoutAndroid = "1.8.3"
@@ -26,8 +26,6 @@ uiToolingPreview = "1.8.3"
 roomCommon = "2.7.2"
 roomKtx = "2.7.2"
 junitJupiter = "5.13.3"
-composeFoundation = "1.8.3"
-composeUi = "1.8.3"
 roomTesting = "2.7.2"
 coroutinesTest = "1.10.2"
 mockitoCore = "5.18.0"
@@ -35,6 +33,7 @@ mockitoKotlin = "5.4.0"
 datastorePreferences = "1.1.7"
 kotlinxSerializationJson = "1.9.0"
 lifecycleProcess = "2.9.1"
+
 # Navigation 3 versions
 nav3Core = "1.0.0-alpha05"
 lifecycleViewmodelNav3 = "1.0.0-alpha03"
@@ -42,8 +41,6 @@ kotlinxSerializationCore = "1.9.0"
 nav3Material = "1.0.0-SNAPSHOT"
 
 [libraries]
-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
-accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -51,6 +48,7 @@ androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", versi
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-material3-v140alpha07 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "uiToolingPreview" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
@@ -61,6 +59,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
@@ -68,8 +67,8 @@ androidx-foundation-layout-android = { group = "androidx.compose.foundation", na
 androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
-androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "composeFoundation" }
-androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "composeUi" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "roomTesting" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoCore" }

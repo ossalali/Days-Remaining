@@ -37,6 +37,7 @@ import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.StateFlow
 
 /** Main event list screen that displays a grid of events and handles search functionality */
@@ -76,14 +77,14 @@ internal fun EventListScreen(
 @Composable
 private fun EventListImpl(
   onInteraction: (Interaction) -> Unit,
-  eventUiState: StateFlow<List<EventItem>>,
-  selectedEventItems: List<EventItem>,
+  eventUiState: StateFlow<ImmutableList<EventItem>>,
+  selectedEventItems: ImmutableList<EventItem>,
   activeFilterEnabled: StateFlow<Boolean>,
   archivedFilterEnabled: StateFlow<Boolean>,
   onNavigateToEventDetails: (Int) -> Unit = {},
-  onUnarchiveEvents: (List<EventItem>) -> Unit = {},
-  onArchiveEventItems: (List<EventItem>) -> Unit = {},
-  onDeleteEventItems: (List<EventItem>) -> Unit = {},
+  onUnarchiveEvents: (ImmutableList<EventItem>) -> Unit = {},
+  onArchiveEventItems: (ImmutableList<EventItem>) -> Unit = {},
+  onDeleteEventItems: (ImmutableList<EventItem>) -> Unit = {},
   hasArchivedEventItems: Boolean,
   hasUnarchivedEventItems: Boolean,
   searchText: String = "",
@@ -101,7 +102,7 @@ private fun EventListImpl(
         Modifier.fillMaxSize().padding(paddingValues).imePadding().background(Color.Transparent)
     ) {
         Row(
-          modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.quarter),
+          modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.half),
           verticalAlignment = Alignment.CenterVertically,
         ) {
             AddChips(
@@ -149,7 +150,6 @@ private fun EventListImpl(
             EventSearchBar(
               searchText = searchText,
               onSearchTextChanged = onSearchTextChanged,
-              focusRequester = focusRequester,
               modifier =
                 Modifier.fillMaxWidth()
                   .align(Alignment.BottomCenter)

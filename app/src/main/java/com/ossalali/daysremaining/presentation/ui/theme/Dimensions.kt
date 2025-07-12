@@ -11,4 +11,8 @@ object Dimensions {
     val triple = default * 3
     val quadruple = default * 4
     val quintuple = default * 5
+    val sextuple = default * 6
+    val septuple = default * 7
+    val octuple = default * 8
+    val nonuple = default * 9
 }

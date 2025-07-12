@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.TextUnit
@@ -29,6 +30,9 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviews
+import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
@@ -36,8 +40,8 @@ import java.time.LocalDate
 fun EventListGrid(
   onEventItemClick: (Int) -> Unit,
   onEventItemSelection: (Int) -> Unit,
-  events: List<EventItem>,
-  selectedEventItems: List<EventItem>,
+  events: ImmutableList<EventItem>,
+  selectedEventItems: ImmutableList<EventItem>,
   modifier: Modifier = Modifier,
 ) {
     if (events.isEmpty()) {
@@ -89,20 +93,25 @@ fun EventListGrid(
                           text = event.title,
                           style = MaterialTheme.typography.titleLarge,
                           textAlign = TextAlign.Center,
-                          modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                          modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                         )
                         Text(
                           text = numberOfDays.toString(),
                           fontSize = TextUnit(16f, TextUnitType.Em),
                           textAlign = TextAlign.Center,
-                          modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                          modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                         )
-                        Text(
-                          text = event.description,
-                          style = MaterialTheme.typography.bodyMediumEmphasized,
-                          textAlign = TextAlign.Center,
-                          modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
-                        )
+                        if (event.description.isNotEmpty()) {
+                            Text(
+                              text = event.description,
+                              style = MaterialTheme.typography.bodyMediumEmphasized,
+                              textAlign = TextAlign.Center,
+                              maxLines = 4,
+                              overflow = TextOverflow.Ellipsis,
+                              modifier =
+                                Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
+                            )
+                        }
                     }
                 }
             }
@@ -118,8 +127,8 @@ internal fun EventListGridPreview(
     EventListGrid(
       onEventItemClick = {},
       onEventItemSelection = {},
-      events = listOf(eventItem),
-      selectedEventItems = emptyList(),
+      events = persistentListOf(eventItem),
+      selectedEventItems = persistentListOf(),
       modifier = Modifier,
     )
 }

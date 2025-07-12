@@ -1,51 +1,64 @@
 package com.ossalali.daysremaining.presentation.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviews
+import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.AddEventViewmodel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEventScreen(
-  viewmodel: AddEventViewmodel = hiltViewModel(),
+  viewModel: AddEventViewmodel = hiltViewModel(),
   onClose: () -> Unit,
   paddingValues: PaddingValues,
 ) {
@@ -56,6 +69,7 @@ fun AddEventScreen(
         mutableLongStateOf(LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000)
     }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showDate by rememberSaveable { mutableStateOf(false) }
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
     var titleError by rememberSaveable { mutableStateOf(false) }
@@ -70,8 +84,31 @@ fun AddEventScreen(
         titleFocusRequester.requestFocus()
         keyboardController?.show()
     }
+    val isSaving by viewModel.isSaving.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+    Column(
+      modifier =
+        Modifier.fillMaxSize()
+          .padding(
+            top = paddingValues.calculateTopPadding(),
+            bottom = paddingValues.calculateBottomPadding(),
+            start = Dimensions.default,
+            end = Dimensions.default,
+          )
+    ) {
+        Text(
+          modifier = Modifier.fillMaxWidth(),
+          text = ChronoUnit.DAYS.between(LocalDate.now(), selectedLocalDate).toString(),
+          textAlign = TextAlign.Center,
+          style = MaterialTheme.typography.displayLarge,
+        )
+        Text(
+          modifier = Modifier.fillMaxWidth(),
+          text = stringResource(R.string.days_remaining),
+          style = MaterialTheme.typography.headlineSmall,
+          textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(Dimensions.default))
         OutlinedTextField(
           value = title,
           onValueChange = {
@@ -83,30 +120,28 @@ fun AddEventScreen(
           isError = titleError,
           supportingText = { if (titleError) Text("Title cannot be empty") },
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(Dimensions.half))
 
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-              value = formattedDate,
-              onValueChange = {},
-              label = { Text("Date") },
-              readOnly = true,
-              modifier = Modifier.fillMaxWidth(),
-              isError = dateError,
-              supportingText = { if (dateError) Text("Select a valid date") },
-            )
-            // A transparent overlay to capture click events and open the date picker.
-            Box(
-              modifier =
-                Modifier.matchParentSize().clickable(
-                  indication = null,
-                  interactionSource = remember { MutableInteractionSource() },
-                ) {
-                    showDatePicker = true
-                }
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
+        InputChip(
+          modifier = Modifier.height(Dimensions.triple).width(Dimensions.nonuple),
+          selected = showDate,
+          onClick = { showDatePicker = true },
+          label = {
+              if (showDate) {
+                  Text(formattedDate)
+              } else {
+                  Text("Add Date")
+              }
+          },
+          leadingIcon = {
+              Icon(
+                modifier = Modifier.offset(y = (-2).dp),
+                imageVector = Icons.Filled.CalendarToday,
+                contentDescription = "Add Date to event",
+              )
+          },
+        )
+        Spacer(modifier = Modifier.height(Dimensions.half))
 
         OutlinedTextField(
           value = description,
@@ -114,16 +149,18 @@ fun AddEventScreen(
           label = { Text("Description") },
           modifier = Modifier.fillMaxWidth(),
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Button(onClick = onClose) { Text("Cancel") }
-            Button(
+        Box(
+          modifier = Modifier.fillMaxWidth().imePadding(),
+          contentAlignment = Alignment.BottomEnd,
+        ) {
+            FloatingActionButton(
               onClick = {
                   titleError = title.isBlank()
                   dateError = selectedDateMillis == 0L
                   if (!titleError && !dateError) {
-                      viewmodel.addEvent(
+                      viewModel.addEvent(
                         EventItem(
                           title = title,
                           date = selectedLocalDate,
@@ -134,7 +171,11 @@ fun AddEventScreen(
                   }
               }
             ) {
-                Text("Create Event")
+                if (isSaving) {
+                    CircularProgressIndicator()
+                } else {
+                    Icon(imageVector = Icons.Default.Check, contentDescription = "Save Event")
+                }
             }
         }
 
@@ -148,6 +189,7 @@ fun AddEventScreen(
                             selectedDateMillis = millis
                         }
                         showDatePicker = false
+                        showDate = true
                     }
                   ) {
                       Text("OK")

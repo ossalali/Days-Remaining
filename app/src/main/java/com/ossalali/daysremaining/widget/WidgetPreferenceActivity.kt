@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.ViewModel
@@ -20,24 +21,23 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class WidgetPreferenceActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var viewModelAssistedFactory: WidgetPreferenceScreenViewModel.Factory
+    @Inject lateinit var viewModelAssistedFactory: WidgetPreferenceScreenViewModel.Factory
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setResult(RESULT_CANCELED)
 
-        // Set the result to RESULT_CANCELED initially. If the user backs out of the activity,
-        // the widget will be deleted.
-        setResult(Activity.RESULT_CANCELED)
+        appWidgetId =
+          intent
+            ?.extras
+            ?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+            ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-        appWidgetId = intent?.extras?.getInt(
-            AppWidgetManager.EXTRA_APPWIDGET_ID,
-            AppWidgetManager.INVALID_APPWIDGET_ID
-        ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-
-        // If this activity was started with an intent without an app widget ID, finish with an error.
+        // If this activity was started with an intent without an app widget ID, finish with an
+        // error.
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
             finish()
             return
@@ -64,18 +64,14 @@ class WidgetPreferenceActivity : ComponentActivity() {
 
         setContent {
             // Pass the ViewModel instance and a callback to finish the activity
-            WidgetPreferenceScreen(
-                viewModel = viewModel,
-                onSaveComplete = { finishWithSuccess() }
-            )
+            WidgetPreferenceScreen(viewModel = viewModel, onSaveComplete = { finishWithSuccess() })
         }
     }
 
     private fun finishWithSuccess() {
         // Set the result to OK and include the widget ID
-        val resultValue = Intent().apply {
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        }
+        val resultValue =
+          Intent().apply { putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId) }
         setResult(Activity.RESULT_OK, resultValue)
 
         lifecycleScope.launch {
@@ -87,7 +83,7 @@ class WidgetPreferenceActivity : ComponentActivity() {
 
                 // Update only the specific widget that was configured
                 val glanceId =
-                    GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
+                  GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
                 EventWidget().update(this@WidgetPreferenceActivity, glanceId)
 
                 // Add a second update after a short delay to ensure changes are applied
@@ -95,7 +91,6 @@ class WidgetPreferenceActivity : ComponentActivity() {
                 EventWidget().update(this@WidgetPreferenceActivity, glanceId)
 
                 Log.d("WidgetPrefActivity", "Widget update completed successfully")
-                
             } catch (e: Exception) {
                 Log.e("WidgetPrefActivity", "Error during widget update: ${e.message}", e)
             } finally {

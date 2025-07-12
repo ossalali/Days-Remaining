@@ -1,5 +1,6 @@
 package com.ossalali.daysremaining.presentation.ui
 
+import android.util.Log
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
@@ -188,6 +189,7 @@ private fun MainScreenContent(
       },
       floatingActionButtonPosition = FabPosition.End,
     ) { paddingValues ->
+        Log.d("NAV3_Content", "content: ${content == null}")
         if (content != null) content(paddingValues)
         else {
             EventListScreen(
