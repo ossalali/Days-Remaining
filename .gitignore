@@ -16,3 +16,4 @@
 local.properties
 /.cursor/rules/android-jetpack-compose.mdc
 /.idea/*
+/app/release/*
