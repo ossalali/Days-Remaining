@@ -1,6 +1,5 @@
 package com.ossalali.daysremaining.presentation.ui
 
-import android.util.Log
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
@@ -36,6 +35,7 @@ import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import com.ossalali.daysremaining.BuildConfig
+import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.navigation.AddEventRoute
 import com.ossalali.daysremaining.navigation.DebugRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
@@ -123,10 +123,12 @@ fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
                   title = "Debug",
                   showBackButton = true,
                   onBackClick = { backStack.removeLastOrNull() },
-                  content = { paddingValues -> DebugScreen(
-                      paddingValues = paddingValues,
-                      onClose = { backStack.removeLastOrNull() },
-                  ) },
+                  content = { paddingValues ->
+                      DebugScreen(
+                        paddingValues = paddingValues,
+                        onClose = { backStack.removeLastOrNull() },
+                      )
+                  },
                 )
             }
         },
@@ -189,7 +191,7 @@ private fun MainScreenContent(
       },
       floatingActionButtonPosition = FabPosition.End,
     ) { paddingValues ->
-        Log.d("NAV3_Content", "content: ${content == null}")
+        appLogger().d(tag = "NAV3_Content", message = "content: ${content == null}")
         if (content != null) content(paddingValues)
         else {
             EventListScreen(

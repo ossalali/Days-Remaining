@@ -1,10 +1,10 @@
 package com.ossalali.daysremaining.presentation.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
+import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -18,8 +18,8 @@ import javax.inject.Inject
 class EventDetailsViewModel
 @Inject
 constructor(
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val eventRepo: EventRepo,
+  @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+  private val eventRepo: EventRepo,
 ) : ViewModel() {
 
     private val _event = MutableStateFlow<EventItem?>(null)
@@ -31,19 +31,17 @@ constructor(
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
-    /** Permanently deletes the event with the given [eventId] from the database. */
     fun deleteEvent(eventId: Int) {
         viewModelScope.launch(ioDispatcher) {
             try {
                 eventRepo.deleteEvents(listOf(eventId))
-                _event.value = null // Clear currently loaded event
-            } catch (_: Exception) {
-                // Log the exception if necessary
+                _event.value = null
+            } catch (e: Exception) {
+                appLogger().e(tag = TAG, message = "failed to delete events", throwable = e)
             }
         }
     }
 
-    /** Saves or updates the given [event] in the database. */
     fun saveEvent(event: EventItem) {
         viewModelScope.launch(ioDispatcher) {
             _isSaving.value = true
@@ -51,7 +49,7 @@ constructor(
                 eventRepo.insertEvent(event)
                 _event.value = event
             } catch (e: Exception) {
-                Log.e("EventDetailsViewModel", "Couldn't save eventItem $event", e)
+                appLogger().e(tag = TAG, message = "Couldn't save eventItem $event", throwable = e)
             } finally {
                 _isSaving.value = false
             }
@@ -70,5 +68,9 @@ constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    companion object {
+        private val TAG = "EventDetailsViewModel"
     }
 }

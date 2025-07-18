@@ -29,7 +29,7 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
     @Assisted val appWidgetOptions: Bundle?
 ) : ViewModel() {
 
-    internal val maxEventsAllowed: Int // Changed to internal for testing
+    internal val maxEventsAllowed: Int
 
     init {
         Log.d("ViewModel", "appWidgetId: $appWidgetId, options: $appWidgetOptions")
@@ -41,10 +41,9 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
     private fun getMaxEvents(options: Bundle?): Int {
         if (options == null) {
             Log.d("ViewModel", "AppWidgetOptions is null, defaulting to 8 events.")
-            return 8 // Default if no options available
+            return 8
         }
 
-        // Threshold in dp for determining small widget
         val heightThresholdDp = 100
 
         val sizes = options.getParcelableArrayList(
@@ -54,7 +53,6 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
         if (!sizes.isNullOrEmpty()) {
             Log.d("ViewModel", "Using OPTION_APPWIDGET_SIZES. Sizes: $sizes")
             for (size in sizes) {
-                // Assuming size.height is in dp as per documentation for SizeF for widgets
                 if (size.height < heightThresholdDp) {
                     Log.d(
                         "ViewModel",
@@ -75,7 +73,6 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
             )
         }
 
-        // Fallback for older APIs or if SIZES API didn't provide data
         val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
         Log.d("ViewModel", "Using OPTION_APPWIDGET_MIN_HEIGHT: $minHeight dp")
         return if (minHeight < heightThresholdDp) {
@@ -95,7 +92,6 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         ).also { stateFlow ->
-            // Add logging to track when events are emitted
             viewModelScope.launch {
                 stateFlow.collect { events ->
                     Log.d("ViewModel", "Events collected: ${events.size} events")
@@ -123,7 +119,6 @@ class WidgetPreferenceScreenViewModel @AssistedInject constructor(
                 Log.d("ViewModel", "Event $eventId selected. Current selection size: ${_selectedEventIds.size}")
             } else {
                 Log.d("ViewModel", "Cannot select Event $eventId. Maximum number of events ($maxEventsAllowed) already selected.")
-                // Optionally, provide feedback to the user here (e.g., via a StateFlow to the UI)
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.ossalali.daysremaining.presentation.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.BuildConfig
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
+import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventDetailsViewModel
@@ -225,13 +225,15 @@ private fun SaveEventFab(
                 descriptionState.text.toString().trim() != originalDescription
 
               if (BuildConfig.DEBUG) {
-                  Log.d(
-                    "CHANGE",
-                    "Change detection - Title: $titleChanged, Date: $dateChanged, Description: $descriptionChanged",
+                  appLogger().d(
+                    tag = "CHANGE",
+                    message =
+                      "Change detection - Title: $titleChanged, Date: $dateChanged, Description: $descriptionChanged",
                   )
-                  Log.d(
-                    "CHANGE",
-                    "Selected date millis: ${selectedDateMillisState.value}, Original date millis: $originalDateMillis",
+                  appLogger().d(
+                    tag = "CHANGE",
+                    message =
+                      "Selected date millis: ${selectedDateMillisState.value}, Original date millis: $originalDateMillis",
                   )
               }
 

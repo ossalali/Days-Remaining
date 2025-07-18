@@ -1,7 +1,7 @@
 package com.ossalali.daysremaining.widget.di
 
 import com.ossalali.daysremaining.infrastructure.EventRepo
-import com.ossalali.daysremaining.widget.datastore.WidgetDataStore // Add this import
+import com.ossalali.daysremaining.widget.datastore.WidgetDataStore
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -10,5 +10,5 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface WidgetRepositoryEntryPoint {
     fun eventRepo(): EventRepo
-    fun widgetDataStore(): WidgetDataStore // Add this function
+    fun widgetDataStore(): WidgetDataStore
 }

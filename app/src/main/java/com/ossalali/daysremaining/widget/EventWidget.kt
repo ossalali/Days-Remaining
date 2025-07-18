@@ -45,7 +45,6 @@ class EventWidget : GlanceAppWidget() {
               val eventRepo = widgetEntryPoint.eventRepo()
               val widgetDataStore = widgetEntryPoint.widgetDataStore()
 
-              // Get widget configuration with timeout
               val glanceManager = GlanceAppWidgetManager(context)
               val appWidgetId =
                 withTimeoutOrNull(1000) {

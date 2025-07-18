@@ -39,7 +39,6 @@ import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Inte
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.StateFlow
 
-/** Main event list screen that displays a grid of events and handles search functionality */
 @Composable
 internal fun EventListScreen(
   viewModel: EventListViewModel = hiltViewModel(),
@@ -69,7 +68,6 @@ internal fun EventListScreen(
     )
 }
 
-/** Implementation of the event list screen with all UI components */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventListImpl(

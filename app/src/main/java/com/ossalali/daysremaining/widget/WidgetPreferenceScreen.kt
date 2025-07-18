@@ -1,13 +1,10 @@
 package com.ossalali.daysremaining.widget
 
-// import androidx.compose.ui.tooling.preview.Preview // Already commented out
-// import androidx.hilt.navigation.compose.hiltViewModel // Already commented out
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,19 +44,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveComplete: () -> Unit) {
     val scope = rememberCoroutineScope()
-    val isDarkMode = isSystemInDarkTheme()
-    val colorScheme = MaterialTheme.colorScheme
-
-    val statusBarColor =
-      if (isDarkMode) {
-          colorScheme.inverseOnSurface // Light color for dark mode
-      } else {
-          colorScheme.onSurface // Dark color for light mode
-      }
-
     val inputEvents by viewModel.getEvents().collectAsState()
 
-    // Add logging to debug events collection
     LaunchedEffect(inputEvents) {
         Log.d("WidgetPreferenceScreen", "inputEvents changed: size=${inputEvents.size}")
         inputEvents.forEachIndexed { index, event ->
@@ -78,12 +64,11 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                         "WidgetPreferenceScreen",
                         "Save button clicked, selected events: ${viewModel.selectedEventIds}",
                       )
-                      scope.launch { // Launch the suspend function
+                      scope.launch {
                           try {
                               Log.d("WidgetPreferenceScreen", "About to save selected events")
                               viewModel.saveSelectedEvents()
                               Log.d("WidgetPreferenceScreen", "Save completed successfully")
-                              // Call the callback to finish the activity properly
                               onSaveComplete()
                           } catch (e: Exception) {
                               Log.e("WidgetPreferenceScreen", "Error saving events: ${e.message}")

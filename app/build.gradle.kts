@@ -87,10 +87,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.collections.immutable)
 
-    // Material3 Adaptive - temporarily disabled due to library availability
-    // implementation(libs.androidx.material3.adaptive.layout)
-    // implementation(libs.androidx.material3.adaptive.navigation3)
-
     debugImplementation(libs.androidx.ui.tooling)
 
     testImplementation(libs.junit)

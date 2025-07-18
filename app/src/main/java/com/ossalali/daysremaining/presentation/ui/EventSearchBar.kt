@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 
-/** Simple search bar component */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventSearchBar(
@@ -64,7 +63,6 @@ fun EventSearchBar(
     ) {}
 }
 
-/** Preview for testing the search bar independently */
 @Preview(showBackground = true)
 @Composable
 fun SearchBarPreview() {
