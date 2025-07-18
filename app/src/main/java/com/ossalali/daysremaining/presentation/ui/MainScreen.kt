@@ -125,7 +125,10 @@ fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
                   title = "Debug",
                   showBackButton = true,
                   onBackClick = { backStack.removeLastOrNull() },
-                  content = { paddingValues -> DebugScreen(paddingValues = paddingValues) },
+                  content = { paddingValues -> DebugScreen(
+                      paddingValues = paddingValues,
+                      onClose = { backStack.removeLastOrNull() },
+                  ) },
                 )
             }
         },

@@ -20,8 +20,4 @@ constructor(
     fun insertEvents(eventItemList: List<EventItem>) {
         viewModelScope.launch(ioDispatcher) { eventRepo.insertEvents(eventItemList) }
     }
-
-    suspend fun getNumberOfEvents(): Int {
-        return eventRepo.getAllEvents().size
-    }
 }

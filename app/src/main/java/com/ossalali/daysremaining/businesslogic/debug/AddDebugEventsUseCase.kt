@@ -3,12 +3,12 @@ package com.ossalali.daysremaining.businesslogic.debug
 import com.ossalali.daysremaining.model.EventItem
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import javax.inject.Inject
 
-class AddDebugEventsUseCase @Inject constructor() {
-    operator fun invoke(startNumber: Int, numberOfEvents: Int): List<EventItem> {
+class AddDebugEventsUseCase(private val addEvents: (List<EventItem>) -> Unit) {
+
+    operator fun invoke(numberOfEvents: Int) {
         val eventItemList = mutableListOf<EventItem>()
-        for (i in numberOfEvents..numberOfEvents + startNumber) {
+        for (i in 1..numberOfEvents) {
             eventItemList.add(
               EventItem(
                 id = 0,
@@ -18,6 +18,7 @@ class AddDebugEventsUseCase @Inject constructor() {
               )
             )
         }
-        return eventItemList
+
+        addEvents(eventItemList)
     }
 }
