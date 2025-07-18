@@ -10,11 +10,18 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -22,12 +29,17 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -36,12 +48,15 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import com.ossalali.daysremaining.BuildConfig
 import com.ossalali.daysremaining.infrastructure.appLogger
+import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.navigation.AddEventRoute
 import com.ossalali.daysremaining.navigation.DebugRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
+import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
+import kotlinx.collections.immutable.ImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,37 +164,19 @@ private fun MainScreenContent(
   onBackClick: () -> Unit = {},
   content: @Composable ((PaddingValues) -> Unit)? = null,
 ) {
+    val selectedEventItems by eventListViewModel.selectedEventItems.collectAsStateWithLifecycle()
+
     Scaffold(
       modifier = Modifier.background(Color.Transparent),
       topBar = {
-          CenterAlignedTopAppBar(
-            title = { Text(title) },
-            navigationIcon = {
-                if (showBackButton) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                          contentDescription = "Back",
-                        )
-                    }
-                }
-            },
-            actions = {
-                IconButton(onClick = { navigateToSettingsScreen() }) {
-                    Icon(
-                      imageVector = Icons.Filled.Settings,
-                      contentDescription = "Open Settings screen",
-                    )
-                }
-                if (BuildConfig.DEBUG) {
-                    IconButton(onClick = { navigateToDebugScreen() }) {
-                        Icon(
-                          imageVector = Icons.Filled.BugReport,
-                          contentDescription = "Open Debug screen",
-                        )
-                    }
-                }
-            },
+          SetupTopAppBar(
+              selectedEventItems,
+              title,
+              showBackButton,
+              onBackClick,
+              navigateToSettingsScreen,
+              navigateToDebugScreen,
+              eventListViewModel
           )
       },
       floatingActionButton = {
@@ -199,8 +196,117 @@ private fun MainScreenContent(
               onNavigateToEventDetails = navigateToEventDetails,
               paddingValues = paddingValues,
               showFab = isOnEventList,
+              selectedEventItems = selectedEventItems,
             )
         }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SetupTopAppBar(
+    selectedEventItems: ImmutableList<EventItem>,
+    title: String,
+    showBackButton: Boolean,
+    onBackClick: () -> Unit,
+    navigateToSettingsScreen: () -> Unit,
+    navigateToDebugScreen: () -> Unit,
+    eventListViewModel: EventListViewModel
+) {
+    if (selectedEventItems.isEmpty()) {
+        CenterAlignedTopAppBar(
+            title = { Text(title) },
+            navigationIcon = {
+                if (showBackButton) {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                    }
+                }
+            },
+            actions = {
+                IconButton(onClick = { navigateToSettingsScreen() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Open Settings screen",
+                    )
+                }
+                if (BuildConfig.DEBUG) {
+                    IconButton(onClick = { navigateToDebugScreen() }) {
+                        Icon(
+                            imageVector = Icons.Filled.BugReport,
+                            contentDescription = "Open Debug screen",
+                        )
+                    }
+                }
+            },
+        )
+    } else {
+        TopAppBar(
+            title = {},
+            actions = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = {
+                            eventListViewModel.onInteraction(
+                                EventListViewModel.Interaction.ClearSelection
+                            )
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                    }
+                    Spacer(Modifier.width(Dimensions.half))
+                    Text(
+                        text = "${selectedEventItems.size}",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    if (eventListViewModel.hasUnarchivedEventItems()) {
+                        IconButton(
+                            onClick = { eventListViewModel.archiveEvents(selectedEventItems) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Archive,
+                                contentDescription = "Archive selected Events",
+                            )
+                        }
+                    }
+                    if (eventListViewModel.hasArchivedEventItems()) {
+                        IconButton(
+                            onClick = { eventListViewModel.unarchiveEvents(selectedEventItems) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Inbox,
+                                contentDescription = "Unarchive selected Events",
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = { eventListViewModel.deleteEvents(selectedEventItems) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Delete selected Events",
+                        )
+                    }
+                    IconButton(
+                        onClick = { eventListViewModel.onInteraction(
+                            EventListViewModel.Interaction.SelectAll
+                        ) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.SelectAll,
+                            contentDescription = "Select all Events",
+                        )
+                    }
+                }
+            },
+        )
     }
 }
 

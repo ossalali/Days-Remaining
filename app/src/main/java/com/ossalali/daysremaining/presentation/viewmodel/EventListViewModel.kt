@@ -83,6 +83,8 @@ constructor(
             is Interaction.ToggleActiveFilter -> toggleActiveFilter()
             is Interaction.ToggleArchivedFilter -> toggleArchivedFilter()
             is Interaction.UpdateSearchText -> updateSearchText(interaction.searchText)
+            Interaction.ClearSelection -> _selectedEventItems.value = persistentListOf()
+            Interaction.SelectAll -> _selectedEventItems.value = allEventsFlow.value
         }
     }
 
@@ -91,15 +93,48 @@ constructor(
     }
 
     private fun toggleActiveFilter() {
+        val selectedItemsAtStart = _selectedEventItems.value
+        val allEventsFlowAtStart = allEventsFlow.value
+
+        val wasSelectAllActive = selectedItemsAtStart.isNotEmpty() &&
+                                selectedItemsAtStart.size == allEventsFlowAtStart.size &&
+                                allEventsFlowAtStart.containsAll(selectedItemsAtStart)
+
+        val previousActiveFilterState = _activeFilterEnabled.value
+
         if (archivedFilterEnabled.value) {
             _activeFilterEnabled.value = !_activeFilterEnabled.value
+        }
+
+        val activeFilterDidChange = previousActiveFilterState != _activeFilterEnabled.value
+
+        if (wasSelectAllActive && activeFilterDidChange) {
+            _selectedEventItems.value = allEventsFlow.value
         }
     }
 
     private fun toggleArchivedFilter() {
+        val selectedItemsAtStart = _selectedEventItems.value
+        val allEventsFlowAtStart = allEventsFlow.value
+
+        val wasSelectAllActive = selectedItemsAtStart.isNotEmpty() &&
+                                selectedItemsAtStart.size == allEventsFlowAtStart.size &&
+                                allEventsFlowAtStart.containsAll(selectedItemsAtStart)
+
+        val previousArchivedFilterState = _archivedFilterEnabled.value
+        val previousActiveFilterState = _activeFilterEnabled.value
+
         _archivedFilterEnabled.value = !_archivedFilterEnabled.value
         if (!_archivedFilterEnabled.value && !_activeFilterEnabled.value) {
             _activeFilterEnabled.value = true
+        }
+
+        val archivedFilterDidChange = previousArchivedFilterState != _archivedFilterEnabled.value
+        val activeFilterDidChangeByThisOperation = previousActiveFilterState != _activeFilterEnabled.value
+        val anyRelevantFilterChanged = archivedFilterDidChange || activeFilterDidChangeByThisOperation
+
+        if (wasSelectAllActive && anyRelevantFilterChanged) {
+            _selectedEventItems.value = allEventsFlow.value
         }
     }
 
@@ -163,5 +198,8 @@ constructor(
         data object ToggleArchivedFilter : Interaction
 
         data class UpdateSearchText(val searchText: String) : Interaction
+
+        data object ClearSelection : Interaction
+        data object SelectAll : Interaction
     }
 }
