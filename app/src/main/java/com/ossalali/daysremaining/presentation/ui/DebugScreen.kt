@@ -39,7 +39,7 @@ fun DebugScreen(
   paddingValues: PaddingValues = PaddingValues(),
   onClose: () -> Unit,
 ) {
-    var showSnackbar by remember { mutableStateOf(false) }
+    var showSnackBar by remember { mutableStateOf(false) }
     var numberOfEvents by rememberSaveable { mutableIntStateOf(0) }
     var textFieldValue by rememberSaveable { mutableStateOf("") }
     val textFieldFocusRequester = remember { FocusRequester() }
@@ -64,7 +64,7 @@ fun DebugScreen(
                   modifier = Modifier.padding(Dimensions.half),
                   onClick = {
                       AddDebugEventsUseCase(debugScreenViewModel::insertEvents)(numberOfEvents)
-                      showSnackbar = true
+                      showSnackBar = true
                       onClose()
                   },
                 ) {
@@ -72,7 +72,7 @@ fun DebugScreen(
                 }
             }
             Spacer(Modifier.weight(1f))
-            if (showSnackbar) {
+            if (showSnackBar) {
                 Snackbar(modifier = Modifier.imePadding()) { Text("$numberOfEvents events added") }
             }
         }
