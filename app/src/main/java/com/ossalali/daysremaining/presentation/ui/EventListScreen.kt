@@ -14,15 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,8 +41,8 @@ internal fun EventListScreen(
   onNavigateToEventDetails: (Int) -> Unit = {},
   paddingValues: PaddingValues,
   showFab: Boolean = false,
+  selectedEventItems: ImmutableList<EventItem>,
 ) {
-    val selectedEventItems by viewModel.selectedEventItems.collectAsStateWithLifecycle()
     val searchText by viewModel.searchText.collectAsStateWithLifecycle()
 
     EventListImpl(
@@ -56,11 +52,6 @@ internal fun EventListScreen(
       activeFilterEnabled = viewModel.activeFilterEnabled,
       archivedFilterEnabled = viewModel.archivedFilterEnabled,
       onNavigateToEventDetails = onNavigateToEventDetails,
-      onUnarchiveEvents = viewModel::unarchiveEvents,
-      onArchiveEventItems = viewModel::archiveEvents,
-      onDeleteEventItems = viewModel::deleteEvents,
-      hasArchivedEventItems = viewModel.hasArchivedEventItems(),
-      hasUnarchivedEventItems = viewModel.hasUnarchivedEventItems(),
       searchText = searchText,
       onSearchTextChanged = { text -> viewModel.onInteraction(Interaction.UpdateSearchText(text)) },
       paddingValues = paddingValues,
@@ -77,11 +68,6 @@ private fun EventListImpl(
   activeFilterEnabled: StateFlow<Boolean>,
   archivedFilterEnabled: StateFlow<Boolean>,
   onNavigateToEventDetails: (Int) -> Unit = {},
-  onUnarchiveEvents: (ImmutableList<EventItem>) -> Unit = {},
-  onArchiveEventItems: (ImmutableList<EventItem>) -> Unit = {},
-  onDeleteEventItems: (ImmutableList<EventItem>) -> Unit = {},
-  hasArchivedEventItems: Boolean,
-  hasUnarchivedEventItems: Boolean,
   searchText: String = "",
   onSearchTextChanged: (String) -> Unit = {},
   paddingValues: PaddingValues,
@@ -105,31 +91,6 @@ private fun EventListImpl(
               onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
               onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
             )
-            if (selectedEventItems.isNotEmpty()) {
-                Spacer(Modifier.weight(1f))
-                if (hasUnarchivedEventItems) {
-                    IconButton(onClick = { onArchiveEventItems(selectedEventItems) }) {
-                        Icon(
-                          imageVector = Icons.Outlined.Archive,
-                          contentDescription = "Archive selected Events",
-                        )
-                    }
-                }
-                if (hasArchivedEventItems) {
-                    IconButton(onClick = { onUnarchiveEvents(selectedEventItems) }) {
-                        Icon(
-                          imageVector = Icons.Outlined.Inbox,
-                          contentDescription = "Unarchive selected Events",
-                        )
-                    }
-                }
-                IconButton(onClick = { onDeleteEventItems(selectedEventItems) }) {
-                    Icon(
-                      imageVector = Icons.Filled.Delete,
-                      contentDescription = "Delete selected Events",
-                    )
-                }
-            }
         }
 
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {

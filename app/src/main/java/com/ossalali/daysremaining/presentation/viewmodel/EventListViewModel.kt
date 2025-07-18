@@ -83,6 +83,8 @@ constructor(
             is Interaction.ToggleActiveFilter -> toggleActiveFilter()
             is Interaction.ToggleArchivedFilter -> toggleArchivedFilter()
             is Interaction.UpdateSearchText -> updateSearchText(interaction.searchText)
+            Interaction.ClearSelection -> _selectedEventItems.value = persistentListOf()
+            Interaction.SelectAll -> _selectedEventItems.value = allEventsFlow.value
         }
     }
 
@@ -91,15 +93,57 @@ constructor(
     }
 
     private fun toggleActiveFilter() {
+        val selectedItemsAtStart = _selectedEventItems.value
+        val allEventsFlowAtStart = allEventsFlow.value // Based on filters *before* this toggle operation
+
+        // Check if "Select All" was effectively active before any change
+        val wasSelectAllActive = selectedItemsAtStart.isNotEmpty() &&
+                                selectedItemsAtStart.size == allEventsFlowAtStart.size &&
+                                allEventsFlowAtStart.containsAll(selectedItemsAtStart)
+
+        val previousActiveFilterState = _activeFilterEnabled.value
+
+        // Original logic for toggling the active filter
         if (archivedFilterEnabled.value) {
             _activeFilterEnabled.value = !_activeFilterEnabled.value
+        }
+        // If archivedFilterEnabled.value is false, _activeFilterEnabled.value does not change here.
+
+        val activeFilterDidChange = previousActiveFilterState != _activeFilterEnabled.value
+
+        if (wasSelectAllActive && activeFilterDidChange) {
+            // _activeFilterEnabled has changed, so allEventsFlow.value will now reflect the new filter state
+            _selectedEventItems.value = allEventsFlow.value
         }
     }
 
     private fun toggleArchivedFilter() {
+        val selectedItemsAtStart = _selectedEventItems.value
+        val allEventsFlowAtStart = allEventsFlow.value // Based on filters *before* this toggle operation
+
+        // Check if "Select All" was effectively active before any change
+        val wasSelectAllActive = selectedItemsAtStart.isNotEmpty() &&
+                                selectedItemsAtStart.size == allEventsFlowAtStart.size &&
+                                allEventsFlowAtStart.containsAll(selectedItemsAtStart)
+
+        val previousArchivedFilterState = _archivedFilterEnabled.value
+        val previousActiveFilterState = _activeFilterEnabled.value // Active filter might also change
+
+        // Original logic for toggling the archived filter
         _archivedFilterEnabled.value = !_archivedFilterEnabled.value
         if (!_archivedFilterEnabled.value && !_activeFilterEnabled.value) {
+            // This ensures at least one filter remains active, potentially changing _activeFilterEnabled
             _activeFilterEnabled.value = true
+        }
+
+        val archivedFilterDidChange = previousArchivedFilterState != _archivedFilterEnabled.value
+        val activeFilterDidChangeByThisOperation = previousActiveFilterState != _activeFilterEnabled.value
+        val anyRelevantFilterChanged = archivedFilterDidChange || activeFilterDidChangeByThisOperation
+
+        if (wasSelectAllActive && anyRelevantFilterChanged) {
+            // _archivedFilterEnabled (and possibly _activeFilterEnabled) has changed,
+            // so allEventsFlow.value will reflect the new filter state
+            _selectedEventItems.value = allEventsFlow.value
         }
     }
 
@@ -163,5 +207,8 @@ constructor(
         data object ToggleArchivedFilter : Interaction
 
         data class UpdateSearchText(val searchText: String) : Interaction
+
+        data object ClearSelection : Interaction
+        data object SelectAll : Interaction
     }
 }
