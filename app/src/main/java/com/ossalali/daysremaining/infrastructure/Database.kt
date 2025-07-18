@@ -26,7 +26,6 @@ abstract class MyDatabase : RoomDatabase() {
                         MyDatabase::class.java,
                         "myDatabase",
                       )
-                      .fallbackToDestructiveMigration(false)
                       .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
                       .setQueryExecutor(Executors.newFixedThreadPool(4))
                       .build()
