@@ -208,5 +208,5 @@ fun AddEventScreen(
 @DefaultPreviews
 @Composable
 fun AddEventScreenPreview() {
-    AddEventScreen(onClose = {}, paddingValues = PaddingValues(16.dp))
+    AddEventScreen(onClose = {}, paddingValues = PaddingValues(Dimensions.default))
 }

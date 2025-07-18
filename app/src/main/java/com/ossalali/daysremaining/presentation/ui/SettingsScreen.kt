@@ -15,8 +15,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +29,7 @@ fun SettingsScreen(
       modifier = Modifier.fillMaxSize().padding(paddingValues),
       color = MaterialTheme.colorScheme.background,
     ) {
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Column(modifier = Modifier.fillMaxSize().padding(Dimensions.default)) {
             SettingItem(
               title = "Dark Mode",
               description = "Enable dark theme",
@@ -61,12 +61,12 @@ fun SettingItem(
   checked: Boolean,
   onCheckedChange: (Boolean) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.half)) {
         ListItem(
           headlineContent = { Text(text = title) },
           supportingContent = { Text(text = description) },
           trailingContent = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(Dimensions.half))
     }
 }

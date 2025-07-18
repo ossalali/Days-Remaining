@@ -6,6 +6,7 @@ object Dimensions {
     val default = 16.dp
     val half = default / 2
     val quarter = default / 4
+    val eighth = default / 8
     val third = default / 3
     val double = default * 2
     val triple = default * 3

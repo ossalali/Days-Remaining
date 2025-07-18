@@ -3,7 +3,6 @@ package com.ossalali.daysremaining.widget
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -27,6 +26,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.ossalali.daysremaining.MainActivity
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.widget.di.WidgetRepositoryEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
@@ -86,15 +86,15 @@ fun WidgetContent(eventItems: List<EventItem>) {
     Box(
       modifier =
         GlanceModifier.fillMaxSize()
-          .padding(8.dp)
-          .cornerRadius(16.dp)
+          .padding(Dimensions.half)
+          .cornerRadius(Dimensions.default)
           .background(GlanceTheme.colors.background)
     ) {
         Box(
           modifier =
             GlanceModifier.fillMaxSize()
-              .padding(8.dp)
-              .cornerRadius(8.dp)
+              .padding(Dimensions.half)
+              .cornerRadius(Dimensions.half)
               .background(GlanceTheme.colors.widgetBackground)
               .appWidgetBackground()
               .clickable(actionStartActivity<MainActivity>())
@@ -113,7 +113,7 @@ fun WidgetContent(eventItems: List<EventItem>) {
                 }
             } else {
                 Column(
-                  modifier = GlanceModifier.fillMaxSize().padding(4.dp),
+                  modifier = GlanceModifier.fillMaxSize().padding(Dimensions.quarter),
                   verticalAlignment = Alignment.Top,
                   horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -127,7 +127,7 @@ fun WidgetContent(eventItems: List<EventItem>) {
 @Composable
 fun EventItemRow(eventItem: EventItem) {
     Column(
-      modifier = GlanceModifier.wrapContentHeight().padding(vertical = 2.dp),
+      modifier = GlanceModifier.wrapContentHeight().padding(vertical = Dimensions.eighth),
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(

@@ -185,7 +185,7 @@ fun AddChips(
             },
         )
 
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(Dimensions.quarter))
 
         FilterChip(
           selected = archivedFilterEnabled,

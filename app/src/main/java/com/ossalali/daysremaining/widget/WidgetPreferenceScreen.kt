@@ -36,7 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
-import androidx.compose.ui.unit.dp
+import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -106,14 +106,14 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                     Card(
                       border =
                         if (isSelected) {
-                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                            BorderStroke(Dimensions.eighth, MaterialTheme.colorScheme.primary)
                         } else {
                             null
                         },
                       shape = MaterialTheme.shapes.medium,
                       modifier =
                         Modifier.fillMaxWidth()
-                          .padding(8.dp)
+                          .padding(Dimensions.half)
                           .combinedClickable(
                             onClick = {
                                 Log.d(
@@ -128,30 +128,33 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                             },
                             onClickLabel = "Event Selected",
                           ),
-                      elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                      elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
                     ) {
                         Row(
-                          modifier = Modifier.fillMaxSize().padding(8.dp),
+                          modifier = Modifier.fillMaxSize().padding(Dimensions.half),
                           verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                            Column(modifier = Modifier.weight(1f).padding(end = Dimensions.half)) {
                                 Text(
                                   text = event.title,
                                   style = MaterialTheme.typography.titleLarge,
                                   textAlign = TextAlign.Center,
-                                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                  modifier =
+                                    Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                                 )
                                 Text(
                                   text = event.numberOfDays.toString(),
                                   fontSize = TextUnit(16f, TextUnitType.Em),
                                   textAlign = TextAlign.Center,
-                                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                  modifier =
+                                    Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                                 )
                                 Text(
                                   text = "Days",
                                   style = MaterialTheme.typography.bodyMediumEmphasized,
                                   textAlign = TextAlign.Center,
-                                  modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                  modifier =
+                                    Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                                 )
                             }
                         }

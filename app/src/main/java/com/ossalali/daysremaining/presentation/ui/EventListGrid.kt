@@ -28,7 +28,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
-import androidx.compose.ui.unit.dp
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
@@ -56,9 +55,9 @@ fun EventListGrid(
     val selectedEventIds = remember(selectedEventItems) { selectedEventItems.map { it.id }.toSet() }
 
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
-        modifier = modifier,
-        contentPadding = contentPadding,
+      columns = StaggeredGridCells.Fixed(2),
+      modifier = modifier,
+      contentPadding = contentPadding,
     ) {
         items(items = events, key = { event -> event.id }) { event ->
             val isSelected =
@@ -69,14 +68,14 @@ fun EventListGrid(
             Card(
               border =
                 if (isSelected) {
-                    BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                    BorderStroke(Dimensions.eighth, MaterialTheme.colorScheme.primary)
                 } else {
                     null
                 },
               shape = MaterialTheme.shapes.medium,
               modifier =
                 Modifier.fillMaxWidth()
-                  .padding(8.dp)
+                  .padding(Dimensions.half)
                   .combinedClickable(
                     onClick = {
                         if (selectedEventItems.isEmpty()) {
@@ -88,13 +87,13 @@ fun EventListGrid(
                     onLongClickLabel = "Event Selected",
                     onLongClick = { onEventItemSelection(event.id) },
                   ),
-              elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+              elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
             ) {
                 Row(
-                  modifier = Modifier.fillMaxSize().padding(8.dp),
+                  modifier = Modifier.fillMaxSize().padding(Dimensions.half),
                   verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                    Column(modifier = Modifier.weight(1f).padding(end = Dimensions.half)) {
                         Text(
                           text = event.title,
                           style = MaterialTheme.typography.titleLarge,
