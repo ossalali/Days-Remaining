@@ -5,7 +5,6 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 class AddDebugEventsUseCase(private val addEvents: (List<EventItem>) -> Unit) {
-
     operator fun invoke(numberOfEvents: Int) {
         val eventItemList = mutableListOf<EventItem>()
         for (i in 1..numberOfEvents) {

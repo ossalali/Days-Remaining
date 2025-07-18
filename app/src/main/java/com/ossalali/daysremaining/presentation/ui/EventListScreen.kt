@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,7 +44,6 @@ import kotlinx.coroutines.flow.StateFlow
 internal fun EventListScreen(
   viewModel: EventListViewModel = hiltViewModel(),
   onNavigateToEventDetails: (Int) -> Unit = {},
-  focusRequester: FocusRequester = FocusRequester(),
   paddingValues: PaddingValues,
   showFab: Boolean = false,
 ) {
@@ -66,7 +64,6 @@ internal fun EventListScreen(
       hasUnarchivedEventItems = viewModel.hasUnarchivedEventItems(),
       searchText = searchText,
       onSearchTextChanged = { text -> viewModel.onInteraction(Interaction.UpdateSearchText(text)) },
-      focusRequester = focusRequester,
       paddingValues = paddingValues,
       showFab = showFab,
     )
@@ -89,7 +86,6 @@ private fun EventListImpl(
   hasUnarchivedEventItems: Boolean,
   searchText: String = "",
   onSearchTextChanged: (String) -> Unit = {},
-  focusRequester: FocusRequester = FocusRequester(),
   paddingValues: PaddingValues,
   showFab: Boolean = false,
 ) {
@@ -144,7 +140,9 @@ private fun EventListImpl(
               onEventItemSelection = { onInteraction(Interaction.Select(it)) },
               events = events,
               selectedEventItems = selectedEventItems,
-              modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.default),
+              modifier = Modifier.fillMaxSize(),
+              contentPadding =
+                PaddingValues(start = Dimensions.default, end = Dimensions.default, bottom = 80.dp),
             )
 
             EventSearchBar(

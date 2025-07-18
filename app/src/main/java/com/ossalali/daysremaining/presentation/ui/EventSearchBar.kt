@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,43 +45,6 @@ fun EventSearchBar(
                 Icon(
                   imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                   contentDescription = "Back",
-                  modifier = Modifier.clickable { keyboardController?.hide() },
-                )
-            },
-            trailingIcon = {
-                Icon(
-                  imageVector = Icons.Default.Search,
-                  contentDescription = "Search",
-                  modifier = Modifier.clickable { keyboardController?.hide() },
-                )
-            },
-            modifier = Modifier.shadow(Dimensions.quarter, shape = CircleShape),
-          )
-      },
-      expanded = false,
-      onExpandedChange = {},
-      modifier = modifier,
-    ) {}
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EventSearchBar(searchText: String, modifier: Modifier = Modifier) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    SearchBar(
-      inputField = {
-          SearchBarDefaults.InputField(
-            query = searchText,
-            onQueryChange = {},
-            onSearch = {},
-            expanded = false,
-            onExpandedChange = {},
-            placeholder = { Text("Search events") },
-            leadingIcon = {
-                Icon(
-                  imageVector = Icons.Filled.Close,
-                  contentDescription = "Cancel",
                   modifier = Modifier.clickable { keyboardController?.hide() },
                 )
             },

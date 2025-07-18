@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +44,7 @@ fun EventListGrid(
   events: ImmutableList<EventItem>,
   selectedEventItems: ImmutableList<EventItem>,
   modifier: Modifier = Modifier,
+  contentPadding: PaddingValues = PaddingValues(),
 ) {
     if (events.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -53,7 +55,11 @@ fun EventListGrid(
 
     val selectedEventIds = remember(selectedEventItems) { selectedEventItems.map { it.id }.toSet() }
 
-    LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(2), modifier = modifier) {
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = modifier,
+        contentPadding = contentPadding,
+    ) {
         items(items = events, key = { event -> event.id }) { event ->
             val isSelected =
               remember(selectedEventIds, event.id) { selectedEventIds.contains(event.id) }

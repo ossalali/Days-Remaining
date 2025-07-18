@@ -303,7 +303,6 @@ private fun EventContent(
 
     val titleError by remember { derivedStateOf { titleState.text.isBlank() } }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
-    var showDate by rememberSaveable { mutableStateOf(false) }
 
     Column {
         Text(
@@ -344,15 +343,9 @@ private fun EventContent(
 
         InputChip(
           modifier = Modifier.height(Dimensions.triple).width(Dimensions.nonuple),
-          selected = showDate,
+          selected = true,
           onClick = { showDatePicker = true },
-          label = {
-              if (showDate) {
-                  Text(formattedDate)
-              } else {
-                  Text("Add Date")
-              }
-          },
+          label = { Text(formattedDate) },
           leadingIcon = {
               Icon(
                 modifier = Modifier.offset(y = (-2).dp),
@@ -378,7 +371,6 @@ private fun EventContent(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis -> onDateChanged(millis) }
                         showDatePicker = false
-                        showDate = true
                     }
                   ) {
                       Text("OK")

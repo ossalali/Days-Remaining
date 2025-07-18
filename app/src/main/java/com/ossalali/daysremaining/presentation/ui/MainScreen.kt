@@ -26,9 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.entry
@@ -149,7 +147,6 @@ private fun MainScreenContent(
   onBackClick: () -> Unit = {},
   content: @Composable ((PaddingValues) -> Unit)? = null,
 ) {
-    val focusRequester = remember { FocusRequester() }
     Scaffold(
       modifier = Modifier.background(Color.Transparent),
       topBar = {
@@ -198,7 +195,6 @@ private fun MainScreenContent(
             EventListScreen(
               viewModel = eventListViewModel,
               onNavigateToEventDetails = navigateToEventDetails,
-              focusRequester = focusRequester,
               paddingValues = paddingValues,
               showFab = isOnEventList,
             )
