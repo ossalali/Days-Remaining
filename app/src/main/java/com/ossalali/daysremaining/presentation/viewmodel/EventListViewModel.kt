@@ -77,14 +77,26 @@ constructor(
     private val _selectedEventItems = MutableStateFlow<ImmutableList<EventItem>>(persistentListOf())
     val selectedEventItems: StateFlow<ImmutableList<EventItem>> = _selectedEventItems.asStateFlow()
 
+    private val _deletedEventItems = MutableStateFlow<ImmutableList<EventItem>>(persistentListOf())
+    val deletedEventItems: StateFlow<ImmutableList<EventItem>> = _deletedEventItems.asStateFlow()
+
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
             is Interaction.Select -> handleEventItemSelection(interaction.eventId)
             is Interaction.ToggleActiveFilter -> toggleActiveFilter()
             is Interaction.ToggleArchivedFilter -> toggleArchivedFilter()
             is Interaction.UpdateSearchText -> updateSearchText(interaction.searchText)
+            Interaction.UndoDelete -> undoDelete()
             Interaction.ClearSelection -> _selectedEventItems.value = persistentListOf()
             Interaction.SelectAll -> _selectedEventItems.value = allEventsFlow.value
+            Interaction.ClearUndo -> _deletedEventItems.value = persistentListOf()
+        }
+    }
+
+    private fun undoDelete() {
+        viewModelScope.launch(ioDispatcher) {
+            eventRepo.insertEvents(deletedEventItems.value)
+            _deletedEventItems.value = persistentListOf()
         }
     }
 
@@ -96,9 +108,10 @@ constructor(
         val selectedItemsAtStart = _selectedEventItems.value
         val allEventsFlowAtStart = allEventsFlow.value
 
-        val wasSelectAllActive = selectedItemsAtStart.isNotEmpty() &&
-                                selectedItemsAtStart.size == allEventsFlowAtStart.size &&
-                                allEventsFlowAtStart.containsAll(selectedItemsAtStart)
+        val wasSelectAllActive =
+          selectedItemsAtStart.isNotEmpty() &&
+            selectedItemsAtStart.size == allEventsFlowAtStart.size &&
+            allEventsFlowAtStart.containsAll(selectedItemsAtStart)
 
         val previousActiveFilterState = _activeFilterEnabled.value
 
@@ -117,9 +130,10 @@ constructor(
         val selectedItemsAtStart = _selectedEventItems.value
         val allEventsFlowAtStart = allEventsFlow.value
 
-        val wasSelectAllActive = selectedItemsAtStart.isNotEmpty() &&
-                                selectedItemsAtStart.size == allEventsFlowAtStart.size &&
-                                allEventsFlowAtStart.containsAll(selectedItemsAtStart)
+        val wasSelectAllActive =
+          selectedItemsAtStart.isNotEmpty() &&
+            selectedItemsAtStart.size == allEventsFlowAtStart.size &&
+            allEventsFlowAtStart.containsAll(selectedItemsAtStart)
 
         val previousArchivedFilterState = _archivedFilterEnabled.value
         val previousActiveFilterState = _activeFilterEnabled.value
@@ -130,8 +144,10 @@ constructor(
         }
 
         val archivedFilterDidChange = previousArchivedFilterState != _archivedFilterEnabled.value
-        val activeFilterDidChangeByThisOperation = previousActiveFilterState != _activeFilterEnabled.value
-        val anyRelevantFilterChanged = archivedFilterDidChange || activeFilterDidChangeByThisOperation
+        val activeFilterDidChangeByThisOperation =
+          previousActiveFilterState != _activeFilterEnabled.value
+        val anyRelevantFilterChanged =
+          archivedFilterDidChange || activeFilterDidChangeByThisOperation
 
         if (wasSelectAllActive && anyRelevantFilterChanged) {
             _selectedEventItems.value = allEventsFlow.value
@@ -174,6 +190,8 @@ constructor(
 
     fun deleteEvents(eventItems: ImmutableList<EventItem>) {
         viewModelScope.launch(ioDispatcher) {
+            _deletedEventItems.value =
+              _deletedEventItems.value.toPersistentList().addAll(eventItems)
             eventRepo.deleteEvents(eventItems.map { it.id })
             val currentSelection = _selectedEventItems.value.toMutableList()
             currentSelection.removeAll(eventItems)
@@ -199,7 +217,12 @@ constructor(
 
         data class UpdateSearchText(val searchText: String) : Interaction
 
+        data object UndoDelete : Interaction
+
         data object ClearSelection : Interaction
+
         data object SelectAll : Interaction
+
+        data object ClearUndo : Interaction
     }
 }

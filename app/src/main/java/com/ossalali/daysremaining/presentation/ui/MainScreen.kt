@@ -9,9 +9,13 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,13 +35,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entry
@@ -56,7 +68,9 @@ import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
+import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,18 +179,39 @@ private fun MainScreenContent(
   content: @Composable ((PaddingValues) -> Unit)? = null,
 ) {
     val selectedEventItems by eventListViewModel.selectedEventItems.collectAsStateWithLifecycle()
+    val showSnackBar = remember { mutableStateOf(false) }
+    val baseSnackBarMessage = remember { mutableStateOf("") }
+    var displaySnackBarMessage by remember { mutableStateOf("") }
+
+    LaunchedEffect(showSnackBar.value) {
+        if (showSnackBar.value) {
+            val currentBaseMessage = baseSnackBarMessage.value
+            for (i in 5 downTo 1) {
+                if (!showSnackBar.value) break
+                displaySnackBarMessage = "$currentBaseMessage (Undo: ${i}s)"
+                delay(1000L)
+            }
+
+            if (showSnackBar.value) {
+                showSnackBar.value = false
+                eventListViewModel.onInteraction(Interaction.ClearUndo)
+            }
+        }
+    }
 
     Scaffold(
       modifier = Modifier.background(Color.Transparent),
       topBar = {
           SetupTopAppBar(
-              selectedEventItems,
-              title,
-              showBackButton,
-              onBackClick,
-              navigateToSettingsScreen,
-              navigateToDebugScreen,
-              eventListViewModel
+            selectedEventItems,
+            title,
+            showBackButton,
+            onBackClick,
+            navigateToSettingsScreen,
+            navigateToDebugScreen,
+            eventListViewModel,
+            showSnackBar,
+            baseSnackBarMessage,
           )
       },
       floatingActionButton = {
@@ -189,15 +224,48 @@ private fun MainScreenContent(
       floatingActionButtonPosition = FabPosition.End,
     ) { paddingValues ->
         appLogger().d(tag = "NAV3_Content", message = "content: ${content == null}")
-        if (content != null) content(paddingValues)
-        else {
-            EventListScreen(
-              viewModel = eventListViewModel,
-              onNavigateToEventDetails = navigateToEventDetails,
-              paddingValues = paddingValues,
-              showFab = isOnEventList,
-              selectedEventItems = selectedEventItems,
-            )
+        if (content != null) {
+            content(paddingValues)
+        } else {
+            Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+                EventListScreen(
+                  viewModel = eventListViewModel,
+                  onNavigateToEventDetails = navigateToEventDetails,
+                  paddingValues = PaddingValues(),
+                  showFab = isOnEventList,
+                  selectedEventItems = selectedEventItems,
+                )
+
+                if (showSnackBar.value) {
+                    Snackbar(
+                      modifier =
+                        Modifier.align(Alignment.BottomCenter)
+                          .imePadding()
+                          .padding(
+                            start = Dimensions.default,
+                            end = Dimensions.default,
+                            bottom = Dimensions.default + 74.dp,
+                          ),
+                      action = {
+                          TextButton(
+                            onClick = {
+                                showSnackBar.value = false
+                                eventListViewModel.onInteraction(Interaction.UndoDelete)
+                            }
+                          ) {
+                              Text(text = "Undo")
+                          }
+                      },
+                      dismissAction = {
+                          TextButton(onClick = { showSnackBar.value = false }) {
+                              Text(text = "Dismiss")
+                          }
+                      },
+                    ) {
+                        Text(text = displaySnackBarMessage)
+                    }
+                }
+            }
         }
     }
 }
@@ -205,107 +273,113 @@ private fun MainScreenContent(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun SetupTopAppBar(
-    selectedEventItems: ImmutableList<EventItem>,
-    title: String,
-    showBackButton: Boolean,
-    onBackClick: () -> Unit,
-    navigateToSettingsScreen: () -> Unit,
-    navigateToDebugScreen: () -> Unit,
-    eventListViewModel: EventListViewModel
+  selectedEventItems: ImmutableList<EventItem>,
+  title: String,
+  showBackButton: Boolean,
+  onBackClick: () -> Unit,
+  navigateToSettingsScreen: () -> Unit,
+  navigateToDebugScreen: () -> Unit,
+  eventListViewModel: EventListViewModel,
+  showSnackBar: MutableState<Boolean>,
+  snackBarMessage: MutableState<String>,
 ) {
     if (selectedEventItems.isEmpty()) {
         CenterAlignedTopAppBar(
-            title = { Text(title) },
-            navigationIcon = {
-                if (showBackButton) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                        )
-                    }
-                }
-            },
-            actions = {
-                IconButton(onClick = { navigateToSettingsScreen() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = "Open Settings screen",
-                    )
-                }
-                if (BuildConfig.DEBUG) {
-                    IconButton(onClick = { navigateToDebugScreen() }) {
-                        Icon(
-                            imageVector = Icons.Filled.BugReport,
-                            contentDescription = "Open Debug screen",
-                        )
-                    }
-                }
-            },
+          title = { Text(title) },
+          navigationIcon = {
+              if (showBackButton) {
+                  IconButton(onClick = onBackClick) {
+                      Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                      )
+                  }
+              }
+          },
+          actions = {
+              IconButton(onClick = { navigateToSettingsScreen() }) {
+                  Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = "Open Settings screen",
+                  )
+              }
+              if (BuildConfig.DEBUG) {
+                  IconButton(onClick = { navigateToDebugScreen() }) {
+                      Icon(
+                        imageVector = Icons.Filled.BugReport,
+                        contentDescription = "Open Debug screen",
+                      )
+                  }
+              }
+          },
         )
     } else {
         TopAppBar(
-            title = {},
-            actions = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = {
-                            eventListViewModel.onInteraction(
-                                EventListViewModel.Interaction.ClearSelection
-                            )
+          title = {},
+          actions = {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                  IconButton(
+                    onClick = { eventListViewModel.onInteraction(Interaction.ClearSelection) }
+                  ) {
+                      Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                      )
+                  }
+                  Spacer(Modifier.width(Dimensions.half))
+                  Text(
+                    text = "${selectedEventItems.size}",
+                    style = MaterialTheme.typography.titleLarge,
+                  )
+                  Spacer(Modifier.weight(1f))
+                  if (eventListViewModel.hasUnarchivedEventItems()) {
+                      IconButton(
+                        onClick = { eventListViewModel.archiveEvents(selectedEventItems) }
+                      ) {
+                          Icon(
+                            imageVector = Icons.Outlined.Archive,
+                            contentDescription = "Archive selected Events",
+                          )
+                      }
+                  }
+                  if (eventListViewModel.hasArchivedEventItems()) {
+                      IconButton(
+                        onClick = { eventListViewModel.unarchiveEvents(selectedEventItems) }
+                      ) {
+                          Icon(
+                            imageVector = Icons.Outlined.Inbox,
+                            contentDescription = "Unarchive selected Events",
+                          )
+                      }
+                  }
+                  IconButton(
+                    onClick = {
+                        eventListViewModel.deleteEvents(selectedEventItems)
+                        showSnackBar.value = true
+                        if (selectedEventItems.size == 1) {
+                            snackBarMessage.value = "${selectedEventItems.first().title} deleted"
+                        } else {
+                            snackBarMessage.value = "${selectedEventItems.size} events deleted"
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                        )
                     }
-                    Spacer(Modifier.width(Dimensions.half))
-                    Text(
-                        text = "${selectedEventItems.size}",
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    if (eventListViewModel.hasUnarchivedEventItems()) {
-                        IconButton(
-                            onClick = { eventListViewModel.archiveEvents(selectedEventItems) }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Archive,
-                                contentDescription = "Archive selected Events",
-                            )
-                        }
+                  ) {
+                      Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Delete selected Events",
+                      )
+                  }
+                  IconButton(
+                    onClick = {
+                        eventListViewModel.onInteraction(Interaction.SelectAll)
                     }
-                    if (eventListViewModel.hasArchivedEventItems()) {
-                        IconButton(
-                            onClick = { eventListViewModel.unarchiveEvents(selectedEventItems) }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Inbox,
-                                contentDescription = "Unarchive selected Events",
-                            )
-                        }
-                    }
-                    IconButton(
-                        onClick = { eventListViewModel.deleteEvents(selectedEventItems) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = "Delete selected Events",
-                        )
-                    }
-                    IconButton(
-                        onClick = { eventListViewModel.onInteraction(
-                            EventListViewModel.Interaction.SelectAll
-                        ) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.SelectAll,
-                            contentDescription = "Select all Events",
-                        )
-                    }
-                }
-            },
+                  ) {
+                      Icon(
+                        imageVector = Icons.Filled.SelectAll,
+                        contentDescription = "Select all Events",
+                      )
+                  }
+              }
+          },
         )
     }
 }
