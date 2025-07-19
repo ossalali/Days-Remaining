@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -122,8 +123,10 @@ fun AddEventScreen(
         )
         Spacer(modifier = Modifier.height(Dimensions.half))
 
+        val fontScale = LocalDensity.current.fontScale
         InputChip(
-          modifier = Modifier.height(Dimensions.triple).width(Dimensions.nonuple),
+          modifier =
+            Modifier.height(Dimensions.triple * fontScale).width(Dimensions.nonuple * fontScale),
           selected = showDate,
           onClick = { showDatePicker = true },
           label = {

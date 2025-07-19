@@ -53,6 +53,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -225,16 +226,18 @@ private fun SaveEventFab(
                 descriptionState.text.toString().trim() != originalDescription
 
               if (BuildConfig.DEBUG) {
-                  appLogger().d(
-                    tag = "CHANGE",
-                    message =
-                      "Change detection - Title: $titleChanged, Date: $dateChanged, Description: $descriptionChanged",
-                  )
-                  appLogger().d(
-                    tag = "CHANGE",
-                    message =
-                      "Selected date millis: ${selectedDateMillisState.value}, Original date millis: $originalDateMillis",
-                  )
+                  appLogger()
+                    .d(
+                      tag = "CHANGE",
+                      message =
+                        "Change detection - Title: $titleChanged, Date: $dateChanged, Description: $descriptionChanged",
+                    )
+                  appLogger()
+                    .d(
+                      tag = "CHANGE",
+                      message =
+                        "Selected date millis: ${selectedDateMillisState.value}, Original date millis: $originalDateMillis",
+                    )
               }
 
               titleChanged || dateChanged || descriptionChanged
@@ -343,8 +346,10 @@ private fun EventContent(
           keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
 
+        val fontScale = LocalDensity.current.fontScale
         InputChip(
-          modifier = Modifier.height(Dimensions.triple).width(Dimensions.nonuple),
+          modifier =
+            Modifier.height(Dimensions.triple * fontScale).width(Dimensions.nonuple * fontScale),
           selected = true,
           onClick = { showDatePicker = true },
           label = { Text(formattedDate) },
