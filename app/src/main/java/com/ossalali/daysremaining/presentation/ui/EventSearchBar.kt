@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
@@ -30,6 +33,9 @@ fun EventSearchBar(
   modifier: Modifier = Modifier,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember { FocusRequester() }
+    var isFocused by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     SearchBar(
       inputField = {
@@ -41,20 +47,23 @@ fun EventSearchBar(
             onExpandedChange = {},
             placeholder = { Text("Search events") },
             leadingIcon = {
-                Icon(
-                  imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                  contentDescription = "Back",
-                  modifier = Modifier.clickable { keyboardController?.hide() },
-                )
+                if (isFocused) {
+                    Icon(
+                      imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                      contentDescription = "Back",
+                      modifier =
+                        Modifier.clickable {
+                            keyboardController?.hide()
+                            onSearchTextChanged("")
+                            focusManager.clearFocus()
+                        },
+                    )
+                }
             },
-            trailingIcon = {
-                Icon(
-                  imageVector = Icons.Default.Search,
-                  contentDescription = "Search",
-                  modifier = Modifier.clickable { keyboardController?.hide() },
-                )
-            },
-            modifier = Modifier.shadow(Dimensions.quarter, shape = CircleShape),
+            modifier =
+              Modifier.shadow(Dimensions.quarter, shape = CircleShape)
+                .focusRequester(focusRequester)
+                .onFocusChanged { focusState -> isFocused = focusState.isFocused },
           )
       },
       expanded = false,
