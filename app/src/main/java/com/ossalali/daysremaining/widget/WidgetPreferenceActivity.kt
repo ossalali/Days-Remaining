@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,6 +13,7 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.ossalali.daysremaining.infrastructure.appLogger
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -46,8 +46,8 @@ class WidgetPreferenceActivity : ComponentActivity() {
         val appWidgetManager = AppWidgetManager.getInstance(this)
         val appWidgetOptions = appWidgetManager.getAppWidgetOptions(appWidgetId)
 
-        Log.d("WidgetPrefActivity", "AppWidgetId: $appWidgetId")
-        Log.d("WidgetPrefActivity", "AppWidgetOptions: $appWidgetOptions")
+        appLogger().d(tag = "WidgetPrefActivity", message = "AppWidgetId: $appWidgetId")
+        appLogger().d(tag = "WidgetPrefActivity", message = "AppWidgetOptions: $appWidgetOptions")
 
         val viewModel: WidgetPreferenceScreenViewModel by viewModels {
             object : ViewModelProvider.Factory {
@@ -75,7 +75,7 @@ class WidgetPreferenceActivity : ComponentActivity() {
             try {
                 delay(200)
 
-                Log.d("WidgetPrefActivity", "Updating widget $appWidgetId")
+                appLogger().d(tag = "WidgetPrefActivity", message = "Updating widget $appWidgetId")
 
                 val glanceId =
                   GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
@@ -84,12 +84,19 @@ class WidgetPreferenceActivity : ComponentActivity() {
                 delay(100)
                 EventWidget().update(this@WidgetPreferenceActivity, glanceId)
 
-                Log.d("WidgetPrefActivity", "Widget update completed successfully")
+                appLogger()
+                  .d(tag = "WidgetPrefActivity", message = "Widget update completed successfully")
             } catch (e: Exception) {
-                Log.e("WidgetPrefActivity", "Error during widget update: ${e.message}", e)
+                appLogger()
+                  .e(
+                    tag = "WidgetPrefActivity",
+                    message = "Error during widget update: ${e.message}",
+                    throwable = e,
+                  )
             } finally {
                 delay(100)
-                Log.d("WidgetPrefActivity", "Finishing WidgetPreferenceActivity")
+                appLogger()
+                  .d(tag = "WidgetPrefActivity", message = "Finishing WidgetPreferenceActivity")
                 finish()
             }
         }

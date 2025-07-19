@@ -1,7 +1,6 @@
 package com.ossalali.daysremaining.widget
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
@@ -36,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
+import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import kotlinx.coroutines.launch
 
@@ -47,9 +47,17 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
     val inputEvents by viewModel.getEvents().collectAsState()
 
     LaunchedEffect(inputEvents) {
-        Log.d("WidgetPreferenceScreen", "inputEvents changed: size=${inputEvents.size}")
+        appLogger()
+          .d(
+            tag = "WidgetPreferenceScreen",
+            message = "inputEvents changed: size=${inputEvents.size}",
+          )
         inputEvents.forEachIndexed { index, event ->
-            Log.d("WidgetPreferenceScreen", "Event $index: ${event.title} (id=${event.id})")
+            appLogger()
+              .d(
+                tag = "WidgetPreferenceScreen",
+                message = "Event $index: ${event.title} (id=${event.id})",
+              )
         }
     }
 
@@ -60,18 +68,28 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
             actions = {
                 IconButton(
                   onClick = {
-                      Log.d(
-                        "WidgetPreferenceScreen",
-                        "Save button clicked, selected events: ${viewModel.selectedEventIds}",
-                      )
+                      appLogger()
+                        .d(
+                          tag = "WidgetPreferenceScreen",
+                          message =
+                            "Save button clicked, selected events: ${viewModel.selectedEventIds}",
+                        )
                       scope.launch {
                           try {
-                              Log.d("WidgetPreferenceScreen", "About to save selected events")
+                              appLogger()
+                                .d(
+                                  tag = "WidgetPreferenceScreen",
+                                  message = "About to save selected events",
+                                )
                               viewModel.saveSelectedEvents()
-                              Log.d("WidgetPreferenceScreen", "Save completed successfully")
+                              appLogger().d("WidgetPreferenceScreen", "Save completed successfully")
                               onSaveComplete()
                           } catch (e: Exception) {
-                              Log.e("WidgetPreferenceScreen", "Error saving events: ${e.message}")
+                              appLogger()
+                                .e(
+                                  tag = "WidgetPreferenceScreen",
+                                  message = "Error saving events: ${e.message}",
+                                )
                           }
                       }
                   }
@@ -99,10 +117,12 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
             ) {
                 items(inputEvents, key = { event -> event.id }) { event ->
                     val isSelected = viewModel.selectedEventIds.contains(event.id)
-                    Log.d(
-                      "WidgetPreferenceScreen",
-                      "Composing event ${event.id}, isSelected: $isSelected, selectedIds: ${viewModel.selectedEventIds}",
-                    )
+                    appLogger()
+                      .d(
+                        tag = "WidgetPreferenceScreen",
+                        message =
+                          "Composing event ${event.id}, isSelected: $isSelected, selectedIds: ${viewModel.selectedEventIds}",
+                      )
                     Card(
                       border =
                         if (isSelected) {
@@ -116,15 +136,19 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                           .padding(Dimensions.half)
                           .combinedClickable(
                             onClick = {
-                                Log.d(
-                                  "WidgetPreferenceScreen",
-                                  "Event clicked: ${event.id}, current selection: ${viewModel.selectedEventIds}",
-                                )
+                                appLogger()
+                                  .d(
+                                    tag = "WidgetPreferenceScreen",
+                                    message =
+                                      "Event clicked: ${event.id}, current selection: ${viewModel.selectedEventIds}",
+                                  )
                                 viewModel.toggleSelection(event.id)
-                                Log.d(
-                                  "WidgetPreferenceScreen",
-                                  "After toggle, selection: ${viewModel.selectedEventIds}",
-                                )
+                                appLogger()
+                                  .d(
+                                    tag = "WidgetPreferenceScreen",
+                                    message =
+                                      "After toggle, selection: ${viewModel.selectedEventIds}",
+                                  )
                             },
                             onClickLabel = "Event Selected",
                           ),

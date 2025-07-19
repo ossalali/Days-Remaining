@@ -3,14 +3,19 @@ package com.ossalali.daysremaining.widget
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalSize
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -27,12 +32,24 @@ import androidx.glance.text.TextStyle
 import com.ossalali.daysremaining.MainActivity
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.widget.EventWidget.Companion.BIG_SQUARE
+import com.ossalali.daysremaining.widget.EventWidget.Companion.HORIZONTAL_RECTANGLE
+import com.ossalali.daysremaining.widget.EventWidget.Companion.SMALL_SQUARE
 import com.ossalali.daysremaining.widget.di.WidgetRepositoryEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.math.abs
 
 class EventWidget : GlanceAppWidget() {
+    companion object {
+        val SMALL_SQUARE = DpSize(150.dp, 50.dp)
+        val HORIZONTAL_RECTANGLE = DpSize(250.dp, 50.dp)
+        val BIG_SQUARE = DpSize(250.dp, 250.dp)
+    }
+
+    override val sizeMode =
+      SizeMode.Responsive(setOf(SMALL_SQUARE, HORIZONTAL_RECTANGLE, BIG_SQUARE))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val eventItems =
@@ -82,6 +99,7 @@ class EventWidget : GlanceAppWidget() {
 
 @Composable
 fun WidgetContent(eventItems: List<EventItem>) {
+    val size = LocalSize.current
 
     Box(
       modifier =
@@ -117,7 +135,11 @@ fun WidgetContent(eventItems: List<EventItem>) {
                   verticalAlignment = Alignment.Top,
                   horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    eventItems.forEach { eventItem -> EventItemRow(eventItem) }
+                    if (size.height <= SMALL_SQUARE.height && size.width <= SMALL_SQUARE.width) {
+                        EventItemRow(eventItems.first(), size)
+                    } else {
+                        eventItems.forEach { eventItem -> EventItemRow(eventItem, size) }
+                    }
                 }
             }
         }
@@ -125,7 +147,20 @@ fun WidgetContent(eventItems: List<EventItem>) {
 }
 
 @Composable
-fun EventItemRow(eventItem: EventItem) {
+fun EventItemRow(eventItem: EventItem, size: DpSize) {
+    fun autoSizeFont(): TextUnit =
+      if (size.height >= BIG_SQUARE.height && size.width >= BIG_SQUARE.width) {
+          40.sp
+      } else if (
+        size.height >= HORIZONTAL_RECTANGLE.height && size.width >= HORIZONTAL_RECTANGLE.width
+      ) {
+          35.sp
+      } else if (size.height >= SMALL_SQUARE.height && size.width >= SMALL_SQUARE.width) {
+          20.sp
+      } else {
+          10.sp
+      }
+
     Column(
       modifier = GlanceModifier.wrapContentHeight().padding(vertical = Dimensions.eighth),
       horizontalAlignment = Alignment.CenterHorizontally,
@@ -134,8 +169,8 @@ fun EventItemRow(eventItem: EventItem) {
           text = eventItem.title,
           style =
             TextStyle(
-              fontSize = 14.sp,
-              fontWeight = FontWeight.Bold,
+              fontSize = 12.sp,
+              fontWeight = FontWeight.Normal,
               color = GlanceTheme.colors.onSurface,
             ),
         )
@@ -143,7 +178,7 @@ fun EventItemRow(eventItem: EventItem) {
         val daysRemaining = eventItem.numberOfDays.toInt()
         val daysText =
           when {
-              daysRemaining < 0 -> "${Math.abs(daysRemaining)} days ago"
+              daysRemaining < 0 -> "${abs(daysRemaining)} days ago"
               daysRemaining == 0 -> "Today!"
               else -> "$daysRemaining days"
           }
@@ -156,6 +191,6 @@ fun EventItemRow(eventItem: EventItem) {
               else -> GlanceTheme.colors.onSurface
           }
 
-        Text(text = daysText, style = TextStyle(fontSize = 10.sp, color = textColor))
+        Text(text = daysText, style = TextStyle(fontSize = autoSizeFont(), color = textColor))
     }
 }
