@@ -201,7 +201,7 @@ private fun MainScreenContent(
                   snackBarHostState.showSnackbar(
                     message = snackBarMessage,
                     actionLabel = "Undo",
-                    duration = SnackbarDuration.Long,
+                    duration = SnackbarDuration.Short,
                   )
                 if (result == SnackbarResult.ActionPerformed) {
                     eventListViewModel.onInteraction(Interaction.UndoDelete(itemsForThisSnackbar))
