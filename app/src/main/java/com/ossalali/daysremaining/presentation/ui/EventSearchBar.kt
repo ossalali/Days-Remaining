@@ -3,7 +3,7 @@ package com.ossalali.daysremaining.presentation.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,11 +46,11 @@ fun EventSearchBar(
             expanded = false,
             onExpandedChange = {},
             placeholder = { Text("Search events") },
-            leadingIcon = {
+            trailingIcon = {
                 if (isFocused) {
                     Icon(
-                      imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                      contentDescription = "Back",
+                      imageVector = Icons.Filled.Close,
+                      contentDescription = "Close search bar",
                       modifier =
                         Modifier.clickable {
                             keyboardController?.hide()

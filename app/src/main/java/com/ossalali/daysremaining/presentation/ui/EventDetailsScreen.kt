@@ -57,7 +57,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.BuildConfig
@@ -65,6 +64,7 @@ import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventDetailsViewModel
 import java.time.Instant
@@ -79,6 +79,7 @@ fun EventDetailsScreen(
   eventId: Int? = null,
   event: EventItem? = null,
   onBackClick: () -> Unit,
+  onDeleteEvent: (EventItem) -> Unit,
   viewModel: EventDetailsViewModel = hiltViewModel(),
 ) {
     if (eventId != null) {
@@ -100,7 +101,8 @@ fun EventDetailsScreen(
           onBackClick()
       },
       onDeleteEvent = { eventToDelete ->
-          viewModel.deleteEvent(eventToDelete.id)
+          onDeleteEvent(eventToDelete)
+          viewModel.eventDeletedHandled()
           onBackClick()
       },
     )
@@ -117,6 +119,7 @@ fun EventDetailsContent(
   onDeleteEvent: (EventItem) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     val titleState = remember(event) { TextFieldState(initialText = event?.title ?: "") }
     var selectedDateMillis by
@@ -134,6 +137,17 @@ fun EventDetailsContent(
           (event?.date?.toEpochDay() ?: LocalDate.now().toEpochDay()) * 24 * 60 * 60 * 1000
       }
     val originalDescription = event?.description ?: ""
+
+    if (showDeleteConfirmDialog && event != null) {
+        DeleteAlertDialog(
+          eventTitle = event.title,
+          onConfirm = {
+              onDeleteEvent(event)
+              showDeleteConfirmDialog = false
+          },
+          onDismiss = { showDeleteConfirmDialog = false },
+        )
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Scaffold(
@@ -158,7 +172,7 @@ fun EventDetailsContent(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.default),
                     horizontalArrangement = Arrangement.SpaceBetween,
                   ) {
-                      DeleteEventFab(onDelete = { onDeleteEvent(event) })
+                      DeleteEventFab(onDelete = { showDeleteConfirmDialog = true })
 
                       SaveEventFab(
                         event = event,
@@ -218,7 +232,7 @@ private fun SaveEventFab(
     val selectedDateMillisState = rememberUpdatedState(selectedDateMillis)
 
     val hasChanges by
-      remember(titleState, descriptionState) {
+      remember(titleState.text, descriptionState.text, selectedDateMillis) {
           derivedStateOf {
               val titleChanged = titleState.text.toString().trim() != originalTitle
               val dateChanged = selectedDateMillisState.value != originalDateMillis
@@ -393,31 +407,7 @@ private fun EventContent(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun EventDetailsContentPreview() {
-    val sampleEvent =
-      EventItem(
-        id = 1,
-        title = "Sample Event Title",
-        date = LocalDate.now().plusDays(10),
-        description =
-          "This is a sample event description that shows how the UI looks with longer text content.",
-      )
-
-    MyAppTheme {
-        EventDetailsContent(
-          event = sampleEvent,
-          isLoading = false,
-          isSaving = false,
-          onBackClick = { /* Preview - no action */ },
-          onUpdateEvent = { /* Preview - no action */ },
-          onDeleteEvent = { /* Preview - no action */ },
-        )
-    }
-}
-
-@Preview(showBackground = true)
+@DefaultPreviews()
 @Composable
 fun EventDetailsContentLoadingPreview() {
     MyAppTheme {
@@ -432,7 +422,7 @@ fun EventDetailsContentLoadingPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@DefaultPreviews()
 @Composable
 fun EventDetailsContentSavingPreview() {
     val sampleEvent =
@@ -455,7 +445,7 @@ fun EventDetailsContentSavingPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@DefaultPreviews()
 @Composable
 fun EventDetailsContentNotFoundPreview() {
     MyAppTheme {
@@ -470,7 +460,7 @@ fun EventDetailsContentNotFoundPreview() {
     }
 }
 
-@Preview()
+@DefaultPreviews()
 @Composable
 fun EventDetailsPreview() {
     val sampleEvent =
@@ -482,6 +472,13 @@ fun EventDetailsPreview() {
       )
 
     MyAppTheme {
-        EventDetailsScreen(event = sampleEvent, onBackClick = { /* Preview - no action */ })
+        EventDetailsContent(
+          event = sampleEvent,
+          isLoading = false,
+          isSaving = false,
+          onBackClick = { /* Preview - no action */ },
+          onUpdateEvent = { /* Preview - no action */ },
+          onDeleteEvent = { /* Preview - no action */ },
+        )
     }
 }

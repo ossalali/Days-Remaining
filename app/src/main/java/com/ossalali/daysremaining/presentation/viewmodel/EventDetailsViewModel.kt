@@ -31,17 +31,6 @@ constructor(
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
-    fun deleteEvent(eventId: Int) {
-        viewModelScope.launch(ioDispatcher) {
-            try {
-                eventRepo.deleteEvents(listOf(eventId))
-                _event.value = null
-            } catch (e: Exception) {
-                appLogger().e(tag = TAG, message = "failed to delete events", throwable = e)
-            }
-        }
-    }
-
     fun saveEvent(event: EventItem) {
         viewModelScope.launch(ioDispatcher) {
             _isSaving.value = true
@@ -70,7 +59,11 @@ constructor(
         }
     }
 
+    fun eventDeletedHandled() {
+        _event.value = null
+    }
+
     companion object {
-        private val TAG = "EventDetailsViewModel"
+        private const val TAG = "EventDetailsViewModel"
     }
 }

@@ -3,6 +3,7 @@ package com.ossalali.daysremaining.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepo
+import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +38,11 @@ constructor(
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText.asStateFlow()
 
+    private val _pendingDeleteEvents =
+      MutableStateFlow<ImmutableList<EventItem>>(persistentListOf())
+    val pendingDeleteEvents: StateFlow<ImmutableList<EventItem>> =
+      _pendingDeleteEvents.asStateFlow()
+
     private val allEventsFlow: StateFlow<ImmutableList<EventItem>> =
       combine(
           eventRepo.activeEventsAsFlow,
@@ -56,11 +62,16 @@ constructor(
         )
 
     val eventUiState: StateFlow<ImmutableList<EventItem>> =
-      combine(allEventsFlow, _searchText) { events, searchQuery ->
+      combine(allEventsFlow, _searchText, _pendingDeleteEvents) {
+          events,
+          searchQuery,
+          pendingDeletes ->
+            val eventsToShow =
+              events.filterNot { event -> pendingDeletes.any { pd -> pd.id == event.id } }
             if (searchQuery.isEmpty()) {
-                events.toImmutableList()
+                eventsToShow.toImmutableList()
             } else {
-                events
+                eventsToShow
                   .filter { event ->
                       event.title.contains(searchQuery, ignoreCase = true) ||
                         event.description.contains(searchQuery, ignoreCase = true)
@@ -77,26 +88,47 @@ constructor(
     private val _selectedEventItems = MutableStateFlow<ImmutableList<EventItem>>(persistentListOf())
     val selectedEventItems: StateFlow<ImmutableList<EventItem>> = _selectedEventItems.asStateFlow()
 
-    private val _deletedEventItems = MutableStateFlow<ImmutableList<EventItem>>(persistentListOf())
-    val deletedEventItems: StateFlow<ImmutableList<EventItem>> = _deletedEventItems.asStateFlow()
-
     override fun onInteraction(interaction: Interaction) {
         when (interaction) {
             is Interaction.Select -> handleEventItemSelection(interaction.eventId)
             is Interaction.ToggleActiveFilter -> toggleActiveFilter()
             is Interaction.ToggleArchivedFilter -> toggleArchivedFilter()
             is Interaction.UpdateSearchText -> updateSearchText(interaction.searchText)
-            Interaction.UndoDelete -> undoDelete()
+            is Interaction.UndoDelete -> undoSpecificDeletions(interaction.itemsToUndo)
             Interaction.ClearSelection -> _selectedEventItems.value = persistentListOf()
-            Interaction.SelectAll -> _selectedEventItems.value = allEventsFlow.value
-            Interaction.ClearUndo -> _deletedEventItems.value = persistentListOf()
+            Interaction.SelectAll -> _selectedEventItems.value = eventUiState.value
+            is Interaction.ConfirmDeletions -> commitSpecificDeletions(interaction.itemsToConfirm)
         }
     }
 
-    private fun undoDelete() {
+    private fun setPendingDeleteEvents(eventItems: ImmutableList<EventItem>) {
+        _pendingDeleteEvents.value = eventItems
+    }
+
+    private fun commitSpecificDeletions(itemsToCommit: ImmutableList<EventItem>) {
+        if (itemsToCommit.isEmpty()) return
+
         viewModelScope.launch(ioDispatcher) {
-            eventRepo.insertEvents(deletedEventItems.value)
-            _deletedEventItems.value = persistentListOf()
+            try {
+                eventRepo.deleteEvents(itemsToCommit.map { it.id })
+
+                if (_pendingDeleteEvents.value == itemsToCommit) {
+                    _pendingDeleteEvents.value = persistentListOf()
+                }
+            } catch (e: Exception) {
+                appLogger()
+                  .e(
+                    tag = TAG,
+                    message = "failed to delete events: ${itemsToCommit.map { it.id }}",
+                    throwable = e,
+                  )
+            }
+        }
+    }
+
+    private fun undoSpecificDeletions(itemsToUndo: ImmutableList<EventItem>) {
+        if (_pendingDeleteEvents.value == itemsToUndo) {
+            _pendingDeleteEvents.value = persistentListOf()
         }
     }
 
@@ -106,12 +138,12 @@ constructor(
 
     private fun toggleActiveFilter() {
         val selectedItemsAtStart = _selectedEventItems.value
-        val allEventsFlowAtStart = allEventsFlow.value
+        val eventUiStateAtStart = eventUiState.value
 
         val wasSelectAllActive =
           selectedItemsAtStart.isNotEmpty() &&
-            selectedItemsAtStart.size == allEventsFlowAtStart.size &&
-            allEventsFlowAtStart.containsAll(selectedItemsAtStart)
+            selectedItemsAtStart.size == eventUiStateAtStart.size &&
+            eventUiStateAtStart.containsAll(selectedItemsAtStart)
 
         val previousActiveFilterState = _activeFilterEnabled.value
 
@@ -122,18 +154,18 @@ constructor(
         val activeFilterDidChange = previousActiveFilterState != _activeFilterEnabled.value
 
         if (wasSelectAllActive && activeFilterDidChange) {
-            _selectedEventItems.value = allEventsFlow.value
+            _selectedEventItems.value = eventUiState.value
         }
     }
 
     private fun toggleArchivedFilter() {
         val selectedItemsAtStart = _selectedEventItems.value
-        val allEventsFlowAtStart = allEventsFlow.value
+        val eventUiStateAtStart = eventUiState.value
 
         val wasSelectAllActive =
           selectedItemsAtStart.isNotEmpty() &&
-            selectedItemsAtStart.size == allEventsFlowAtStart.size &&
-            allEventsFlowAtStart.containsAll(selectedItemsAtStart)
+            selectedItemsAtStart.size == eventUiStateAtStart.size &&
+            eventUiStateAtStart.containsAll(selectedItemsAtStart)
 
         val previousArchivedFilterState = _archivedFilterEnabled.value
         val previousActiveFilterState = _activeFilterEnabled.value
@@ -150,21 +182,22 @@ constructor(
           archivedFilterDidChange || activeFilterDidChangeByThisOperation
 
         if (wasSelectAllActive && anyRelevantFilterChanged) {
-            _selectedEventItems.value = allEventsFlow.value
+            _selectedEventItems.value = eventUiState.value
         }
     }
 
     private fun handleEventItemSelection(eventId: Int) {
         val currentSelection = _selectedEventItems.value.toMutableList()
+        val eventInUi = eventUiState.value.find { it.id == eventId } ?: return
+
         val existingItem = currentSelection.find { item -> item.id == eventId }
 
         if (existingItem != null) {
             currentSelection.remove(existingItem)
             _selectedEventItems.value = currentSelection.toPersistentList()
         } else {
-            viewModelScope.launch(ioDispatcher) {
-                val eventById = eventRepo.getEventById(eventId)
-                currentSelection.add(eventById)
+            eventInUi.let {
+                currentSelection.add(it)
                 _selectedEventItems.value = currentSelection.toPersistentList()
             }
         }
@@ -189,14 +222,20 @@ constructor(
     }
 
     fun deleteEvents(eventItems: ImmutableList<EventItem>) {
-        viewModelScope.launch(ioDispatcher) {
-            _deletedEventItems.value =
-              _deletedEventItems.value.toPersistentList().addAll(eventItems)
-            eventRepo.deleteEvents(eventItems.map { it.id })
-            val currentSelection = _selectedEventItems.value.toMutableList()
-            currentSelection.removeAll(eventItems)
-            _selectedEventItems.value = currentSelection.toPersistentList()
+        if (eventItems.isNotEmpty()) {
+            setPendingDeleteEvents(eventItems)
+            _selectedEventItems.value =
+              _selectedEventItems.value
+                .filterNot { selectedItem -> eventItems.any { it.id == selectedItem.id } }
+                .toPersistentList()
         }
+    }
+
+    fun deleteEvent(eventItem: EventItem) {
+        val itemsToStage = persistentListOf(eventItem)
+        setPendingDeleteEvents(itemsToStage)
+        _selectedEventItems.value =
+          _selectedEventItems.value.filterNot { it.id == eventItem.id }.toPersistentList()
     }
 
     fun hasArchivedEventItems(): Boolean {
@@ -208,7 +247,6 @@ constructor(
     }
 
     sealed interface Interaction {
-
         data class Select(val eventId: Int) : Interaction
 
         data object ToggleActiveFilter : Interaction
@@ -217,12 +255,16 @@ constructor(
 
         data class UpdateSearchText(val searchText: String) : Interaction
 
-        data object UndoDelete : Interaction
+        data class UndoDelete(val itemsToUndo: ImmutableList<EventItem>) : Interaction
 
         data object ClearSelection : Interaction
 
         data object SelectAll : Interaction
 
-        data object ClearUndo : Interaction
+        data class ConfirmDeletions(val itemsToConfirm: ImmutableList<EventItem>) : Interaction
+    }
+
+    companion object {
+        private const val TAG = "EventListViewModel"
     }
 }

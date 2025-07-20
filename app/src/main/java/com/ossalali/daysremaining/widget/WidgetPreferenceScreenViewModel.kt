@@ -162,6 +162,6 @@ constructor(
     }
 
     companion object {
-        private val TAG = "WidgetPreferenceScreenViewModel"
+        private const val TAG = "WidgetPreferenceScreenViewModel"
     }
 }

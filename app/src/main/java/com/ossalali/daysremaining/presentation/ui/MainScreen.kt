@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -35,21 +34,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entry
@@ -70,7 +70,7 @@ import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,6 +109,7 @@ fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
                       EventDetailsScreen(
                         eventId = route.eventId,
                         onBackClick = { backStack.removeLastOrNull() },
+                        onDeleteEvent = { eventItem -> eventListViewModel.deleteEvent(eventItem) },
                       )
                   },
                 )
@@ -179,23 +180,59 @@ private fun MainScreenContent(
   content: @Composable ((PaddingValues) -> Unit)? = null,
 ) {
     val selectedEventItems by eventListViewModel.selectedEventItems.collectAsStateWithLifecycle()
-    val showSnackBar = remember { mutableStateOf(false) }
-    val baseSnackBarMessage = remember { mutableStateOf("") }
-    var displaySnackBarMessage by remember { mutableStateOf("") }
+    val pendingDeleteEventsState by
+      eventListViewModel.pendingDeleteEvents.collectAsStateWithLifecycle()
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(showSnackBar.value) {
-        if (showSnackBar.value) {
-            val currentBaseMessage = baseSnackBarMessage.value
-            for (i in 5 downTo 1) {
-                if (!showSnackBar.value) break
-                displaySnackBarMessage = "$currentBaseMessage (Undo: ${i}s)"
-                delay(1000L)
-            }
+    LaunchedEffect(pendingDeleteEventsState) {
+        val itemsForThisSnackbar = pendingDeleteEventsState
 
-            if (showSnackBar.value) {
-                showSnackBar.value = false
-                eventListViewModel.onInteraction(Interaction.ClearUndo)
+        if (itemsForThisSnackbar.isNotEmpty()) {
+            val snackBarMessage =
+              if (itemsForThisSnackbar.size == 1) "${itemsForThisSnackbar.first().title} deleted"
+              else "${itemsForThisSnackbar.size} events deleted"
+
+            coroutineScope.launch {
+                snackBarHostState.currentSnackbarData?.dismiss()
+
+                val result =
+                  snackBarHostState.showSnackbar(
+                    message = snackBarMessage,
+                    actionLabel = "Undo",
+                    duration = SnackbarDuration.Long,
+                  )
+                if (result == SnackbarResult.ActionPerformed) {
+                    eventListViewModel.onInteraction(Interaction.UndoDelete(itemsForThisSnackbar))
+                } else {
+                    eventListViewModel.onInteraction(
+                      Interaction.ConfirmDeletions(itemsForThisSnackbar)
+                    )
+                }
             }
+        }
+    }
+
+    if (showDeleteConfirmDialog && selectedEventItems.isNotEmpty()) {
+        if (selectedEventItems.size == 1) {
+            DeleteAlertDialog(
+              eventTitle = selectedEventItems.first().title,
+              onConfirm = {
+                  eventListViewModel.deleteEvents(selectedEventItems)
+                  showDeleteConfirmDialog = false
+              },
+              onDismiss = { showDeleteConfirmDialog = false },
+            )
+        } else {
+            DeleteAlertDialog(
+              numberOfEventsToBeDeleted = selectedEventItems.size,
+              onConfirm = {
+                  eventListViewModel.deleteEvents(selectedEventItems)
+                  showDeleteConfirmDialog = false
+              },
+              onDismiss = { showDeleteConfirmDialog = false },
+            )
         }
     }
 
@@ -210,17 +247,20 @@ private fun MainScreenContent(
             navigateToSettingsScreen,
             navigateToDebugScreen,
             eventListViewModel,
-            showSnackBar,
-            baseSnackBarMessage,
+            onDeleteAction = { showDeleteConfirmDialog = true },
           )
       },
       floatingActionButton = {
           if (isOnEventList) {
-              FloatingActionButton(onClick = { navigateToAddEvent() }) {
+              FloatingActionButton(
+                modifier = Modifier.imePadding(),
+                onClick = { navigateToAddEvent() },
+              ) {
                   Icon(Icons.Filled.Add, contentDescription = "Add Event")
               }
           }
       },
+      snackbarHost = { SnackbarHost(snackBarHostState) },
       floatingActionButtonPosition = FabPosition.End,
     ) { paddingValues ->
         appLogger().d(tag = "NAV3_Content", message = "content: ${content == null}")
@@ -235,36 +275,6 @@ private fun MainScreenContent(
                   showFab = isOnEventList,
                   selectedEventItems = selectedEventItems,
                 )
-
-                if (showSnackBar.value) {
-                    Snackbar(
-                      modifier =
-                        Modifier.align(Alignment.BottomCenter)
-                          .imePadding()
-                          .padding(
-                            start = Dimensions.default,
-                            end = Dimensions.default,
-                            bottom = Dimensions.default + 74.dp,
-                          ),
-                      action = {
-                          TextButton(
-                            onClick = {
-                                showSnackBar.value = false
-                                eventListViewModel.onInteraction(Interaction.UndoDelete)
-                            }
-                          ) {
-                              Text(text = "Undo")
-                          }
-                      },
-                      dismissAction = {
-                          TextButton(onClick = { showSnackBar.value = false }) {
-                              Text(text = "Dismiss")
-                          }
-                      },
-                    ) {
-                        Text(text = displaySnackBarMessage)
-                    }
-                }
             }
         }
     }
@@ -280,8 +290,7 @@ private fun SetupTopAppBar(
   navigateToSettingsScreen: () -> Unit,
   navigateToDebugScreen: () -> Unit,
   eventListViewModel: EventListViewModel,
-  showSnackBar: MutableState<Boolean>,
-  snackBarMessage: MutableState<String>,
+  onDeleteAction: () -> Unit,
 ) {
     if (selectedEventItems.isEmpty()) {
         CenterAlignedTopAppBar(
@@ -297,14 +306,17 @@ private fun SetupTopAppBar(
               }
           },
           actions = {
-              IconButton(onClick = { navigateToSettingsScreen() }) {
-                  Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = "Open Settings screen",
-                  )
-              }
+              // IconButton(onClick = { navigateToSettingsScreen() }) {
+              //    Icon(
+              //      imageVector = Icons.Filled.Settings,
+              //      contentDescription = "Open Settings screen",
+              //    )
+              // }
               if (BuildConfig.DEBUG) {
-                  IconButton(onClick = { navigateToDebugScreen() }) {
+                  IconButton(
+                    modifier = Modifier.padding(horizontal = Dimensions.default),
+                    onClick = { navigateToDebugScreen() },
+                  ) {
                       Icon(
                         imageVector = Icons.Filled.BugReport,
                         contentDescription = "Open Debug screen",
@@ -317,7 +329,10 @@ private fun SetupTopAppBar(
         TopAppBar(
           title = {},
           actions = {
-              Row(verticalAlignment = Alignment.CenterVertically) {
+              Row(
+                modifier = Modifier.padding(horizontal = Dimensions.default),
+                verticalAlignment = Alignment.CenterVertically,
+              ) {
                   IconButton(
                     onClick = { eventListViewModel.onInteraction(Interaction.ClearSelection) }
                   ) {
@@ -352,26 +367,14 @@ private fun SetupTopAppBar(
                           )
                       }
                   }
-                  IconButton(
-                    onClick = {
-                        eventListViewModel.deleteEvents(selectedEventItems)
-                        showSnackBar.value = true
-                        if (selectedEventItems.size == 1) {
-                            snackBarMessage.value = "${selectedEventItems.first().title} deleted"
-                        } else {
-                            snackBarMessage.value = "${selectedEventItems.size} events deleted"
-                        }
-                    }
-                  ) {
+                  IconButton(onClick = onDeleteAction) {
                       Icon(
                         imageVector = Icons.Filled.Delete,
                         contentDescription = "Delete selected Events",
                       )
                   }
                   IconButton(
-                    onClick = {
-                        eventListViewModel.onInteraction(Interaction.SelectAll)
-                    }
+                    onClick = { eventListViewModel.onInteraction(Interaction.SelectAll) }
                   ) {
                       Icon(
                         imageVector = Icons.Filled.SelectAll,
