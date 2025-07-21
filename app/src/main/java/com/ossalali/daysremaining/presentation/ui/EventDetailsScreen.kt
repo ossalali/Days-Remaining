@@ -1,5 +1,6 @@
 package com.ossalali.daysremaining.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +54,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -118,7 +120,7 @@ fun EventDetailsContent(
   onUpdateEvent: (EventItem) -> Unit,
   onDeleteEvent: (EventItem) -> Unit,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     val titleState = remember(event) { TextFieldState(initialText = event?.title ?: "") }
@@ -162,9 +164,29 @@ fun EventDetailsContent(
                         )
                     }
                 },
+                actions = {
+                    if (event?.isArchived ?: false) {
+                        Box(
+                          modifier =
+                            Modifier.align(alignment = Alignment.Top)
+                              .offset(x = (0).dp, y = (0).dp)
+                              .graphicsLayer { rotationZ = -45f }
+                              .background(
+                                color = MaterialTheme.colorScheme.primaryContainer
+                              )
+                        ) {
+                            Text(
+                              modifier = Modifier.fillMaxSize(),
+                              text = "Archived",
+                              style = MaterialTheme.typography.labelMedium,
+                              textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
+                },
               )
           },
-          snackbarHost = { SnackbarHost(snackbarHostState) },
+          snackbarHost = { SnackbarHost(snackBarHostState) },
           floatingActionButtonPosition = FabPosition.Center,
           floatingActionButton = {
               if (event != null) {

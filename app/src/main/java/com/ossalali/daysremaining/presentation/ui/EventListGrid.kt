@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,7 +32,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviewsNoSystemUI
+import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -66,7 +67,6 @@ fun EventListGrid(
               remember(selectedEventIds, event.id) { selectedEventIds.contains(event.id) }
 
             val numberOfDays = event.numberOfDays
-
             Card(
               border =
                 if (isSelected) {
@@ -91,56 +91,54 @@ fun EventListGrid(
                   ),
               elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
             ) {
-                Row(
-                  modifier = Modifier.fillMaxSize().padding(Dimensions.half),
-                  verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f).padding(end = Dimensions.half)) {
-                        Text(
-                          text = event.title,
-                          style = MaterialTheme.typography.titleLarge,
-                          textAlign = TextAlign.Center,
-                          modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
-                        )
-                        Text(
-                          text = numberOfDays.toString(),
-                          fontSize = TextUnit(16f, TextUnitType.Em),
-                          textAlign = TextAlign.Center,
-                          modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
-                        )
-                        if (event.description.isNotEmpty()) {
+                Box(modifier = Modifier.clipToBounds()) {
+                    if (event.isArchived) {
+                        Box(
+                          modifier =
+                            Modifier.align(alignment = Alignment.BottomEnd)
+                              .offset(x = (70).dp, y = (-20).dp)
+                              .graphicsLayer { rotationZ = -45f }
+                              .background(
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f)
+                              )
+                        ) {
                             Text(
-                              text = event.description,
-                              style = MaterialTheme.typography.bodyMediumEmphasized,
+                              modifier = Modifier.fillMaxSize(),
+                              text = "Archived",
+                              style = MaterialTheme.typography.labelMedium,
                               textAlign = TextAlign.Center,
-                              maxLines = 4,
-                              overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+
+                    Row(
+                      modifier = Modifier.fillMaxSize().padding(Dimensions.half),
+                      verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f).padding(end = Dimensions.half)) {
+                            Text(
+                              text = event.title,
+                              style = MaterialTheme.typography.titleLarge,
+                              textAlign = TextAlign.Center,
                               modifier =
                                 Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                             )
-                        }
-                        if (event.isArchived) {
-                            Box(
+                            Text(
+                              text = numberOfDays.toString(),
+                              fontSize = TextUnit(16f, TextUnitType.Em),
+                              textAlign = TextAlign.Center,
                               modifier =
-                                Modifier.align(alignment = Alignment.End)
-                                  .offset(x = (30).dp, y = (-5).dp)
-                                  .graphicsLayer { rotationZ = -45f }
-                                  .background(
-                                    color =
-                                      MaterialTheme.colorScheme.secondaryContainer.copy(
-                                        alpha = 0.9f
-                                      )
-                                  )
-                                  .padding(
-                                    horizontal = Dimensions.default,
-                                    vertical = Dimensions.quarter,
-                                  )
-                            ) {
+                                Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
+                            )
+                            if (event.description.isNotEmpty()) {
                                 Text(
-                                  text = "Archived",
-                                  color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                  style = MaterialTheme.typography.labelSmall,
+                                  text = event.description,
+                                  style = MaterialTheme.typography.bodyMediumEmphasized,
                                   textAlign = TextAlign.Center,
+                                  maxLines = 4,
+                                  overflow = TextOverflow.Ellipsis,
+                                  modifier =
+                                    Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                                 )
                             }
                         }
@@ -151,7 +149,7 @@ fun EventListGrid(
     }
 }
 
-@DefaultPreviewsNoSystemUI
+@DefaultPreviews
 @Composable
 internal fun EventListGridPreview() {
     val eventItems =
@@ -168,27 +166,40 @@ internal fun EventListGridPreview() {
           description =
             "Event 2 Description is a bit longer to test the text overflow if it ever happens.",
           date = LocalDate.now().plusDays(10),
-          isArchived = true,
         ),
         EventItem(
           id = 2,
           title = "Event 3 Archived",
           description = "This is another archived event.",
           date = LocalDate.now().plusDays(20),
-          isArchived = true,
         ),
         EventItem(
           id = 3,
           title = "Event 4",
           description = "A normal event.",
           date = LocalDate.now().plusDays(15),
+          isArchived = true,
+        ),
+        EventItem(
+          id = 4,
+          title = "Event 5 Archived",
+          description = "This is another archived event.",
+          date = LocalDate.now().plusDays(30),
+          isArchived = true,
+        ),
+        EventItem(
+          id = 5,
+          title = "Event 6",
+          description = "A normal event as a test .",
+          date = LocalDate.now().plusDays(25),
+          isArchived = true,
         ),
       )
     EventListGrid(
       onEventItemClick = {},
       onEventItemSelection = {},
       events = eventItems,
-      selectedEventItems = persistentListOf(eventItems[2]), // Select one of the archived events
+      selectedEventItems = persistentListOf(eventItems[2], eventItems[5]),
       modifier = Modifier,
     )
 }
