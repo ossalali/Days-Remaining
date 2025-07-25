@@ -1,5 +1,7 @@
 package com.ossalali.daysremaining.presentation.ui
 
+import android.annotation.SuppressLint
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -60,6 +63,24 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun AddEventScreen(
   viewModel: AddEventViewmodel = hiltViewModel(),
+  onClose: () -> Unit,
+  paddingValues: PaddingValues,
+) {
+    val isSaving by viewModel.isSaving.collectAsState()
+    AddEventScreenContent(
+      isSaving = isSaving,
+      onAddEvent = { event -> viewModel.addEvent(event) },
+      onClose = onClose,
+      paddingValues = paddingValues,
+    )
+}
+
+@SuppressLint("ConfigurationScreenWidthHeight")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddEventScreenContent(
+  isSaving: Boolean,
+  onAddEvent: (EventItem) -> Unit,
   onClose: () -> Unit,
   paddingValues: PaddingValues,
 ) {
@@ -85,124 +106,125 @@ fun AddEventScreen(
         titleFocusRequester.requestFocus()
         keyboardController?.show()
     }
-    val isSaving by viewModel.isSaving.collectAsState()
 
-    Column(
-      modifier =
-        Modifier.fillMaxSize()
-          .padding(
-            top = paddingValues.calculateTopPadding(),
-            bottom = paddingValues.calculateBottomPadding(),
-            start = Dimensions.default,
-            end = Dimensions.default,
-          )
-    ) {
-        Text(
-          modifier = Modifier.fillMaxWidth(),
-          text = ChronoUnit.DAYS.between(LocalDate.now(), selectedLocalDate).toString(),
-          textAlign = TextAlign.Center,
-          style = MaterialTheme.typography.displayLarge,
-        )
-        Text(
-          modifier = Modifier.fillMaxWidth(),
-          text = stringResource(R.string.days_remaining),
-          style = MaterialTheme.typography.headlineSmall,
-          textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(Dimensions.default))
-        OutlinedTextField(
-          value = title,
-          onValueChange = {
-              title = it
-              titleError = false
-          },
-          label = { Text("Title") },
-          modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = titleFocusRequester),
-          isError = titleError,
-          supportingText = { if (titleError) Text("Title cannot be empty") },
-        )
-        Spacer(modifier = Modifier.height(Dimensions.half))
+    val configuration = LocalConfiguration.current
+    val isLandScape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val screenHorizontalPadding =
+      if (isLandScape) {
+          configuration.screenWidthDp.dp / 4
+      } else {
+          Dimensions.default
+      }
 
-        val fontScale = LocalDensity.current.fontScale
-        InputChip(
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
+        Column(
           modifier =
-            Modifier.height(Dimensions.triple * fontScale).width(Dimensions.nonuple * fontScale),
-          selected = showDate,
-          onClick = { showDatePicker = true },
-          label = {
-              if (showDate) {
-                  Text(formattedDate)
-              } else {
-                  Text("Add Date")
-              }
-          },
-          leadingIcon = {
-              Icon(
-                modifier = Modifier.offset(y = (-2).dp),
-                imageVector = Icons.Filled.CalendarToday,
-                contentDescription = "Add Date to event",
+            Modifier.fillMaxSize()
+              .padding(
+                top = paddingValues.calculateTopPadding(),
+                bottom = paddingValues.calculateBottomPadding(),
               )
-          },
-        )
-        Spacer(modifier = Modifier.height(Dimensions.half))
-
-        OutlinedTextField(
-          value = description,
-          onValueChange = { description = it },
-          label = { Text("Description") },
-          modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(modifier = Modifier.weight(1f))
-
-        Box(
-          modifier = Modifier.fillMaxWidth().imePadding(),
-          contentAlignment = Alignment.BottomEnd,
+              .padding(horizontal = screenHorizontalPadding)
         ) {
-            FloatingActionButton(
-              onClick = {
-                  titleError = title.isBlank()
-                  dateError = selectedDateMillis == 0L
-                  if (!titleError && !dateError) {
-                      viewModel.addEvent(
-                        EventItem(
-                          title = title,
-                          date = selectedLocalDate,
-                          description = description,
-                        )
-                      )
-                      onClose()
+            Text(
+              modifier = Modifier.fillMaxWidth(),
+              text = ChronoUnit.DAYS.between(LocalDate.now(), selectedLocalDate).toString(),
+              textAlign = TextAlign.Center,
+              style = MaterialTheme.typography.displayLarge,
+            )
+            Text(
+              modifier = Modifier.fillMaxWidth(),
+              text = stringResource(R.string.days_remaining),
+              style = MaterialTheme.typography.headlineSmall,
+              textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(Dimensions.default))
+            OutlinedTextField(
+              value = title,
+              onValueChange = {
+                  title = it
+                  titleError = false
+              },
+              label = { Text("Title") },
+              modifier =
+                Modifier.fillMaxWidth().focusRequester(focusRequester = titleFocusRequester),
+              isError = titleError,
+              supportingText = { if (titleError) Text("Title cannot be empty") },
+            )
+            Spacer(modifier = Modifier.height(Dimensions.half))
+
+            val fontScale = LocalDensity.current.fontScale
+            InputChip(
+              modifier =
+                Modifier.height(Dimensions.triple * fontScale)
+                  .width(Dimensions.nonuple * fontScale),
+              selected = showDate,
+              onClick = { showDatePicker = true },
+              label = {
+                  if (showDate) {
+                      Text(formattedDate)
+                  } else {
+                      Text("Add Date")
                   }
-              }
-            ) {
-                if (isSaving) {
-                    CircularProgressIndicator()
-                } else {
-                    Icon(imageVector = Icons.Default.Check, contentDescription = "Save Event")
+              },
+              leadingIcon = {
+                  Icon(
+                    modifier = Modifier.offset(y = (-2).dp),
+                    imageVector = Icons.Filled.CalendarToday,
+                    contentDescription = "Add Date to event",
+                  )
+              },
+            )
+            Spacer(modifier = Modifier.height(Dimensions.half))
+
+            OutlinedTextField(
+              value = description,
+              onValueChange = { description = it },
+              label = { Text("Description") },
+              modifier = Modifier.fillMaxWidth(),
+            )
+
+            if (showDatePicker) {
+                DatePickerDialog(
+                  onDismissRequest = { showDatePicker = false },
+                  confirmButton = {
+                      TextButton(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                selectedDateMillis = millis
+                            }
+                            showDatePicker = false
+                            showDate = true
+                        }
+                      ) {
+                          Text("OK")
+                      }
+                  },
+                  dismissButton = {
+                      TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                  },
+                ) {
+                    DatePicker(state = datePickerState)
                 }
             }
         }
-
-        if (showDatePicker) {
-            DatePickerDialog(
-              onDismissRequest = { showDatePicker = false },
-              confirmButton = {
-                  TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            selectedDateMillis = millis
-                        }
-                        showDatePicker = false
-                        showDate = true
-                    }
-                  ) {
-                      Text("OK")
-                  }
-              },
-              dismissButton = {
-                  TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
-              },
-            ) {
-                DatePicker(state = datePickerState)
+        FloatingActionButton(
+          modifier = Modifier.imePadding().padding(Dimensions.default),
+          onClick = {
+              titleError = title.isBlank()
+              dateError = selectedDateMillis == 0L
+              if (!titleError && !dateError) {
+                  onAddEvent(
+                    EventItem(title = title, date = selectedLocalDate, description = description)
+                  )
+                  onClose()
+              }
+          },
+        ) {
+            if (isSaving) {
+                CircularProgressIndicator()
+            } else {
+                Icon(imageVector = Icons.Default.Check, contentDescription = "Save Event")
             }
         }
     }
@@ -211,5 +233,10 @@ fun AddEventScreen(
 @DefaultPreviews
 @Composable
 fun AddEventScreenPreview() {
-    AddEventScreen(onClose = {}, paddingValues = PaddingValues(Dimensions.default))
+    AddEventScreenContent(
+      isSaving = false,
+      onAddEvent = {},
+      onClose = {},
+      paddingValues = PaddingValues(Dimensions.default),
+    )
 }

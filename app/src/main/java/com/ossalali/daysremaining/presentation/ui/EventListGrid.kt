@@ -1,16 +1,16 @@
 package com.ossalali.daysremaining.presentation.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -24,19 +24,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDate
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -56,6 +57,8 @@ fun EventListGrid(
     }
 
     val selectedEventIds = remember(selectedEventItems) { selectedEventItems.map { it.id }.toSet() }
+    val configuration = LocalConfiguration.current
+    val isLandScape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     LazyVerticalStaggeredGrid(
       columns = StaggeredGridCells.Fixed(2),
@@ -67,50 +70,42 @@ fun EventListGrid(
               remember(selectedEventIds, event.id) { selectedEventIds.contains(event.id) }
 
             val numberOfDays = event.numberOfDays
-            Card(
-              border =
-                if (isSelected) {
-                    BorderStroke(Dimensions.eighth, MaterialTheme.colorScheme.primary)
-                } else {
-                    null
-                },
-              shape = MaterialTheme.shapes.medium,
-              modifier =
-                Modifier.fillMaxWidth()
-                  .padding(Dimensions.half)
-                  .combinedClickable(
-                    onClick = {
-                        if (selectedEventItems.isEmpty()) {
-                            onEventItemClick(event.id)
-                        } else {
-                            onEventItemSelection(event.id)
-                        }
-                    },
-                    onLongClickLabel = "Event Selected",
-                    onLongClick = { onEventItemSelection(event.id) },
-                  ),
-              elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
-            ) {
-                Box(modifier = Modifier.clipToBounds()) {
-                    if (event.isArchived) {
-                        Box(
-                          modifier =
-                            Modifier.align(alignment = Alignment.BottomEnd)
-                              .offset(x = (70).dp, y = (-20).dp)
-                              .graphicsLayer { rotationZ = -45f }
-                              .background(
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f)
-                              )
-                        ) {
-                            Text(
-                              modifier = Modifier.fillMaxSize(),
-                              text = "Archived",
-                              style = MaterialTheme.typography.labelMedium,
-                              textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
 
+            Box {
+                Card(
+                  border =
+                    if (isSelected) {
+                        BorderStroke(Dimensions.eighth, MaterialTheme.colorScheme.primary)
+                    } else {
+                        null
+                    },
+                  shape = MaterialTheme.shapes.medium,
+                  colors =
+                    if (event.isArchived) {
+                        CardDefaults.cardColors(
+                          containerColor = MaterialTheme.colorScheme.surfaceDim,
+                          contentColor =
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        )
+                    } else {
+                        CardDefaults.cardColors()
+                    },
+                  modifier =
+                    Modifier.fillMaxWidth()
+                      .padding(Dimensions.half)
+                      .combinedClickable(
+                        onClick = {
+                            if (selectedEventItems.isEmpty()) {
+                                onEventItemClick(event.id)
+                            } else {
+                                onEventItemSelection(event.id)
+                            }
+                        },
+                        onLongClickLabel = "Event Selected",
+                        onLongClick = { onEventItemSelection(event.id) },
+                      ),
+                  elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
+                ) {
                     Row(
                       modifier = Modifier.fillMaxSize().padding(Dimensions.half),
                       verticalAlignment = Alignment.CenterVertically,
@@ -142,6 +137,32 @@ fun EventListGrid(
                                 )
                             }
                         }
+                    }
+                }
+                if (event.isArchived) {
+                    BoxWithConstraints(
+                      modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                      contentAlignment = Alignment.Center,
+                    ) {
+                        val shortSideDp = min(constraints.maxWidth, constraints.maxHeight)
+                        val calculatedFontSize =
+                          if (isLandScape) {
+                              (shortSideDp * 0.04f).sp
+                          } else {
+                              (shortSideDp * 0.09f).sp
+                          }
+
+                        Text(
+                          text = "Archived",
+                          style =
+                            MaterialTheme.typography.headlineSmall.copy(
+                              fontSize = calculatedFontSize,
+                              textAlign = TextAlign.Center,
+                              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            ),
+                          modifier = Modifier.graphicsLayer { rotationZ = -45f },
+                          maxLines = 1,
+                        )
                     }
                 }
             }
