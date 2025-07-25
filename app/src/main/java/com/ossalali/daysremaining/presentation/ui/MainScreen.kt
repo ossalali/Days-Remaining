@@ -90,9 +90,8 @@ fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
                 MainScreenContent(
                   eventListViewModel = eventListViewModel,
                   isOnEventList = true,
-                  navigateToEventDetails = { eventId -> backStack.add(EventDetailsRoute(eventId)) },
                   navigateToAddEvent = { backStack.add(AddEventRoute) },
-                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
+                  navigateToEventDetails = { eventId -> backStack.add(EventDetailsRoute(eventId)) },
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
                 )
             }
@@ -100,16 +99,16 @@ fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
             entry<EventDetailsRoute> { route ->
                 MainScreenContent(
                   eventListViewModel = eventListViewModel,
-                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
                   title = "Event Details",
                   showBackButton = true,
                   onBackClick = { backStack.removeLastOrNull() },
-                  content = {
+                  content = { paddingValues ->
                       EventDetailsScreen(
                         eventId = route.eventId,
                         onBackClick = { backStack.removeLastOrNull() },
                         onDeleteEvent = { eventItem -> eventListViewModel.deleteEvent(eventItem) },
+                        paddingValues = paddingValues,
                       )
                   },
                 )
@@ -119,7 +118,6 @@ fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
                 MainScreenContent(
                   eventListViewModel = eventListViewModel,
                   navigateToAddEvent = { backStack.add(AddEventRoute) },
-                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
                   title = "Add Event",
                   showBackButton = true,
@@ -136,7 +134,6 @@ fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
             entry<SettingsRoute> {
                 MainScreenContent(
                   eventListViewModel = eventListViewModel,
-                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
                   title = "Settings",
                   showBackButton = true,
@@ -149,7 +146,6 @@ fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
                 MainScreenContent(
                   eventListViewModel = eventListViewModel,
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
-                  navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                   title = "Debug",
                   showBackButton = true,
                   onBackClick = { backStack.removeLastOrNull() },
@@ -173,7 +169,6 @@ private fun MainScreenContent(
   navigateToAddEvent: () -> Unit = {},
   navigateToEventDetails: (Int) -> Unit = {},
   navigateToDebugScreen: () -> Unit = {},
-  navigateToSettingsScreen: () -> Unit = {},
   title: String = "Days Remaining",
   showBackButton: Boolean = false,
   onBackClick: () -> Unit = {},
@@ -244,7 +239,6 @@ private fun MainScreenContent(
             title,
             showBackButton,
             onBackClick,
-            navigateToSettingsScreen,
             navigateToDebugScreen,
             eventListViewModel,
             onDeleteAction = { showDeleteConfirmDialog = true },
@@ -287,7 +281,6 @@ private fun SetupTopAppBar(
   title: String,
   showBackButton: Boolean,
   onBackClick: () -> Unit,
-  navigateToSettingsScreen: () -> Unit,
   navigateToDebugScreen: () -> Unit,
   eventListViewModel: EventListViewModel,
   onDeleteAction: () -> Unit,

@@ -1,8 +1,12 @@
 package com.ossalali.daysremaining.presentation.ui
 
+import android.annotation.SuppressLint
+import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,11 +16,11 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
@@ -25,20 +29,13 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,10 +50,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ossalali.daysremaining.BuildConfig
@@ -81,6 +80,7 @@ fun EventDetailsScreen(
   onBackClick: () -> Unit,
   onDeleteEvent: (EventItem) -> Unit,
   viewModel: EventDetailsViewModel = hiltViewModel(),
+  paddingValues: PaddingValues,
 ) {
     if (eventId != null) {
         LaunchedEffect(eventId) { viewModel.loadEventById(eventId) }
@@ -95,7 +95,6 @@ fun EventDetailsScreen(
       event = displayEvent,
       isLoading = isLoading,
       isSaving = isSaving,
-      onBackClick = onBackClick,
       onUpdateEvent = { updatedEvent ->
           viewModel.saveEvent(updatedEvent)
           onBackClick()
@@ -105,20 +104,21 @@ fun EventDetailsScreen(
           viewModel.eventDeletedHandled()
           onBackClick()
       },
+      paddingValues = paddingValues,
     )
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailsContent(
   event: EventItem?,
   isLoading: Boolean,
   isSaving: Boolean,
-  onBackClick: () -> Unit,
   onUpdateEvent: (EventItem) -> Unit,
   onDeleteEvent: (EventItem) -> Unit,
+  paddingValues: PaddingValues,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     val titleState = remember(event) { TextFieldState(initialText = event?.title ?: "") }
@@ -149,67 +149,56 @@ fun EventDetailsContent(
         )
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Scaffold(
-          topBar = {
-              TopAppBar(
-                title = { Text(text = event?.title ?: "Event Details") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                          contentDescription = "Back",
-                        )
-                    }
-                },
-              )
-          },
-          snackbarHost = { SnackbarHost(snackbarHostState) },
-          floatingActionButtonPosition = FabPosition.Center,
-          floatingActionButton = {
-              if (event != null) {
-                  Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.default),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                  ) {
-                      DeleteEventFab(onDelete = { showDeleteConfirmDialog = true })
+    val configuration = LocalConfiguration.current
+    val isLandScape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val screenHorizontalPadding =
+      if (isLandScape) {
+          configuration.screenWidthDp.dp / 4
+      } else {
+          Dimensions.default
+      }
 
-                      SaveEventFab(
-                        event = event,
-                        titleState = titleState,
-                        selectedDateMillis = selectedDateMillis,
-                        descriptionState = descriptionState,
-                        originalTitle = originalTitle,
-                        originalDateMillis = originalDateMillis,
-                        originalDescription = originalDescription,
-                        isSaving = isSaving,
-                        onSave = onUpdateEvent,
-                      )
-                  }
-              }
-          },
-        ) { innerPadding ->
-            Box(
-              modifier =
-                Modifier.fillMaxSize()
-                  .padding(innerPadding)
-                  .padding(horizontal = Dimensions.default),
-              contentAlignment = Alignment.TopCenter,
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator()
-                } else if (event != null) {
-                    EventContent(
+    Box(
+      modifier =
+        Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = Dimensions.default),
+      contentAlignment = Alignment.TopCenter,
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else if (event != null) {
+            EventContent(
+              isArchived = event.isArchived,
+              titleState = titleState,
+              selectedDateMillis = selectedDateMillis,
+              onDateChanged = { selectedDateMillis = it },
+              descriptionState = descriptionState,
+              screenHorizontalPadding = screenHorizontalPadding,
+            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                Row(
+                  modifier =
+                    Modifier.fillMaxWidth()
+                      .align(Alignment.BottomCenter)
+                      .padding(horizontal = Dimensions.default),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    DeleteEventFab(onDelete = { showDeleteConfirmDialog = true })
+
+                    SaveEventFab(
                       event = event,
                       titleState = titleState,
                       selectedDateMillis = selectedDateMillis,
-                      onDateChanged = { selectedDateMillis = it },
                       descriptionState = descriptionState,
+                      originalTitle = originalTitle,
+                      originalDateMillis = originalDateMillis,
+                      originalDescription = originalDescription,
+                      isSaving = isSaving,
+                      onSave = onUpdateEvent,
                     )
-                } else {
-                    Text(text = "Event not found", style = MaterialTheme.typography.bodyLarge)
                 }
             }
+        } else {
+            Text(text = "Event not found", style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
@@ -305,11 +294,12 @@ private fun DeleteEventFab(onDelete: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EventContent(
-  event: EventItem,
+  isArchived: Boolean,
   titleState: TextFieldState,
   selectedDateMillis: Long,
   onDateChanged: (Long) -> Unit,
   descriptionState: TextFieldState,
+  screenHorizontalPadding: Dp,
 ) {
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDateMillis)
 
@@ -323,7 +313,20 @@ private fun EventContent(
     val titleError by remember { derivedStateOf { titleState.text.isBlank() } }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
 
-    Column {
+    Column(modifier = Modifier.padding(horizontal = screenHorizontalPadding)) {
+        if (isArchived) {
+            Text(
+              modifier =
+                Modifier.align(Alignment.CenterHorizontally)
+                  .background(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = CircleShape,
+                  )
+                  .padding(Dimensions.half),
+              text = "ARCHIVED",
+              textAlign = TextAlign.Center,
+            )
+        }
         Text(
           modifier = Modifier.fillMaxWidth(),
           text = ChronoUnit.DAYS.between(LocalDate.now(), selectedLocalDate).toString(),
@@ -338,13 +341,6 @@ private fun EventContent(
         )
 
         Spacer(modifier = Modifier.height(Dimensions.default))
-        if (BuildConfig.DEBUG) {
-            Text(
-              text = "Id: ${event.id}",
-              style = MaterialTheme.typography.bodyMedium,
-              modifier = Modifier.padding(bottom = Dimensions.half),
-            )
-        }
 
         OutlinedTextField(
           state = titleState,
@@ -415,9 +411,9 @@ fun EventDetailsContentLoadingPreview() {
           event = null,
           isLoading = true,
           isSaving = false,
-          onBackClick = { /* Preview - no action */ },
           onUpdateEvent = { /* Preview - no action */ },
           onDeleteEvent = { /* Preview - no action */ },
+          paddingValues = PaddingValues(),
         )
     }
 }
@@ -438,9 +434,9 @@ fun EventDetailsContentSavingPreview() {
           event = sampleEvent,
           isLoading = false,
           isSaving = true,
-          onBackClick = { /* Preview - no action */ },
           onUpdateEvent = { /* Preview - no action */ },
           onDeleteEvent = { /* Preview - no action */ },
+          paddingValues = PaddingValues(),
         )
     }
 }
@@ -453,9 +449,9 @@ fun EventDetailsContentNotFoundPreview() {
           event = null,
           isLoading = false,
           isSaving = false,
-          onBackClick = { /* Preview - no action */ },
           onUpdateEvent = { /* Preview - no action */ },
           onDeleteEvent = { /* Preview - no action */ },
+          paddingValues = PaddingValues(),
         )
     }
 }
@@ -469,6 +465,7 @@ fun EventDetailsPreview() {
         title = "Sample Event Title",
         date = LocalDate.now().plusDays(10),
         description = "This is a sample event description.",
+        isArchived = true,
       )
 
     MyAppTheme {
@@ -476,9 +473,9 @@ fun EventDetailsPreview() {
           event = sampleEvent,
           isLoading = false,
           isSaving = false,
-          onBackClick = { /* Preview - no action */ },
           onUpdateEvent = { /* Preview - no action */ },
           onDeleteEvent = { /* Preview - no action */ },
+          paddingValues = PaddingValues(),
         )
     }
 }

@@ -82,7 +82,8 @@ private fun EventListImpl(
         Modifier.fillMaxSize().padding(paddingValues).imePadding().background(Color.Transparent)
     ) {
         Row(
-          modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.half),
+          modifier =
+            Modifier.fillMaxWidth().padding(horizontal = Dimensions.default + Dimensions.half),
           verticalAlignment = Alignment.CenterVertically,
         ) {
             AddChips(
