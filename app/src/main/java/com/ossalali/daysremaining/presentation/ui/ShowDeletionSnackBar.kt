@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.ossalali.daysremaining.MyAppTheme
-import com.ossalali.daysremaining.presentation.ui.theme.DefaultPreviewsNoSystemUI
+import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviewsNoSystemUI
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 
 @Composable
