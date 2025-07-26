@@ -9,7 +9,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.infrastructure.EventRepo
-import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.widget.datastore.WidgetDataStore
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,14 +26,11 @@ class WidgetPreferenceScreenViewModel(
     internal val maxEventsAllowed: Int
 
     init {
-        appLogger().d(tag = TAG, message = "appWidgetId: $appWidgetId, options: $appWidgetOptions")
         maxEventsAllowed = getMaxEvents(appWidgetOptions)
-        appLogger().d(tag = TAG, message = "Max events allowed: $maxEventsAllowed")
     }
 
     private fun getMaxEvents(options: Bundle?): Int {
         if (options == null) {
-            appLogger().d(tag = TAG, message = "AppWidgetOptions is null, defaulting to 8 events.")
             return 8
         }
 
@@ -61,7 +57,7 @@ class WidgetPreferenceScreenViewModel(
                 }
             }
 
-            return 4
+            return 14
         }
 
         val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)

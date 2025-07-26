@@ -5,7 +5,9 @@ import android.content.Intent
 import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -25,6 +27,7 @@ import androidx.glance.appwidget.components.Scaffold
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.GridCells
 import androidx.glance.appwidget.lazy.LazyVerticalGrid
+import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
 import androidx.glance.background
@@ -47,10 +50,8 @@ import com.ossalali.daysremaining.MainActivity
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultWidgetPreviews
+import com.ossalali.daysremaining.presentation.ui.previews.TinySquarePreview
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
-import com.ossalali.daysremaining.widget.EventWidget.Companion.HORIZONTAL_RECTANGLE
-import com.ossalali.daysremaining.widget.EventWidget.Companion.SMALL_SQUARE
-import com.ossalali.daysremaining.widget.EventWidget.Companion.getAutoSize
 import com.ossalali.daysremaining.widget.di.WidgetRepositoryEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
@@ -58,30 +59,261 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.abs
 
+data class WidgetUiState(
+    val titleFontSize: TextUnit,
+    val daysFontSize: TextUnit,
+    val iconSize: Dp,
+    val gridColumns: Int,
+    val showTitleBar: Boolean,
+    val isSingleItem: Boolean,
+    val maxItems: Int = 14,
+    val selectedSize: String,
+)
+
 class EventWidget : GlanceAppWidget() {
     companion object {
-        val SMALL_SQUARE = DpSize(150.dp, 50.dp)
-        val HORIZONTAL_RECTANGLE = DpSize(250.dp, 50.dp)
-        val BIG_SQUARE = DpSize(250.dp, 250.dp)
+        private val TINY_SQUARE = DpSize(120.dp, 50.dp)
+        private val SMALL_SQUARE = DpSize(250.dp, 250.dp)
+        private val MEDIUM_SQUARE = DpSize(400.dp, 400.dp)
+        private val BIG_SQUARE = DpSize(400.dp, 500.dp)
+        private val EXTRA_BIG_SQUARE = DpSize(400.dp, 600.dp)
+        private val SMALL_HORIZONTAL_RECTANGLE = DpSize(250.dp, 120.dp)
+        private val VERTICAL_RECTANGLE = DpSize(120.dp, 300.dp)
+        private val LARGE_RECTANGLE = DpSize(300.dp, 250.dp)
+        private val LARGER_RECTANGLE = DpSize(300.dp, 400.dp)
+        private val TALLISH_RECTANGLE = DpSize(120.dp, 300.dp)
+        private val TALL_RECTANGLE = DpSize(120.dp, 500.dp)
+        private val TALLER_RECTANGLE = DpSize(120.dp, 600.dp)
+        private val WIDE_RECTANGLE = DpSize(300.dp, 120.dp)
+        private val WIDE_TALL_RECTANGLE = DpSize(300.dp, 300.dp)
+        private val WIDER_TALLER_RECTANGLE = DpSize(300.dp, 500.dp)
+        private val WIDER_EVEN_TALLER_RECTANGLE = DpSize(300.dp, 600.dp)
 
-        fun getAutoSize(size: DpSize): AutoSize {
-            return if (size.height >= BIG_SQUARE.height && size.width >= BIG_SQUARE.width) {
-                AutoSize(fontSize = 40.sp, iconSize = 50.dp, cardSize = 250.dp)
-            } else if (
-                size.height >= HORIZONTAL_RECTANGLE.height &&
-                    size.width >= HORIZONTAL_RECTANGLE.width
-            ) {
-                AutoSize(fontSize = 35.sp, iconSize = 35.dp, cardSize = 250.dp)
-            } else if (size.height >= SMALL_SQUARE.height && size.width >= SMALL_SQUARE.width) {
-                AutoSize(fontSize = 20.sp, iconSize = 20.dp, cardSize = 250.dp)
-            } else {
-                AutoSize(fontSize = 10.sp, iconSize = 10.dp, cardSize = 250.dp)
+        /**
+         * Maps each defined DpSize to a specific UI configuration. The 'when' block is ordered from
+         * largest to smallest to ensure the correct state is selected for the available space.
+         */
+        fun getWidgetUiState(size: DpSize): WidgetUiState {
+            return when {
+                size.width >= EXTRA_BIG_SQUARE.width && size.height >= EXTRA_BIG_SQUARE.height ->
+                    WidgetUiState(
+                        titleFontSize = 20.sp,
+                        daysFontSize = 40.sp,
+                        iconSize = 50.dp,
+                        gridColumns = 2,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 10,
+                        selectedSize = "EXTRA_BIG_SQUARE",
+                    )
+                size.width >= BIG_SQUARE.width && size.height >= BIG_SQUARE.height ->
+                    WidgetUiState(
+                        titleFontSize = 18.sp,
+                        daysFontSize = 36.sp,
+                        iconSize = 50.dp,
+                        gridColumns = 2,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 8,
+                        selectedSize = "BIG_SQUARE",
+                    )
+                size.width >= MEDIUM_SQUARE.width && size.height >= MEDIUM_SQUARE.height ->
+                    WidgetUiState(
+                        titleFontSize = 16.sp,
+                        daysFontSize = 32.sp,
+                        iconSize = 50.dp,
+                        gridColumns = 2,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 6,
+                        selectedSize = "MEDIUM_SQUARE",
+                    )
+                size.width >= WIDER_EVEN_TALLER_RECTANGLE.width &&
+                    size.height >= WIDER_EVEN_TALLER_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 28.sp,
+                        iconSize = 50.dp,
+                        gridColumns = 1,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        selectedSize = "WIDER_EVEN_TALLER_RECTANGLE",
+                    )
+                size.width >= WIDER_TALLER_RECTANGLE.width &&
+                    size.height >= WIDER_TALLER_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 28.sp,
+                        iconSize = 28.dp,
+                        gridColumns = 1,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 10,
+                        selectedSize = "WIDER_TALLER_RECTANGLE",
+                    )
+                size.width >= WIDE_TALL_RECTANGLE.width &&
+                    size.height >= WIDE_TALL_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 28.sp,
+                        iconSize = 28.dp,
+                        gridColumns = 2,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 8,
+                        selectedSize = "WIDE_TALL_RECTANGLE",
+                    )
+                size.width >= TALLER_RECTANGLE.width && size.height >= TALLER_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 28.sp,
+                        iconSize = 28.dp,
+                        gridColumns = 1,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 7,
+                        selectedSize = "TALLER_RECTANGLE",
+                    )
+                size.width >= TALL_RECTANGLE.width && size.height >= TALL_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 28.sp,
+                        iconSize = 28.dp,
+                        gridColumns = 1,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 5,
+                        selectedSize = "TALL_RECTANGLE",
+                    )
+                size.width >= TALLISH_RECTANGLE.width && size.height >= TALLISH_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 28.sp,
+                        iconSize = 28.dp,
+                        gridColumns = 1,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 4,
+                        selectedSize = "TALLISH_RECTANGLE",
+                    )
+                size.width >= WIDE_RECTANGLE.width &&
+                    size.height >= WIDE_RECTANGLE.height &&
+                    size.height < LARGE_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 12.sp,
+                        daysFontSize = 22.sp,
+                        iconSize = 24.dp,
+                        gridColumns = 4,
+                        showTitleBar = false,
+                        isSingleItem = false,
+                        maxItems = 2,
+                        selectedSize = "WIDE_RECTANGLE",
+                    )
+                size.width >= LARGER_RECTANGLE.width && size.height >= LARGER_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 28.sp,
+                        iconSize = 28.dp,
+                        gridColumns = 2,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 4,
+                        selectedSize = "LARGER_RECTANGLE",
+                    )
+                size.width >= LARGE_RECTANGLE.width && size.height >= LARGE_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 28.sp,
+                        iconSize = 28.dp,
+                        gridColumns = 2,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 4,
+                        selectedSize = "LARGE_RECTANGLE",
+                    )
+                size.height >= VERTICAL_RECTANGLE.height &&
+                    size.width >= VERTICAL_RECTANGLE.width ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 24.sp,
+                        iconSize = 26.dp,
+                        gridColumns = 1,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 4,
+                        selectedSize = "VERTICAL_RECTANGLE",
+                    )
+                size.width >= SMALL_SQUARE.width && size.height >= SMALL_SQUARE.height ->
+                    WidgetUiState(
+                        titleFontSize = 14.sp,
+                        daysFontSize = 26.sp,
+                        iconSize = 26.dp,
+                        gridColumns = 1,
+                        showTitleBar = true,
+                        isSingleItem = false,
+                        maxItems = 2,
+                        selectedSize = "SMALL_SQUARE",
+                    )
+
+                size.width >= SMALL_HORIZONTAL_RECTANGLE.width &&
+                    size.height >= SMALL_HORIZONTAL_RECTANGLE.height ->
+                    WidgetUiState(
+                        titleFontSize = 12.sp,
+                        daysFontSize = 22.sp,
+                        iconSize = 0.dp,
+                        gridColumns = 2,
+                        showTitleBar = false,
+                        isSingleItem = true,
+                        maxItems = 1,
+                        selectedSize = "SMALL_HORIZONTAL_RECTANGLE",
+                    )
+                size.width >= TINY_SQUARE.width && size.height >= TINY_SQUARE.height ->
+                    WidgetUiState(
+                        titleFontSize = 12.sp,
+                        daysFontSize = 20.sp,
+                        iconSize = 0.dp,
+                        gridColumns = 1,
+                        showTitleBar = false,
+                        isSingleItem = true,
+                        maxItems = 1,
+                        selectedSize = "TINY_SQUARE",
+                    )
+                else ->
+                    WidgetUiState(
+                        titleFontSize = 12.sp,
+                        daysFontSize = 20.sp,
+                        iconSize = 0.dp,
+                        gridColumns = 1,
+                        showTitleBar = false,
+                        isSingleItem = true,
+                        maxItems = 1,
+                        selectedSize = "DEFAULT",
+                    )
             }
         }
     }
 
     override val sizeMode =
-        SizeMode.Responsive(setOf(SMALL_SQUARE, HORIZONTAL_RECTANGLE, BIG_SQUARE))
+        SizeMode.Responsive(
+            setOf(
+                TINY_SQUARE,
+                SMALL_HORIZONTAL_RECTANGLE,
+                WIDE_RECTANGLE,
+                VERTICAL_RECTANGLE,
+                TALLER_RECTANGLE,
+                TALLISH_RECTANGLE,
+                TALL_RECTANGLE,
+                SMALL_SQUARE,
+                WIDER_EVEN_TALLER_RECTANGLE,
+                WIDER_TALLER_RECTANGLE,
+                WIDE_TALL_RECTANGLE,
+                LARGE_RECTANGLE,
+                LARGER_RECTANGLE,
+                MEDIUM_SQUARE,
+                BIG_SQUARE,
+                EXTRA_BIG_SQUARE,
+            )
+        )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val widgetEntryPoint =
@@ -116,6 +348,8 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
     val size = LocalSize.current
     val scope = rememberCoroutineScope()
 
+    val uiState = EventWidget.getWidgetUiState(size)
+
     val startAppIntent =
         Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -125,14 +359,18 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
     Scaffold(
         modifier = GlanceModifier.fillMaxSize().clickable(startActivityAction),
         titleBar = {
-            if (size != SMALL_SQUARE && size != HORIZONTAL_RECTANGLE) {
+            if (uiState.showTitleBar) {
                 Box(
                     modifier = GlanceModifier.fillMaxWidth().padding(Dimensions.default),
                     contentAlignment = Alignment.TopEnd,
                 ) {
                     Row {
+                        //Text(
+                        //    text =
+                        //        "${uiState.selectedSize}: width -> ${size.width} | height ->${size.height}"
+                        //)
                         CircleIconButton(
-                            modifier = GlanceModifier.size(getAutoSize(size).iconSize),
+                            modifier = GlanceModifier.size(uiState.iconSize),
                             imageProvider = ImageProvider(R.drawable.baseline_refresh_24),
                             onClick = { scope.launch { refreshWidget(context) } },
                             contentDescription = "Refresh widget",
@@ -140,7 +378,7 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
                         )
                         Spacer(modifier = GlanceModifier.width(Dimensions.half))
                         CircleIconButton(
-                            modifier = GlanceModifier.size(getAutoSize(size).iconSize),
+                            modifier = GlanceModifier.size(uiState.iconSize),
                             imageProvider = ImageProvider(R.drawable.outline_add_24),
                             onClick = { addEvents() },
                             contentDescription = "Add event",
@@ -152,7 +390,10 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
         },
     ) {
         if (eventItems.isEmpty()) {
-            Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            Box(
+                modifier = GlanceModifier.fillMaxSize().clickable(startActivityAction),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     text = "No events selected.\nConfigure widget.",
                     style =
@@ -160,31 +401,32 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
                             fontSize = 12.sp,
                             color = GlanceTheme.colors.onSurface,
                             fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Start,
+                            textAlign = TextAlign.Center,
                         ),
                 )
             }
         } else {
-            Column(
-                modifier = GlanceModifier.fillMaxSize().padding(Dimensions.quarter),
-                verticalAlignment = Alignment.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                if (size.height <= SMALL_SQUARE.height && size.width <= SMALL_SQUARE.width) {
-                    EventItemCard(eventItems.first())
-                } else {
-                    eventItems.forEach { eventItem ->
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            LazyVerticalGrid(gridCells = GridCells.Adaptive(SMALL_SQUARE.width)) {
-                                item { EventItemCard(eventItem) }
-                            }
-                        } else {
-                            LazyVerticalGrid(gridCells = GridCells.Fixed(2)) {
-                                item { EventItemCard(eventItem) }
-                            }
-                        }
+            if (uiState.isSingleItem) {
+                Column(
+                    modifier = GlanceModifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    EventItemCard(eventItems.first(), uiState, startActivityAction)
+                }
+            } else {
+                val gridCells =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        GridCells.Adaptive(140.dp)
+                    } else {
+                        GridCells.Fixed(uiState.gridColumns)
+                    }
 
-                        Spacer(modifier = GlanceModifier.height(Dimensions.quarter))
+                val itemsToShow = eventItems.take(uiState.maxItems)
+
+                LazyVerticalGrid(modifier = GlanceModifier.fillMaxSize(), gridCells = gridCells) {
+                    items(itemsToShow, itemId = { event -> event.id.toLong() }) { eventItem ->
+                        EventItemCard(eventItem, uiState, startActivityAction)
                     }
                 }
             }
@@ -193,74 +435,109 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
 }
 
 @Composable
-fun EventItemCard(eventItem: EventItem) {
-    val size = LocalSize.current
-    Box(
-        modifier =
-            GlanceModifier.padding(Dimensions.default)
-                .cornerRadius(Dimensions.half)
-                .background(GlanceTheme.colors.secondaryContainer)
-    ) {
-        Text(
-            modifier = GlanceModifier.fillMaxWidth(),
-            text = eventItem.title,
-            style =
-                TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = GlanceTheme.colors.primary,
-                    textAlign = TextAlign.Center,
-                ),
-        )
-        val daysRemaining = eventItem.numberOfDays.toInt()
-        val daysText =
-            when {
-                daysRemaining == -1 -> "Yesterday"
-                daysRemaining < 0 -> "${abs(daysRemaining)} days ago"
-                daysRemaining == 0 -> "Today!"
-                daysRemaining == 1 -> "Tomorrow"
-                else -> "$daysRemaining days"
-            }
+fun EventItemCard(eventItem: EventItem, uiState: WidgetUiState, startActivityAction: Action) {
+    Box(modifier = GlanceModifier.padding(Dimensions.quarter).clickable(startActivityAction)) {
+        Column(
+            modifier =
+                GlanceModifier.fillMaxSize()
+                    .background(GlanceTheme.colors.secondaryContainer)
+                    .cornerRadius(Dimensions.default)
+                    .padding(Dimensions.half),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                modifier = GlanceModifier.fillMaxWidth(),
+                text = eventItem.title,
+                style =
+                    TextStyle(
+                        fontSize = uiState.titleFontSize,
+                        fontWeight = FontWeight.Normal,
+                        color = GlanceTheme.colors.primary,
+                        textAlign = TextAlign.Center,
+                    ),
+                maxLines = 1,
+            )
 
-        val textColor =
-            when {
-                daysRemaining < 0 -> GlanceTheme.colors.onSurface
-                daysRemaining == 0 -> GlanceTheme.colors.error
-                daysRemaining <= 7 -> GlanceTheme.colors.primary
-                else -> GlanceTheme.colors.onSurface
-            }
+            Spacer(modifier = GlanceModifier.height(Dimensions.quarter))
 
-        Text(
-            modifier = GlanceModifier.fillMaxWidth(),
-            text = daysText,
-            style =
-                TextStyle(
-                    fontSize = getAutoSize(size).fontSize,
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                ),
-        )
+            val daysRemaining = eventItem.numberOfDays.toInt()
+            val daysText =
+                when {
+                    daysRemaining == -1 -> "Yesterday"
+                    daysRemaining < 0 -> "${abs(daysRemaining)} days ago"
+                    daysRemaining == 0 -> "Today!"
+                    daysRemaining == 1 -> "Tomorrow"
+                    else -> "$daysRemaining days"
+                }
+
+            val textColor =
+                when {
+                    daysRemaining < 0 -> GlanceTheme.colors.onSurface
+                    daysRemaining == 0 -> GlanceTheme.colors.error
+                    daysRemaining <= 7 -> GlanceTheme.colors.primary
+                    else -> GlanceTheme.colors.onSurface
+                }
+
+            Text(
+                modifier = GlanceModifier.fillMaxWidth(),
+                text = daysText,
+                style =
+                    TextStyle(
+                        fontSize = uiState.daysFontSize,
+                        color = textColor,
+                        textAlign = TextAlign.Center,
+                    ),
+            )
+        }
     }
 }
 
 @Suppress("unused")
 @DefaultWidgetPreviews
 @Composable
-fun WidgetContentPreview() {
-    val eventItem1 =
-        EventItem(title = "Event 1", date = LocalDate.now().minusDays(2), description = "test")
-    val eventItem2 =
-        EventItem(title = "Event 1", date = LocalDate.now().minusDays(1), description = "test")
-    val eventItem3 = EventItem(title = "Event 1", date = LocalDate.now(), description = "test")
-    val eventItem4 =
-        EventItem(title = "Event 2", date = LocalDate.now().plusDays(1), description = "test")
-    val eventItem5 =
-        EventItem(title = "Event 2", date = LocalDate.now().plusDays(20), description = "test")
-
-    GlanceTheme {
-        WidgetContent(
-            listOf(eventItem1, eventItem2, eventItem3, eventItem4, eventItem5),
-            LocalContext.current,
+private fun PopulatedWidgetPreview() {
+    val eventItems =
+        listOf(
+            EventItem(
+                title = "Birthday",
+                date = LocalDate.now().minusDays(2),
+                description = "test",
+            ),
+            EventItem(
+                title = "Birthday",
+                date = LocalDate.now().minusDays(1),
+                description = "test",
+            ),
+            EventItem(title = "Anniversary", date = LocalDate.now(), description = "test"),
+            EventItem(title = "Meeting", date = LocalDate.now().plusDays(1), description = "test"),
+            EventItem(
+                title = "Vacation Starts",
+                date = LocalDate.now().plusDays(2),
+                description = "test",
+            ),
+            EventItem(
+                title = "Project Due",
+                date = LocalDate.now().plusDays(20),
+                description = "test",
+            ),
         )
-    }
+
+    GlanceTheme { WidgetContent(eventItems = eventItems, context = LocalContext.current) }
+}
+
+@Suppress("unused")
+@TinySquarePreview
+@Composable
+private fun SingleItemWidgetPreview() {
+    val eventItem = EventItem(title = "Meeting", date = LocalDate.now(), description = "test")
+
+    GlanceTheme { WidgetContent(eventItems = listOf(eventItem), context = LocalContext.current) }
+}
+
+@Suppress("unused")
+@DefaultWidgetPreviews
+@Composable
+private fun EmptyWidgetPreview() {
+    GlanceTheme { WidgetContent(eventItems = emptyList(), context = LocalContext.current) }
 }
