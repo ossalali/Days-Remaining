@@ -1,7 +1,5 @@
 package com.ossalali.daysremaining.widget
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -26,7 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,27 +36,11 @@ import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveComplete: () -> Unit) {
     val scope = rememberCoroutineScope()
     val inputEvents by viewModel.getEvents().collectAsState()
-
-    LaunchedEffect(inputEvents) {
-        appLogger()
-          .d(
-            tag = "WidgetPreferenceScreen",
-            message = "inputEvents changed: size=${inputEvents.size}",
-          )
-        inputEvents.forEachIndexed { index, event ->
-            appLogger()
-              .d(
-                tag = "WidgetPreferenceScreen",
-                message = "Event $index: ${event.title} (id=${event.id})",
-              )
-        }
-    }
 
     Scaffold(
       topBar = {
@@ -68,29 +49,9 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
             actions = {
                 IconButton(
                   onClick = {
-                      appLogger()
-                        .d(
-                          tag = "WidgetPreferenceScreen",
-                          message =
-                            "Save button clicked, selected events: ${viewModel.selectedEventIds}",
-                        )
                       scope.launch {
-                          try {
-                              appLogger()
-                                .d(
-                                  tag = "WidgetPreferenceScreen",
-                                  message = "About to save selected events",
-                                )
-                              viewModel.saveSelectedEvents()
-                              appLogger().d("WidgetPreferenceScreen", "Save completed successfully")
-                              onSaveComplete()
-                          } catch (e: Exception) {
-                              appLogger()
-                                .e(
-                                  tag = "WidgetPreferenceScreen",
-                                  message = "Error saving events: ${e.message}",
-                                )
-                          }
+                          viewModel.saveSelectedEvents()
+                          onSaveComplete()
                       }
                   }
                 ) {
@@ -135,21 +96,7 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                         Modifier.fillMaxWidth()
                           .padding(Dimensions.half)
                           .combinedClickable(
-                            onClick = {
-                                appLogger()
-                                  .d(
-                                    tag = "WidgetPreferenceScreen",
-                                    message =
-                                      "Event clicked: ${event.id}, current selection: ${viewModel.selectedEventIds}",
-                                  )
-                                viewModel.toggleSelection(event.id)
-                                appLogger()
-                                  .d(
-                                    tag = "WidgetPreferenceScreen",
-                                    message =
-                                      "After toggle, selection: ${viewModel.selectedEventIds}",
-                                  )
-                            },
+                            onClick = { viewModel.toggleSelection(event.id) },
                             onClickLabel = "Event Selected",
                           ),
                       elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
