@@ -322,7 +322,10 @@ private fun EventContent(
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     shape = CircleShape,
                   )
-                  .padding(Dimensions.half),
+                  .padding(
+                    horizontal = Dimensions.default + Dimensions.half,
+                    vertical = Dimensions.half + Dimensions.quarter,
+                  ),
               text = "ARCHIVED",
               textAlign = TextAlign.Center,
             )
