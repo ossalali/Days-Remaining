@@ -18,12 +18,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         var eventId: Int? = null
+        var shouldNavigateToAddEvent = false
         val invalidEventId = -1
+
         if (intent?.hasExtra(EVENT_ID) == true) {
             val idFromIntent = intent.getIntExtra(EVENT_ID, invalidEventId)
             if (idFromIntent != invalidEventId) {
                 eventId = idFromIntent
             }
+        }
+
+        if (intent?.action == "com.ossalali.daysremaining.action.ADD_EVENT") {
+            shouldNavigateToAddEvent = true
         }
 
         if (eventId == null && savedInstanceState != null) {
@@ -35,6 +41,13 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        setContent { MyAppTheme { MainScreen(eventId = eventId?.toLong()) } }
+        setContent {
+            MyAppTheme {
+                MainScreen(
+                    eventId = eventId?.toLong(),
+                    shouldNavigateToAddEvent = shouldNavigateToAddEvent,
+                )
+            }
+        }
     }
 }

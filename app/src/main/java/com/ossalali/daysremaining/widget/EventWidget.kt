@@ -52,6 +52,7 @@ import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultWidgetPreviews
 import com.ossalali.daysremaining.presentation.ui.previews.TinySquarePreview
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.widget.EventWidget.Companion.ADD_EVENT_ACTION
 import com.ossalali.daysremaining.widget.EventWidget.Companion.EVENT_ID
 import com.ossalali.daysremaining.widget.EventWidget.Companion.VIEW_EVENT_ACTION
 import com.ossalali.daysremaining.widget.di.WidgetRepositoryEntryPoint
@@ -75,6 +76,7 @@ data class WidgetUiState(
 class EventWidget : GlanceAppWidget() {
     companion object {
         const val VIEW_EVENT_ACTION = "com.ossalali.daysremaining.action.VIEW_EVENT"
+        const val ADD_EVENT_ACTION = "com.ossalali.daysremaining.action.ADD_EVENT"
         const val EVENT_ID = "EVENT_ID"
         private val TINY_SQUARE = DpSize(120.dp, 50.dp)
         private val SMALL_SQUARE = DpSize(250.dp, 250.dp)
@@ -345,8 +347,6 @@ suspend fun refreshWidget(context: Context) {
     EventWidget().updateAll(context)
 }
 
-fun addEvents() {}
-
 @Composable
 fun WidgetContent(eventItems: List<EventItem>, context: Context) {
     val size = LocalSize.current
@@ -360,6 +360,13 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
         }
     val startActivityAction: Action = actionStartActivity(generalAppIntent)
 
+    val addEventIntent =
+        Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            action = ADD_EVENT_ACTION
+        }
+    val addEventAction = actionStartActivity(addEventIntent)
+
     Scaffold(
         modifier = GlanceModifier.fillMaxSize().clickable(startActivityAction),
         titleBar = {
@@ -369,11 +376,6 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
                     contentAlignment = Alignment.TopEnd,
                 ) {
                     Row {
-                        // Text(
-                        //    text =
-                        //        "${uiState.selectedSize}: width -> ${size.width} | height
-                        // ->${size.height}"
-                        // )
                         CircleIconButton(
                             modifier = GlanceModifier.size(uiState.iconSize),
                             imageProvider = ImageProvider(R.drawable.baseline_refresh_24),
@@ -385,7 +387,7 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
                         CircleIconButton(
                             modifier = GlanceModifier.size(uiState.iconSize),
                             imageProvider = ImageProvider(R.drawable.outline_add_24),
-                            onClick = { addEvents() },
+                            onClick = addEventAction,
                             contentDescription = "Add event",
                             backgroundColor = GlanceTheme.colors.primaryContainer,
                         )

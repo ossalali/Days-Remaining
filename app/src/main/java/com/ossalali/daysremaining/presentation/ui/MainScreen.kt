@@ -74,13 +74,19 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel(), eventId: Long? = null) {
+fun MainScreen(
+    eventListViewModel: EventListViewModel = hiltViewModel(),
+    eventId: Long? = null,
+    shouldNavigateToAddEvent: Boolean = false,
+) {
     val backStack = rememberNavBackStack(EventListRoute)
-    val isIntentLaunch = remember { eventId != null }
+    val isIntentLaunch = remember { eventId != null || shouldNavigateToAddEvent }
 
-    LaunchedEffect(eventId) {
+    LaunchedEffect(eventId, shouldNavigateToAddEvent) {
         if (eventId != null) {
             backStack.add(EventDetailsRoute(eventId.toInt()))
+        } else if (shouldNavigateToAddEvent) {
+            backStack.add(AddEventRoute)
         }
     }
 
