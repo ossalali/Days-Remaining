@@ -27,8 +27,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviews
@@ -58,7 +57,7 @@ fun EventListGrid(
     val selectedEventIds = remember(selectedEventItems) { selectedEventItems.map { it.id }.toSet() }
 
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
+        columns = StaggeredGridCells.Adaptive(200.dp),
         modifier = modifier,
         contentPadding = contentPadding,
     ) {
@@ -110,14 +109,14 @@ fun EventListGrid(
                         Column(modifier = Modifier.weight(1f).padding(end = Dimensions.half)) {
                             Text(
                                 text = event.title,
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 textAlign = TextAlign.Center,
                                 modifier =
                                     Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                             )
                             Text(
                                 text = numberOfDays.toString(),
-                                fontSize = TextUnit(16f, TextUnitType.Em),
+                                style = MaterialTheme.typography.headlineLargeEmphasized,
                                 textAlign = TextAlign.Center,
                                 modifier =
                                     Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
