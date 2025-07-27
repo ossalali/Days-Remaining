@@ -78,6 +78,7 @@ class EventWidget : GlanceAppWidget() {
         const val VIEW_EVENT_ACTION = "com.ossalali.daysremaining.action.VIEW_EVENT"
         const val ADD_EVENT_ACTION = "com.ossalali.daysremaining.action.ADD_EVENT"
         const val EVENT_ID = "EVENT_ID"
+
         private val TINY_SQUARE = DpSize(120.dp, 50.dp)
         private val SMALL_SQUARE = DpSize(250.dp, 250.dp)
         private val MEDIUM_SQUARE = DpSize(400.dp, 400.dp)
