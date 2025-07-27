@@ -27,8 +27,8 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -382,7 +382,7 @@ private fun SaveEventFab(
         if (isSaving) {
             CircularProgressIndicator()
         } else {
-            Icon(imageVector = Icons.Default.Save, contentDescription = "Save Event")
+            Icon(imageVector = Icons.Default.Check, contentDescription = "Save Event")
         }
     }
 }
