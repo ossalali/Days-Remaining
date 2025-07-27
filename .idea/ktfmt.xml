@@ -5,6 +5,6 @@
     <option name="customContinuationIndent" value="2" />
     <option name="customManageTrailingCommas" value="true" />
     <option name="enableKtfmt" value="Enabled" />
-    <option name="uiFormatterStyle" value="Custom" />
+    <option name="uiFormatterStyle" value="Kotlinlang" />
   </component>
 </project>

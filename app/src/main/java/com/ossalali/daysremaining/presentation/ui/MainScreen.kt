@@ -74,109 +74,126 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel()) {
+fun MainScreen(eventListViewModel: EventListViewModel = hiltViewModel(), eventId: Long? = null) {
     val backStack = rememberNavBackStack(EventListRoute)
+    val isIntentLaunch = remember { eventId != null }
+
+    LaunchedEffect(eventId) {
+        if (eventId != null) {
+            backStack.add(EventDetailsRoute(eventId.toInt()))
+        }
+    }
 
     NavDisplay(
-      backStack = backStack,
-      entryDecorators =
-        listOf(rememberSceneSetupNavEntryDecorator(), rememberSavedStateNavEntryDecorator()),
-      transitionSpec = { slideInFromRight() togetherWith slideOutToLeft() },
-      popTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
-      predictivePopTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
-      entryProvider =
-        entryProvider {
-            entry<EventListRoute> {
-                MainScreenContent(
-                  eventListViewModel = eventListViewModel,
-                  isOnEventList = true,
-                  navigateToAddEvent = { backStack.add(AddEventRoute) },
-                  navigateToEventDetails = { eventId -> backStack.add(EventDetailsRoute(eventId)) },
-                  navigateToDebugScreen = { backStack.add(DebugRoute) },
-                )
-            }
-
-            entry<EventDetailsRoute> { route ->
-                MainScreenContent(
-                  eventListViewModel = eventListViewModel,
-                  navigateToDebugScreen = { backStack.add(DebugRoute) },
-                  title = "Event Details",
-                  showBackButton = true,
-                  onBackClick = { backStack.removeLastOrNull() },
-                  content = { paddingValues ->
-                      EventDetailsScreen(
-                        eventId = route.eventId,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        onDeleteEvent = { eventItem -> eventListViewModel.deleteEvent(eventItem) },
-                        paddingValues = paddingValues,
-                      )
-                  },
-                )
-            }
-
-            entry<AddEventRoute> {
-                MainScreenContent(
-                  eventListViewModel = eventListViewModel,
-                  navigateToAddEvent = { backStack.add(AddEventRoute) },
-                  navigateToDebugScreen = { backStack.add(DebugRoute) },
-                  title = "Add Event",
-                  showBackButton = true,
-                  onBackClick = { backStack.removeLastOrNull() },
-                  content = { paddingValues ->
-                      AddEventScreen(
-                        onClose = { backStack.removeLastOrNull() },
-                        paddingValues = paddingValues,
-                      )
-                  },
-                )
-            }
-
-            entry<SettingsRoute> {
-                MainScreenContent(
-                  eventListViewModel = eventListViewModel,
-                  navigateToDebugScreen = { backStack.add(DebugRoute) },
-                  title = "Settings",
-                  showBackButton = true,
-                  onBackClick = { backStack.removeLastOrNull() },
-                  content = { paddingValues -> SettingsScreen(paddingValues = paddingValues) },
-                )
-            }
-
-            entry<DebugRoute> {
-                MainScreenContent(
-                  eventListViewModel = eventListViewModel,
-                  navigateToDebugScreen = { backStack.add(DebugRoute) },
-                  title = "Debug",
-                  showBackButton = true,
-                  onBackClick = { backStack.removeLastOrNull() },
-                  content = { paddingValues ->
-                      DebugScreen(
-                        paddingValues = paddingValues,
-                        onClose = { backStack.removeLastOrNull() },
-                      )
-                  },
-                )
+        backStack = backStack,
+        entryDecorators =
+            listOf(rememberSceneSetupNavEntryDecorator(), rememberSavedStateNavEntryDecorator()),
+        transitionSpec = {
+            if (isIntentLaunch) {
+                EnterTransition.None togetherWith ExitTransition.None
+            } else {
+                slideInFromRight() togetherWith slideOutToLeft()
             }
         },
+        popTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
+        predictivePopTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
+        entryProvider =
+            entryProvider {
+                entry<EventListRoute> {
+                    MainScreenContent(
+                        eventListViewModel = eventListViewModel,
+                        isOnEventList = true,
+                        navigateToAddEvent = { backStack.add(AddEventRoute) },
+                        navigateToEventDetails = { eventId ->
+                            backStack.add(EventDetailsRoute(eventId))
+                        },
+                        navigateToDebugScreen = { backStack.add(DebugRoute) },
+                    )
+                }
+
+                entry<EventDetailsRoute> { route ->
+                    MainScreenContent(
+                        eventListViewModel = eventListViewModel,
+                        navigateToDebugScreen = { backStack.add(DebugRoute) },
+                        title = "Event Details",
+                        showBackButton = true,
+                        onBackClick = { backStack.removeLastOrNull() },
+                        content = { paddingValues ->
+                            EventDetailsScreen(
+                                eventId = route.eventId,
+                                onBackClick = { backStack.removeLastOrNull() },
+                                onDeleteEvent = { eventItem ->
+                                    eventListViewModel.deleteEvent(eventItem)
+                                },
+                                paddingValues = paddingValues,
+                            )
+                        },
+                    )
+                }
+
+                entry<AddEventRoute> {
+                    MainScreenContent(
+                        eventListViewModel = eventListViewModel,
+                        navigateToAddEvent = { backStack.add(AddEventRoute) },
+                        navigateToDebugScreen = { backStack.add(DebugRoute) },
+                        title = "Add Event",
+                        showBackButton = true,
+                        onBackClick = { backStack.removeLastOrNull() },
+                        content = { paddingValues ->
+                            AddEventScreen(
+                                onClose = { backStack.removeLastOrNull() },
+                                paddingValues = paddingValues,
+                            )
+                        },
+                    )
+                }
+
+                entry<SettingsRoute> {
+                    MainScreenContent(
+                        eventListViewModel = eventListViewModel,
+                        navigateToDebugScreen = { backStack.add(DebugRoute) },
+                        title = "Settings",
+                        showBackButton = true,
+                        onBackClick = { backStack.removeLastOrNull() },
+                        content = { paddingValues -> SettingsScreen(paddingValues = paddingValues) },
+                    )
+                }
+
+                entry<DebugRoute> {
+                    MainScreenContent(
+                        eventListViewModel = eventListViewModel,
+                        navigateToDebugScreen = { backStack.add(DebugRoute) },
+                        title = "Debug",
+                        showBackButton = true,
+                        onBackClick = { backStack.removeLastOrNull() },
+                        content = { paddingValues ->
+                            DebugScreen(
+                                paddingValues = paddingValues,
+                                onClose = { backStack.removeLastOrNull() },
+                            )
+                        },
+                    )
+                }
+            },
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MainScreenContent(
-  eventListViewModel: EventListViewModel,
-  isOnEventList: Boolean = false,
-  navigateToAddEvent: () -> Unit = {},
-  navigateToEventDetails: (Int) -> Unit = {},
-  navigateToDebugScreen: () -> Unit = {},
-  title: String = "Days Remaining",
-  showBackButton: Boolean = false,
-  onBackClick: () -> Unit = {},
-  content: @Composable ((PaddingValues) -> Unit)? = null,
+    eventListViewModel: EventListViewModel,
+    isOnEventList: Boolean = false,
+    navigateToAddEvent: () -> Unit = {},
+    navigateToEventDetails: (Int) -> Unit = {},
+    navigateToDebugScreen: () -> Unit = {},
+    title: String = "Days Remaining",
+    showBackButton: Boolean = false,
+    onBackClick: () -> Unit = {},
+    content: @Composable ((PaddingValues) -> Unit)? = null,
 ) {
     val selectedEventItems by eventListViewModel.selectedEventItems.collectAsStateWithLifecycle()
     val pendingDeleteEventsState by
-      eventListViewModel.pendingDeleteEvents.collectAsStateWithLifecycle()
+        eventListViewModel.pendingDeleteEvents.collectAsStateWithLifecycle()
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -186,23 +203,23 @@ private fun MainScreenContent(
 
         if (itemsForThisSnackbar.isNotEmpty()) {
             val snackBarMessage =
-              if (itemsForThisSnackbar.size == 1) "${itemsForThisSnackbar.first().title} deleted"
-              else "${itemsForThisSnackbar.size} events deleted"
+                if (itemsForThisSnackbar.size == 1) "${itemsForThisSnackbar.first().title} deleted"
+                else "${itemsForThisSnackbar.size} events deleted"
 
             coroutineScope.launch {
                 snackBarHostState.currentSnackbarData?.dismiss()
 
                 val result =
-                  snackBarHostState.showSnackbar(
-                    message = snackBarMessage,
-                    actionLabel = "Undo",
-                    duration = SnackbarDuration.Short,
-                  )
+                    snackBarHostState.showSnackbar(
+                        message = snackBarMessage,
+                        actionLabel = "Undo",
+                        duration = SnackbarDuration.Short,
+                    )
                 if (result == SnackbarResult.ActionPerformed) {
                     eventListViewModel.onInteraction(Interaction.UndoDelete(itemsForThisSnackbar))
                 } else {
                     eventListViewModel.onInteraction(
-                      Interaction.ConfirmDeletions(itemsForThisSnackbar)
+                        Interaction.ConfirmDeletions(itemsForThisSnackbar)
                     )
                 }
             }
@@ -212,50 +229,50 @@ private fun MainScreenContent(
     if (showDeleteConfirmDialog && selectedEventItems.isNotEmpty()) {
         if (selectedEventItems.size == 1) {
             DeleteAlertDialog(
-              eventTitle = selectedEventItems.first().title,
-              onConfirm = {
-                  eventListViewModel.deleteEvents(selectedEventItems)
-                  showDeleteConfirmDialog = false
-              },
-              onDismiss = { showDeleteConfirmDialog = false },
+                eventTitle = selectedEventItems.first().title,
+                onConfirm = {
+                    eventListViewModel.deleteEvents(selectedEventItems)
+                    showDeleteConfirmDialog = false
+                },
+                onDismiss = { showDeleteConfirmDialog = false },
             )
         } else {
             DeleteAlertDialog(
-              numberOfEventsToBeDeleted = selectedEventItems.size,
-              onConfirm = {
-                  eventListViewModel.deleteEvents(selectedEventItems)
-                  showDeleteConfirmDialog = false
-              },
-              onDismiss = { showDeleteConfirmDialog = false },
+                numberOfEventsToBeDeleted = selectedEventItems.size,
+                onConfirm = {
+                    eventListViewModel.deleteEvents(selectedEventItems)
+                    showDeleteConfirmDialog = false
+                },
+                onDismiss = { showDeleteConfirmDialog = false },
             )
         }
     }
 
     Scaffold(
-      modifier = Modifier.background(Color.Transparent),
-      topBar = {
-          SetupTopAppBar(
-            selectedEventItems,
-            title,
-            showBackButton,
-            onBackClick,
-            navigateToDebugScreen,
-            eventListViewModel,
-            onDeleteAction = { showDeleteConfirmDialog = true },
-          )
-      },
-      floatingActionButton = {
-          if (isOnEventList) {
-              FloatingActionButton(
-                modifier = Modifier.imePadding(),
-                onClick = { navigateToAddEvent() },
-              ) {
-                  Icon(Icons.Filled.Add, contentDescription = "Add Event")
-              }
-          }
-      },
-      snackbarHost = { SnackbarHost(snackBarHostState) },
-      floatingActionButtonPosition = FabPosition.End,
+        modifier = Modifier.background(Color.Transparent),
+        topBar = {
+            SetupTopAppBar(
+                selectedEventItems,
+                title,
+                showBackButton,
+                onBackClick,
+                navigateToDebugScreen,
+                eventListViewModel,
+                onDeleteAction = { showDeleteConfirmDialog = true },
+            )
+        },
+        floatingActionButton = {
+            if (isOnEventList) {
+                FloatingActionButton(
+                    modifier = Modifier.imePadding(),
+                    onClick = { navigateToAddEvent() },
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add Event")
+                }
+            }
+        },
+        snackbarHost = { SnackbarHost(snackBarHostState) },
+        floatingActionButtonPosition = FabPosition.End,
     ) { paddingValues ->
         appLogger().d(tag = "NAV3_Content", message = "content: ${content == null}")
         if (content != null) {
@@ -263,11 +280,11 @@ private fun MainScreenContent(
         } else {
             Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
                 EventListScreen(
-                  viewModel = eventListViewModel,
-                  onNavigateToEventDetails = navigateToEventDetails,
-                  paddingValues = PaddingValues(),
-                  showFab = isOnEventList,
-                  selectedEventItems = selectedEventItems,
+                    viewModel = eventListViewModel,
+                    onNavigateToEventDetails = navigateToEventDetails,
+                    paddingValues = PaddingValues(),
+                    showFab = isOnEventList,
+                    selectedEventItems = selectedEventItems,
                 )
             }
         }
@@ -277,133 +294,133 @@ private fun MainScreenContent(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun SetupTopAppBar(
-  selectedEventItems: ImmutableList<EventItem>,
-  title: String,
-  showBackButton: Boolean,
-  onBackClick: () -> Unit,
-  navigateToDebugScreen: () -> Unit,
-  eventListViewModel: EventListViewModel,
-  onDeleteAction: () -> Unit,
+    selectedEventItems: ImmutableList<EventItem>,
+    title: String,
+    showBackButton: Boolean,
+    onBackClick: () -> Unit,
+    navigateToDebugScreen: () -> Unit,
+    eventListViewModel: EventListViewModel,
+    onDeleteAction: () -> Unit,
 ) {
     if (selectedEventItems.isEmpty()) {
         CenterAlignedTopAppBar(
-          title = { Text(title) },
-          navigationIcon = {
-              if (showBackButton) {
-                  IconButton(onClick = onBackClick) {
-                      Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                      )
-                  }
-              }
-          },
-          actions = {
-              // IconButton(onClick = { navigateToSettingsScreen() }) {
-              //    Icon(
-              //      imageVector = Icons.Filled.Settings,
-              //      contentDescription = "Open Settings screen",
-              //    )
-              // }
-              if (BuildConfig.DEBUG) {
-                  IconButton(
-                    modifier = Modifier.padding(horizontal = Dimensions.default),
-                    onClick = { navigateToDebugScreen() },
-                  ) {
-                      Icon(
-                        imageVector = Icons.Filled.BugReport,
-                        contentDescription = "Open Debug screen",
-                      )
-                  }
-              }
-          },
+            title = { Text(title) },
+            navigationIcon = {
+                if (showBackButton) {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                    }
+                }
+            },
+            actions = {
+                // IconButton(onClick = { navigateToSettingsScreen() }) {
+                //    Icon(
+                //      imageVector = Icons.Filled.Settings,
+                //      contentDescription = "Open Settings screen",
+                //    )
+                // }
+                if (BuildConfig.DEBUG) {
+                    IconButton(
+                        modifier = Modifier.padding(horizontal = Dimensions.default),
+                        onClick = { navigateToDebugScreen() },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.BugReport,
+                            contentDescription = "Open Debug screen",
+                        )
+                    }
+                }
+            },
         )
     } else {
         TopAppBar(
-          title = {},
-          actions = {
-              Row(
-                modifier = Modifier.padding(horizontal = Dimensions.default),
-                verticalAlignment = Alignment.CenterVertically,
-              ) {
-                  IconButton(
-                    onClick = { eventListViewModel.onInteraction(Interaction.ClearSelection) }
-                  ) {
-                      Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                      )
-                  }
-                  Spacer(Modifier.width(Dimensions.half))
-                  Text(
-                    text = "${selectedEventItems.size}",
-                    style = MaterialTheme.typography.titleLarge,
-                  )
-                  Spacer(Modifier.weight(1f))
-                  if (eventListViewModel.hasUnarchivedEventItems()) {
-                      IconButton(
-                        onClick = { eventListViewModel.archiveEvents(selectedEventItems) }
-                      ) {
-                          Icon(
-                            imageVector = Icons.Outlined.Archive,
-                            contentDescription = "Archive selected Events",
-                          )
-                      }
-                  }
-                  if (eventListViewModel.hasArchivedEventItems()) {
-                      IconButton(
-                        onClick = { eventListViewModel.unarchiveEvents(selectedEventItems) }
-                      ) {
-                          Icon(
-                            imageVector = Icons.Outlined.Inbox,
-                            contentDescription = "Unarchive selected Events",
-                          )
-                      }
-                  }
-                  IconButton(onClick = onDeleteAction) {
-                      Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = "Delete selected Events",
-                      )
-                  }
-                  IconButton(
-                    onClick = { eventListViewModel.onInteraction(Interaction.SelectAll) }
-                  ) {
-                      Icon(
-                        imageVector = Icons.Filled.SelectAll,
-                        contentDescription = "Select all Events",
-                      )
-                  }
-              }
-          },
+            title = {},
+            actions = {
+                Row(
+                    modifier = Modifier.padding(horizontal = Dimensions.default),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(
+                        onClick = { eventListViewModel.onInteraction(Interaction.ClearSelection) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                    }
+                    Spacer(Modifier.width(Dimensions.half))
+                    Text(
+                        text = "${selectedEventItems.size}",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    if (eventListViewModel.hasUnarchivedEventItems()) {
+                        IconButton(
+                            onClick = { eventListViewModel.archiveEvents(selectedEventItems) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Archive,
+                                contentDescription = "Archive selected Events",
+                            )
+                        }
+                    }
+                    if (eventListViewModel.hasArchivedEventItems()) {
+                        IconButton(
+                            onClick = { eventListViewModel.unarchiveEvents(selectedEventItems) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Inbox,
+                                contentDescription = "Unarchive selected Events",
+                            )
+                        }
+                    }
+                    IconButton(onClick = onDeleteAction) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Delete selected Events",
+                        )
+                    }
+                    IconButton(
+                        onClick = { eventListViewModel.onInteraction(Interaction.SelectAll) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.SelectAll,
+                            contentDescription = "Select all Events",
+                        )
+                    }
+                }
+            },
         )
     }
 }
 
 private fun slideInFromRight(): EnterTransition {
     return slideInHorizontally(
-      initialOffsetX = { fullWidth -> fullWidth },
-      animationSpec = tween(300),
+        initialOffsetX = { fullWidth -> fullWidth },
+        animationSpec = tween(300),
     ) + fadeIn(animationSpec = tween(300))
 }
 
 private fun slideOutToLeft(): ExitTransition {
     return slideOutHorizontally(
-      targetOffsetX = { fullWidth -> -fullWidth },
-      animationSpec = tween(300),
+        targetOffsetX = { fullWidth -> -fullWidth },
+        animationSpec = tween(300),
     ) + fadeOut(animationSpec = tween(300))
 }
 
 private fun slideInFromLeft(): EnterTransition {
     return slideInHorizontally(
-      initialOffsetX = { fullWidth -> -fullWidth },
-      animationSpec = tween(300),
+        initialOffsetX = { fullWidth -> -fullWidth },
+        animationSpec = tween(300),
     ) + fadeIn(animationSpec = tween(300))
 }
 
 private fun slideOutToRight(): ExitTransition {
     return slideOutHorizontally(
-      targetOffsetX = { fullWidth -> fullWidth },
-      animationSpec = tween(300),
+        targetOffsetX = { fullWidth -> fullWidth },
+        animationSpec = tween(300),
     ) + fadeOut(animationSpec = tween(300))
 }

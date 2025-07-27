@@ -52,6 +52,8 @@ import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultWidgetPreviews
 import com.ossalali.daysremaining.presentation.ui.previews.TinySquarePreview
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.widget.EventWidget.Companion.EVENT_ID
+import com.ossalali.daysremaining.widget.EventWidget.Companion.VIEW_EVENT_ACTION
 import com.ossalali.daysremaining.widget.di.WidgetRepositoryEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
@@ -72,6 +74,8 @@ data class WidgetUiState(
 
 class EventWidget : GlanceAppWidget() {
     companion object {
+        const val VIEW_EVENT_ACTION = "com.ossalali.daysremaining.action.VIEW_EVENT"
+        const val EVENT_ID = "EVENT_ID"
         private val TINY_SQUARE = DpSize(120.dp, 50.dp)
         private val SMALL_SQUARE = DpSize(250.dp, 250.dp)
         private val MEDIUM_SQUARE = DpSize(400.dp, 400.dp)
@@ -350,11 +354,11 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
 
     val uiState = EventWidget.getWidgetUiState(size)
 
-    val startAppIntent =
+    val generalAppIntent =
         Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
-    val startActivityAction: Action = actionStartActivity(startAppIntent)
+    val startActivityAction: Action = actionStartActivity(generalAppIntent)
 
     Scaffold(
         modifier = GlanceModifier.fillMaxSize().clickable(startActivityAction),
@@ -365,10 +369,11 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
                     contentAlignment = Alignment.TopEnd,
                 ) {
                     Row {
-                        //Text(
+                        // Text(
                         //    text =
-                        //        "${uiState.selectedSize}: width -> ${size.width} | height ->${size.height}"
-                        //)
+                        //        "${uiState.selectedSize}: width -> ${size.width} | height
+                        // ->${size.height}"
+                        // )
                         CircleIconButton(
                             modifier = GlanceModifier.size(uiState.iconSize),
                             imageProvider = ImageProvider(R.drawable.baseline_refresh_24),
@@ -412,7 +417,7 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    EventItemCard(eventItems.first(), uiState, startActivityAction)
+                    EventItemCard(eventItems.first(), uiState, context)
                 }
             } else {
                 val gridCells =
@@ -426,7 +431,7 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
 
                 LazyVerticalGrid(modifier = GlanceModifier.fillMaxSize(), gridCells = gridCells) {
                     items(itemsToShow, itemId = { event -> event.id.toLong() }) { eventItem ->
-                        EventItemCard(eventItem, uiState, startActivityAction)
+                        EventItemCard(eventItem, uiState, context)
                     }
                 }
             }
@@ -435,8 +440,16 @@ fun WidgetContent(eventItems: List<EventItem>, context: Context) {
 }
 
 @Composable
-fun EventItemCard(eventItem: EventItem, uiState: WidgetUiState, startActivityAction: Action) {
-    Box(modifier = GlanceModifier.padding(Dimensions.quarter).clickable(startActivityAction)) {
+fun EventItemCard(eventItem: EventItem, uiState: WidgetUiState, context: Context) {
+    val eventDetailIntent =
+        Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            action = VIEW_EVENT_ACTION
+            putExtra(EVENT_ID, eventItem.id)
+        }
+    val itemClickAction = actionStartActivity(eventDetailIntent)
+
+    Box(modifier = GlanceModifier.padding(Dimensions.quarter).clickable(itemClickAction)) {
         Column(
             modifier =
                 GlanceModifier.fillMaxSize()
