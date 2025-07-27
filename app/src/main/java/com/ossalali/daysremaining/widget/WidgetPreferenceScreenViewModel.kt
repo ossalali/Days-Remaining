@@ -31,7 +31,7 @@ class WidgetPreferenceScreenViewModel(
 
     private fun getMaxEvents(options: Bundle?): Int {
         if (options == null) {
-            return 8
+            return 14
         }
 
         val heightThresholdDp = 100
@@ -100,9 +100,5 @@ class WidgetPreferenceScreenViewModel(
         if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
             widgetDataStore.saveSelectedEventIds(appWidgetId, selectedEventIds.toList())
         }
-    }
-
-    companion object {
-        private const val TAG = "WidgetPreferenceScreenViewModel"
     }
 }
