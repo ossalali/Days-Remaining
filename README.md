@@ -1,6 +1,6 @@
 # Days Remaining
 
-**Days Remaining** is a modern Android app designed to help you track important events and see how many days remain until they occur (or how many days have passed since they happened). Whether you're counting down to a vacation, anniversary, birthday, or any other significant date, this app keeps all your important events organized in one place.
+**Days Remaining** is an Android app designed to help you track important events and see how many days remain until they occur (or how many days have passed since they happened). Whether you're counting down to a vacation, anniversary, birthday, or any other significant date, this app keeps all your important events organized in one place.
 
 ## What Does This App Do?
 
