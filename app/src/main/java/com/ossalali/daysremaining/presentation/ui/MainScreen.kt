@@ -146,8 +146,9 @@ fun MainScreen(
                         showBackButton = true,
                         onBackClick = { backStack.removeLastOrNull() },
                         content = { paddingValues ->
-                            AddEventScreen(
-                                onClose = { backStack.removeLastOrNull() },
+                            EventDetailsScreen(
+                                eventId = null,
+                                onBackClick = { backStack.removeLastOrNull() },
                                 paddingValues = paddingValues,
                             )
                         },
@@ -288,7 +289,6 @@ private fun MainScreenContent(
                 EventListScreen(
                     viewModel = eventListViewModel,
                     onNavigateToEventDetails = navigateToEventDetails,
-                    paddingValues = PaddingValues(),
                     showFab = isOnEventList,
                     selectedEventItems = selectedEventItems,
                 )

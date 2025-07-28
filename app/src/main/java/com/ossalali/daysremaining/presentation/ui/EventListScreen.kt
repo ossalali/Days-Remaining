@@ -37,85 +37,85 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 internal fun EventListScreen(
-  viewModel: EventListViewModel = hiltViewModel(),
-  onNavigateToEventDetails: (Int) -> Unit = {},
-  paddingValues: PaddingValues,
-  showFab: Boolean = false,
-  selectedEventItems: ImmutableList<EventItem>,
+    viewModel: EventListViewModel = hiltViewModel(),
+    onNavigateToEventDetails: (Int) -> Unit = {},
+    showFab: Boolean = false,
+    selectedEventItems: ImmutableList<EventItem>,
 ) {
     val searchText by viewModel.searchText.collectAsStateWithLifecycle()
 
     EventListImpl(
-      onInteraction = viewModel::onInteraction,
-      eventUiState = viewModel.eventUiState,
-      selectedEventItems = selectedEventItems,
-      activeFilterEnabled = viewModel.activeFilterEnabled,
-      archivedFilterEnabled = viewModel.archivedFilterEnabled,
-      onNavigateToEventDetails = onNavigateToEventDetails,
-      searchText = searchText,
-      onSearchTextChanged = { text -> viewModel.onInteraction(Interaction.UpdateSearchText(text)) },
-      paddingValues = paddingValues,
-      showFab = showFab,
+        onInteraction = viewModel::onInteraction,
+        eventUiState = viewModel.eventUiState,
+        selectedEventItems = selectedEventItems,
+        activeFilterEnabled = viewModel.activeFilterEnabled,
+        archivedFilterEnabled = viewModel.archivedFilterEnabled,
+        onNavigateToEventDetails = onNavigateToEventDetails,
+        searchText = searchText,
+        onSearchTextChanged = { text ->
+            viewModel.onInteraction(Interaction.UpdateSearchText(text))
+        },
+        showFab = showFab,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventListImpl(
-  onInteraction: (Interaction) -> Unit,
-  eventUiState: StateFlow<ImmutableList<EventItem>>,
-  selectedEventItems: ImmutableList<EventItem>,
-  activeFilterEnabled: StateFlow<Boolean>,
-  archivedFilterEnabled: StateFlow<Boolean>,
-  onNavigateToEventDetails: (Int) -> Unit = {},
-  searchText: String = "",
-  onSearchTextChanged: (String) -> Unit = {},
-  paddingValues: PaddingValues,
-  showFab: Boolean = false,
+    onInteraction: (Interaction) -> Unit,
+    eventUiState: StateFlow<ImmutableList<EventItem>>,
+    selectedEventItems: ImmutableList<EventItem>,
+    activeFilterEnabled: StateFlow<Boolean>,
+    archivedFilterEnabled: StateFlow<Boolean>,
+    onNavigateToEventDetails: (Int) -> Unit = {},
+    searchText: String = "",
+    onSearchTextChanged: (String) -> Unit = {},
+    showFab: Boolean = false,
 ) {
     val events by eventUiState.collectAsStateWithLifecycle()
     val activeFilterState by activeFilterEnabled.collectAsStateWithLifecycle()
     val archivedFilterState by archivedFilterEnabled.collectAsStateWithLifecycle()
 
-    Column(
-      modifier =
-        Modifier.fillMaxSize().padding(paddingValues).imePadding().background(Color.Transparent)
-    ) {
+    Column(modifier = Modifier.fillMaxSize().imePadding().background(Color.Transparent)) {
         Row(
-          modifier =
-            Modifier.fillMaxWidth().padding(horizontal = Dimensions.default + Dimensions.half),
-          verticalAlignment = Alignment.CenterVertically,
+            modifier =
+                Modifier.fillMaxWidth().padding(horizontal = Dimensions.default + Dimensions.half),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             AddChips(
-              activeFilterEnabled = activeFilterState,
-              archivedFilterEnabled = archivedFilterState,
-              onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
-              onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
+                activeFilterEnabled = activeFilterState,
+                archivedFilterEnabled = archivedFilterState,
+                onToggleActiveFilter = { onInteraction(Interaction.ToggleActiveFilter) },
+                onToggleArchivedFilter = { onInteraction(Interaction.ToggleArchivedFilter) },
             )
         }
 
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             EventListGrid(
-              onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
-              onEventItemSelection = { onInteraction(Interaction.Select(it)) },
-              events = events,
-              selectedEventItems = selectedEventItems,
-              modifier = Modifier.fillMaxSize(),
-              contentPadding =
-                PaddingValues(start = Dimensions.default, end = Dimensions.default, bottom = 80.dp),
+                onEventItemClick = { eventItemId -> onNavigateToEventDetails(eventItemId) },
+                onEventItemSelection = { onInteraction(Interaction.Select(it)) },
+                events = events,
+                selectedEventItems = selectedEventItems,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding =
+                    PaddingValues(
+                        start = Dimensions.default,
+                        end = Dimensions.default,
+                        bottom = 80.dp,
+                    ),
             )
 
             EventSearchBar(
-              searchText = searchText,
-              onSearchTextChanged = onSearchTextChanged,
-              modifier =
-                Modifier.fillMaxWidth()
-                  .align(Alignment.BottomCenter)
-                  .padding(
-                    start = Dimensions.default,
-                    end = if (showFab) 72.dp + Dimensions.default else Dimensions.default,
-                    bottom = Dimensions.default,
-                  ),
+                searchText = searchText,
+                onSearchTextChanged = onSearchTextChanged,
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(
+                            start = Dimensions.default,
+                            end = if (showFab) 72.dp + Dimensions.default else Dimensions.default,
+                            bottom = Dimensions.default,
+                        ),
             )
         }
     }
@@ -123,48 +123,48 @@ private fun EventListImpl(
 
 @Composable
 fun AddChips(
-  activeFilterEnabled: Boolean,
-  archivedFilterEnabled: Boolean,
-  onToggleActiveFilter: () -> Unit,
-  onToggleArchivedFilter: () -> Unit,
+    activeFilterEnabled: Boolean,
+    archivedFilterEnabled: Boolean,
+    onToggleActiveFilter: () -> Unit,
+    onToggleArchivedFilter: () -> Unit,
 ) {
     Row(horizontalArrangement = Arrangement.Start) {
         FilterChip(
-          selected = activeFilterEnabled,
-          onClick = onToggleActiveFilter,
-          label = { Text(text = "Active") },
-          leadingIcon =
-            if (activeFilterEnabled) {
-                {
-                    Icon(
-                      imageVector = Icons.Filled.Done,
-                      contentDescription = "Done icon",
-                      modifier = Modifier.size(FilterChipDefaults.IconSize),
-                    )
-                }
-            } else {
-                null
-            },
+            selected = activeFilterEnabled,
+            onClick = onToggleActiveFilter,
+            label = { Text(text = "Active") },
+            leadingIcon =
+                if (activeFilterEnabled) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "Done icon",
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    null
+                },
         )
 
         Spacer(Modifier.width(Dimensions.quarter))
 
         FilterChip(
-          selected = archivedFilterEnabled,
-          onClick = onToggleArchivedFilter,
-          label = { Text(text = "Archived") },
-          leadingIcon =
-            if (archivedFilterEnabled) {
-                {
-                    Icon(
-                      imageVector = Icons.Filled.Done,
-                      contentDescription = "Done icon",
-                      modifier = Modifier.size(FilterChipDefaults.IconSize),
-                    )
-                }
-            } else {
-                null
-            },
+            selected = archivedFilterEnabled,
+            onClick = onToggleArchivedFilter,
+            label = { Text(text = "Archived") },
+            leadingIcon =
+                if (archivedFilterEnabled) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "Done icon",
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    null
+                },
         )
     }
 }

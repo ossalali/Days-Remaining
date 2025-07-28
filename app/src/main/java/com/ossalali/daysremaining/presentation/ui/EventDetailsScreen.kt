@@ -52,7 +52,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -73,15 +72,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ossalali.daysremaining.BuildConfig
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
@@ -97,25 +92,35 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun EventDetailsScreen(
     eventId: Int? = null,
-    event: EventItem? = null,
     onBackClick: () -> Unit,
-    onDeleteEvent: (EventItem) -> Unit,
+    onDeleteEvent: (EventItem) -> Unit = {},
     viewModel: EventDetailsViewModel = hiltViewModel(),
     paddingValues: PaddingValues,
 ) {
-    if (eventId != null) {
-        LaunchedEffect(eventId) { viewModel.loadEventById(eventId) }
+    val isAddMode = eventId == null
+
+    LaunchedEffect(eventId, isAddMode) {
+        if (isAddMode) {
+            viewModel.initializeForAddMode()
+        } else {
+            viewModel.initializeForEditMode(eventId)
+        }
     }
 
     val eventState by viewModel.event.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
-    val displayEvent = event ?: eventState
+    val hasChanges by viewModel.hasChanges.collectAsState()
+    val viewModelIsAddMode by viewModel.isAddMode.collectAsState()
+
+    val displayEvent = if (isAddMode) null else eventState
 
     EventDetailsContent(
         event = displayEvent,
         isLoading = isLoading,
         isSaving = isSaving,
+        isAddMode = viewModelIsAddMode,
+        hasChanges = hasChanges,
         onUpdateEvent = { updatedEvent ->
             viewModel.saveEvent(updatedEvent)
             onBackClick()
@@ -125,6 +130,7 @@ fun EventDetailsScreen(
             viewModel.eventDeletedHandled()
             onBackClick()
         },
+        onTrackChanges = { changes -> viewModel.trackChanges(changes) },
         paddingValues = paddingValues,
     )
 }
@@ -233,28 +239,51 @@ fun EventDetailsContent(
     event: EventItem?,
     isLoading: Boolean,
     isSaving: Boolean,
+    isAddMode: Boolean,
+    hasChanges: Boolean,
     onUpdateEvent: (EventItem) -> Unit,
     onDeleteEvent: (EventItem) -> Unit,
+    onTrackChanges: (Boolean) -> Unit,
     paddingValues: PaddingValues,
 ) {
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
-    val titleState = remember(event) { TextFieldState(initialText = event?.title ?: "") }
-    var selectedDateMillis by
-        rememberSaveable(event) {
-            mutableLongStateOf(
-                (event?.date?.toEpochDay() ?: LocalDate.now().toEpochDay()) * 24 * 60 * 60 * 1000
-            )
+    val titleState = remember { TextFieldState() }
+    var selectedDateMillis by rememberSaveable {
+        mutableLongStateOf(LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000)
+    }
+    val descriptionState = remember { TextFieldState() }
+
+    LaunchedEffect(event, isAddMode) {
+        if (isAddMode) {
+
+            titleState.edit { replace(0, length, "") }
+            descriptionState.edit { replace(0, length, "") }
+            selectedDateMillis = LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000
+        } else if (event != null) {
+
+            titleState.edit { replace(0, length, event.title) }
+            descriptionState.edit { replace(0, length, event.description) }
+            selectedDateMillis = event.date.toEpochDay() * 24 * 60 * 60 * 1000
         }
-    val descriptionState =
-        remember(event) { TextFieldState(initialText = event?.description ?: "") }
+    }
 
     val originalTitle = event?.title ?: ""
     val originalDateMillis =
-        remember(event) {
-            (event?.date?.toEpochDay() ?: LocalDate.now().toEpochDay()) * 24 * 60 * 60 * 1000
-        }
+        event?.date?.toEpochDay()?.times(24 * 60 * 60 * 1000)
+            ?: (LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000)
     val originalDescription = event?.description ?: ""
+
+    LaunchedEffect(titleState.text, selectedDateMillis, descriptionState.text, isAddMode) {
+        if (!isAddMode) {
+            val titleChanged = titleState.text.trim() != originalTitle
+            val dateChanged = selectedDateMillis != originalDateMillis
+            val descriptionChanged = descriptionState.text.trim() != originalDescription
+
+            val hasChanges = titleChanged || dateChanged || descriptionChanged
+            onTrackChanges(hasChanges)
+        }
+    }
 
     if (showDeleteConfirmDialog && event != null) {
         DeleteAlertDialog(
@@ -276,9 +305,19 @@ fun EventDetailsContent(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-        } else if (event != null) {
+        } else if (event != null || isAddMode) {
+            val displayEvent =
+                event
+                    ?: EventItem(
+                        id = 0,
+                        title = "",
+                        date = LocalDate.now(),
+                        description = "",
+                        isArchived = false,
+                    )
+
             ScrollableEventForm(
-                event = event,
+                event = displayEvent,
                 titleState = titleState,
                 selectedDateMillis = selectedDateMillis,
                 onDateChanged = { selectedDateMillis = it },
@@ -289,14 +328,13 @@ fun EventDetailsContent(
             )
 
             BottomActionBar(
-                event = event,
+                event = displayEvent,
                 titleState = titleState,
                 selectedDateMillis = selectedDateMillis,
                 descriptionState = descriptionState,
-                originalTitle = originalTitle,
-                originalDateMillis = originalDateMillis,
-                originalDescription = originalDescription,
                 isSaving = isSaving,
+                isAddMode = isAddMode,
+                hasChanges = hasChanges,
                 onSave = onUpdateEvent,
                 onDelete = { showDeleteConfirmDialog = true },
                 horizontalPadding = actionBarPadding,
@@ -316,47 +354,25 @@ private fun SaveEventFab(
     titleState: TextFieldState,
     selectedDateMillis: Long,
     descriptionState: TextFieldState,
-    originalTitle: String,
-    originalDateMillis: Long,
-    originalDescription: String,
     isSaving: Boolean,
+    isAddMode: Boolean,
+    hasChanges: Boolean,
     onSave: (EventItem) -> Unit,
 ) {
     val isTitleValid by remember { derivedStateOf { titleState.text.isNotBlank() } }
 
-    val selectedDateMillisState = rememberUpdatedState(selectedDateMillis)
-
-    val hasChanges by
-        remember(titleState.text, descriptionState.text, selectedDateMillis) {
+    val canSave by
+        remember(isTitleValid, hasChanges, isSaving, isAddMode) {
             derivedStateOf {
-                if (titleState.text.isBlank()) {
-                    return@derivedStateOf false
-                }
-                val titleChanged = titleState.text.toString().trim() != originalTitle
-                val dateChanged = selectedDateMillisState.value != originalDateMillis
-                val descriptionChanged =
-                    descriptionState.text.toString().trim() != originalDescription
+                if (isAddMode) {
 
-                if (BuildConfig.DEBUG) {
-                    appLogger()
-                        .d(
-                            tag = "CHANGE",
-                            message =
-                                "Change detection - Title: $titleChanged, Date: $dateChanged, Description: $descriptionChanged",
-                        )
-                    appLogger()
-                        .d(
-                            tag = "CHANGE",
-                            message =
-                                "Selected date millis: ${selectedDateMillisState.value}, Original date millis: $originalDateMillis",
-                        )
-                }
+                    isTitleValid && !isSaving
+                } else {
 
-                titleChanged || dateChanged || descriptionChanged
+                    isTitleValid && hasChanges && !isSaving
+                }
             }
         }
-
-    val canSave by remember { derivedStateOf { isTitleValid && hasChanges && !isSaving } }
 
     FloatingActionButton(
         onClick = {
@@ -394,10 +410,9 @@ private fun BottomActionBar(
     titleState: TextFieldState,
     selectedDateMillis: Long,
     descriptionState: TextFieldState,
-    originalTitle: String,
-    originalDateMillis: Long,
-    originalDescription: String,
     isSaving: Boolean,
+    isAddMode: Boolean,
+    hasChanges: Boolean,
     onSave: (EventItem) -> Unit,
     onDelete: () -> Unit,
     horizontalPadding: Dp,
@@ -405,19 +420,20 @@ private fun BottomActionBar(
 ) {
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding).imePadding(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = if (isAddMode) Arrangement.End else Arrangement.SpaceBetween,
     ) {
-        DeleteEventFab(onDelete = onDelete)
+        if (!isAddMode) {
+            DeleteEventFab(onDelete = onDelete)
+        }
 
         SaveEventFab(
             event = event,
             titleState = titleState,
             selectedDateMillis = selectedDateMillis,
             descriptionState = descriptionState,
-            originalTitle = originalTitle,
-            originalDateMillis = originalDateMillis,
-            originalDescription = originalDescription,
             isSaving = isSaving,
+            isAddMode = isAddMode,
+            hasChanges = hasChanges,
             onSave = onSave,
         )
     }
@@ -741,6 +757,8 @@ private fun EventContent(
     }
 }
 
+// region Edit mode
+
 @DefaultPreviews()
 @Composable
 fun EventDetailsContentLoadingPreview() {
@@ -749,8 +767,11 @@ fun EventDetailsContentLoadingPreview() {
             event = null,
             isLoading = true,
             isSaving = false,
+            isAddMode = false,
+            hasChanges = false,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(),
         )
     }
@@ -773,8 +794,11 @@ fun EventDetailsContentSavingPreview() {
             event = sampleEvent,
             isLoading = false,
             isSaving = true,
+            isAddMode = false,
+            hasChanges = true,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(),
         )
     }
@@ -788,8 +812,11 @@ fun EventDetailsContentNotFoundPreview() {
             event = null,
             isLoading = false,
             isSaving = false,
+            isAddMode = false,
+            hasChanges = false,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(),
         )
     }
@@ -797,89 +824,7 @@ fun EventDetailsContentNotFoundPreview() {
 
 @DefaultPreviews()
 @Composable
-fun EventDetailsPreview() {
-    val sampleEvent =
-        EventItem(
-            id = 1,
-            title = "Sample Event Title",
-            date = LocalDate.now().plusDays(10),
-            description = "This is a sample event description with the new keyboard-aware layout.",
-            isArchived = true,
-        )
-
-    MyAppTheme {
-        EventDetailsContent(
-            event = sampleEvent,
-            isLoading = false,
-            isSaving = false,
-            onUpdateEvent = { /* Preview - no action */ },
-            onDeleteEvent = { /* Preview - no action */ },
-            paddingValues = PaddingValues(),
-        )
-    }
-}
-
-@DefaultPreviews()
-@Composable
-fun EventDetailsShortContentPreview() {
-    val sampleEvent =
-        EventItem(
-            id = 1,
-            title = "Short",
-            date = LocalDate.now().plusDays(3),
-            description = "Brief.",
-        )
-
-    MyAppTheme {
-        EventDetailsContent(
-            event = sampleEvent,
-            isLoading = false,
-            isSaving = false,
-            onUpdateEvent = { /* Preview - no action */ },
-            onDeleteEvent = { /* Preview - no action */ },
-            paddingValues = PaddingValues(),
-        )
-    }
-}
-
-@DefaultPreviews()
-@Composable
-fun EventDetailsLongContentPreview() {
-    val sampleEvent =
-        EventItem(
-            id = 1,
-            title = "Very Long Event Title That Might Wrap to Multiple Lines in Certain Scenarios",
-            date = LocalDate.now().plusDays(30),
-            description =
-                """
-                This is a very long description that tests how the keyboard-aware layout handles extensive content. 
-                
-                It includes multiple paragraphs to simulate real-world usage where users might write detailed event descriptions.
-                
-                The new scrollable layout should handle this content gracefully, ensuring that when the keyboard appears, users can still access all parts of the description field.
-                
-                This tests the ScrollableEventForm component's ability to manage long content while maintaining proper keyboard interactions and focus management.
-                
-                Additional content to further test scrolling behavior and ensure the bottom action bar remains accessible even with extensive text content.
-            """
-                    .trimIndent(),
-        )
-
-    MyAppTheme {
-        EventDetailsContent(
-            event = sampleEvent,
-            isLoading = false,
-            isSaving = false,
-            onUpdateEvent = { /* Preview - no action */ },
-            onDeleteEvent = { /* Preview - no action */ },
-            paddingValues = PaddingValues(),
-        )
-    }
-}
-
-@DefaultPreviews()
-@Composable
-fun EventDetailsEmptyFieldsPreview() {
+fun EventDetailsEmptyFieldsEditModePreview() {
     val sampleEvent = EventItem(id = 1, title = "", date = LocalDate.now(), description = "")
 
     MyAppTheme {
@@ -887,8 +832,11 @@ fun EventDetailsEmptyFieldsPreview() {
             event = sampleEvent,
             isLoading = false,
             isSaving = false,
+            isAddMode = false,
+            hasChanges = false,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(),
         )
     }
@@ -896,14 +844,14 @@ fun EventDetailsEmptyFieldsPreview() {
 
 @DefaultPreviews()
 @Composable
-fun EventDetailsWithSystemBarsPreview() {
+fun EventDetailsWithSystemBarsEditModePreview() {
     val sampleEvent =
         EventItem(
             id = 1,
             title = "Event with System UI",
             date = LocalDate.now().plusDays(7),
             description =
-                "This preview shows how the keyboard-aware layout works with system bars and navigation padding.",
+                "This preview shows how the keyboard-aware layout works with system bars and navigation padding in edit mode.",
         )
 
     MyAppTheme {
@@ -911,8 +859,11 @@ fun EventDetailsWithSystemBarsPreview() {
             event = sampleEvent,
             isLoading = false,
             isSaving = false,
+            isAddMode = false,
+            hasChanges = true,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(top = 24.dp, bottom = 80.dp, start = 16.dp, end = 16.dp),
         )
     }
@@ -920,14 +871,14 @@ fun EventDetailsWithSystemBarsPreview() {
 
 @DefaultPreviews()
 @Composable
-fun EventDetailsArchivedPreview() {
+fun EventDetailsArchivedEditModePreview() {
     val sampleEvent =
         EventItem(
             id = 1,
             title = "Archived Event",
             date = LocalDate.now().minusDays(30),
             description =
-                "This archived event tests the keyboard-aware layout with the archived status indicator.",
+                "This archived event tests the keyboard-aware layout with the archived status indicator in edit mode.",
             isArchived = true,
         )
 
@@ -936,8 +887,11 @@ fun EventDetailsArchivedPreview() {
             event = sampleEvent,
             isLoading = false,
             isSaving = false,
+            isAddMode = false,
+            hasChanges = true,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(),
         )
     }
@@ -998,10 +952,9 @@ fun BottomActionBarPreview() {
                 titleState = titleState,
                 selectedDateMillis = sampleEvent.date.toEpochDay() * 24 * 60 * 60 * 1000,
                 descriptionState = descriptionState,
-                originalTitle = sampleEvent.title,
-                originalDateMillis = sampleEvent.date.toEpochDay() * 24 * 60 * 60 * 1000,
-                originalDescription = sampleEvent.description,
                 isSaving = false,
+                isAddMode = false,
+                hasChanges = true,
                 onSave = { /* Preview - no action */ },
                 onDelete = { /* Preview - no action */ },
                 horizontalPadding = 16.dp,
@@ -1011,21 +964,16 @@ fun BottomActionBarPreview() {
     }
 }
 
-@Preview(
-    name = "Phone Portrait - Keyboard Simulation",
-    showSystemUi = true,
-    device = Devices.PIXEL_7_PRO,
-    uiMode = Configuration.UI_MODE_NIGHT_NO,
-)
+@DefaultPreviews()
 @Composable
-fun EventDetailsKeyboardSimulationPreview() {
+fun EventDetailsKeyboardSimulationEditModePreview() {
     val sampleEvent =
         EventItem(
             id = 1,
             title = "Keyboard Test Event",
             date = LocalDate.now().plusDays(12),
             description =
-                "This preview simulates keyboard interaction by adding bottom padding to represent the soft keyboard area.",
+                "This preview simulates keyboard interaction by adding bottom padding to represent the soft keyboard area in edit mode.",
         )
 
     MyAppTheme {
@@ -1033,67 +981,54 @@ fun EventDetailsKeyboardSimulationPreview() {
             event = sampleEvent,
             isLoading = false,
             isSaving = false,
+            isAddMode = false,
+            hasChanges = true,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(bottom = 300.dp),
         )
     }
 }
 
-@Preview(
-    name = "Tablet Landscape - Keyboard Aware",
-    showSystemUi = true,
-    device = Devices.PIXEL_TABLET,
-    uiMode = Configuration.UI_MODE_NIGHT_NO,
-)
-@Composable
-fun EventDetailsTabletLandscapePreview() {
-    val sampleEvent =
-        EventItem(
-            id = 1,
-            title = "Tablet Landscape Event",
-            date = LocalDate.now().plusDays(8),
-            description =
-                "Testing the responsive layout behavior on tablet in landscape orientation with the new keyboard-aware structure.",
-        )
+// endregion
 
+// region Add mode
+
+@DefaultPreviews()
+@Composable
+fun EventDetailsAddModePreview() {
     MyAppTheme {
         EventDetailsContent(
-            event = sampleEvent,
+            event = null,
             isLoading = false,
             isSaving = false,
+            isAddMode = true,
+            hasChanges = false,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(),
         )
     }
 }
 
-@Preview(
-    name = "Small Screen - Compact Layout",
-    showSystemUi = true,
-    device = "spec:width=360dp,height=640dp,dpi=480",
-    uiMode = Configuration.UI_MODE_NIGHT_NO,
-)
+@DefaultPreviews()
 @Composable
-fun EventDetailsSmallScreenPreview() {
-    val sampleEvent =
-        EventItem(
-            id = 1,
-            title = "Small Screen Test",
-            date = LocalDate.now().plusDays(4),
-            description =
-                "Testing keyboard-aware layout on smaller screens to ensure proper space utilization.",
-        )
-
+fun EventDetailsAddModeSavingPreview() {
     MyAppTheme {
         EventDetailsContent(
-            event = sampleEvent,
+            event = null,
             isLoading = false,
-            isSaving = false,
+            isSaving = true,
+            isAddMode = true,
+            hasChanges = false,
             onUpdateEvent = { /* Preview - no action */ },
             onDeleteEvent = { /* Preview - no action */ },
+            onTrackChanges = { /* Preview - no action */ },
             paddingValues = PaddingValues(),
         )
     }
 }
+
+// end region

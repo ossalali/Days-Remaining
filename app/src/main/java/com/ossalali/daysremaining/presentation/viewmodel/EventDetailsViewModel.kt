@@ -18,8 +18,8 @@ import javax.inject.Inject
 class EventDetailsViewModel
 @Inject
 constructor(
-  @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-  private val eventRepo: EventRepo,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val eventRepo: EventRepo,
 ) : ViewModel() {
 
     private val _event = MutableStateFlow<EventItem?>(null)
@@ -31,12 +31,19 @@ constructor(
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
+    private val _isAddMode = MutableStateFlow(false)
+    val isAddMode: StateFlow<Boolean> = _isAddMode.asStateFlow()
+
+    private val _hasChanges = MutableStateFlow(false)
+    val hasChanges: StateFlow<Boolean> = _hasChanges.asStateFlow()
+
     fun saveEvent(event: EventItem) {
         viewModelScope.launch(ioDispatcher) {
             _isSaving.value = true
             try {
                 eventRepo.insertEvent(event)
                 _event.value = event
+                _hasChanges.value = false
             } catch (e: Exception) {
                 appLogger().e(tag = TAG, message = "Couldn't save eventItem $event", throwable = e)
             } finally {
@@ -45,17 +52,37 @@ constructor(
         }
     }
 
+    fun initializeForAddMode() {
+        _isAddMode.value = true
+        _event.value = null
+        _isLoading.value = false
+        _hasChanges.value = false
+    }
+
+    fun initializeForEditMode(eventId: Int) {
+        _isAddMode.value = false
+        _hasChanges.value = false
+        loadEventById(eventId)
+    }
+
     fun loadEventById(eventId: Int) {
         viewModelScope.launch(ioDispatcher) {
             _isLoading.value = true
             try {
                 val loadedEvent = eventRepo.getEventById(eventId)
                 _event.value = loadedEvent
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                appLogger().e(message = "Couldn't load eventItem with id $eventId", throwable = e)
                 _event.value = null
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    fun trackChanges(hasChanges: Boolean) {
+        if (!_isAddMode.value) {
+            _hasChanges.value = hasChanges
         }
     }
 
