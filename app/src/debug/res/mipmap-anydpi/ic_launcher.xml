@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <foreground android:drawable="@drawable/icon" />
-    <monochrome android:drawable="@drawable/icon_monochrome" />
+    <foreground android:drawable="@drawable/icon_debug" />
+    <monochrome android:drawable="@drawable/icon_monochrome_debug" />
 </adaptive-icon>
