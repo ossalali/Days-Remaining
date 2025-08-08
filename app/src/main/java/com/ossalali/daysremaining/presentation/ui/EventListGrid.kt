@@ -8,27 +8,31 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
@@ -37,7 +41,7 @@ import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDate
 import kotlin.math.min
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EventListGrid(
     onEventItemClick: (Int) -> Unit,
@@ -49,7 +53,7 @@ fun EventListGrid(
 ) {
     if (events.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "No events found", style = MaterialTheme.typography.titleLargeEmphasized)
+            Text(text = "No events found", style = MaterialTheme.typography.titleLarge)
         }
         return
     }
@@ -106,7 +110,7 @@ fun EventListGrid(
                         modifier = Modifier.fillMaxSize().padding(Dimensions.half),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(modifier = Modifier.weight(1f).padding(end = Dimensions.half)) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = event.title,
                                 style = MaterialTheme.typography.titleMedium,
@@ -116,15 +120,27 @@ fun EventListGrid(
                             )
                             Text(
                                 text = numberOfDays.toString(),
-                                style = MaterialTheme.typography.headlineLargeEmphasized,
+                                style = MaterialTheme.typography.headlineLarge,
                                 textAlign = TextAlign.Center,
                                 modifier =
                                     Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                             )
+                            if (!event.imageUri.isNullOrBlank()) {
+                                AsyncImage(
+                                    modifier =
+                                        Modifier.fillMaxWidth()
+                                            .height(80.dp)
+                                            .clip(MaterialTheme.shapes.small),
+                                    model = event.imageUri,
+                                    contentDescription = "Event image thumbnail",
+                                    contentScale = ContentScale.Crop,
+                                )
+                            }
                             if (event.description.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(Dimensions.quarter))
                                 Text(
                                     text = event.description,
-                                    style = MaterialTheme.typography.bodyMediumEmphasized,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Center,
                                     maxLines = 4,
                                     overflow = TextOverflow.Ellipsis,

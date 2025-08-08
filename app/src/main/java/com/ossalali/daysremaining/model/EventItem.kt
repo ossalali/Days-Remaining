@@ -20,6 +20,7 @@ data class EventItem(
   val title: String,
   val date: LocalDate,
   val description: String,
+  val imageUri: String? = null,
   val isArchived: Boolean = false,
 ) {
     val numberOfDays: Long by lazy {

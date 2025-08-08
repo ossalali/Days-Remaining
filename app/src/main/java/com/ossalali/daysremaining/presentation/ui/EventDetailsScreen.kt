@@ -1,7 +1,12 @@
 package com.ossalali.daysremaining.presentation.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
@@ -28,17 +34,23 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -56,14 +68,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -74,9 +90,14 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
+import com.ossalali.daysremaining.infrastructure.ImageStorage
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
@@ -253,35 +274,49 @@ fun EventDetailsContent(
         mutableLongStateOf(LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000)
     }
     val descriptionState = remember { TextFieldState() }
+    var imageUri by rememberSaveable { mutableStateOf<String?>(null) }
+    var baselineEvent by remember { mutableStateOf<EventItem?>(null) }
 
-    LaunchedEffect(event, isAddMode) {
+    LaunchedEffect(event?.id, isAddMode) {
         if (isAddMode) {
-
+            baselineEvent = null
             titleState.edit { replace(0, length, "") }
             descriptionState.edit { replace(0, length, "") }
             selectedDateMillis = LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000
-        } else if (event != null) {
-
+            imageUri = null
+        } else if (event != null && baselineEvent?.id != event.id) {
+            baselineEvent = event
             titleState.edit { replace(0, length, event.title) }
             descriptionState.edit { replace(0, length, event.description) }
             selectedDateMillis = event.date.toEpochDay() * 24 * 60 * 60 * 1000
+            imageUri = event.imageUri
         }
     }
 
-    val originalTitle = event?.title ?: ""
+    val originalTitle = baselineEvent?.title ?: ""
     val originalDateMillis =
-        event?.date?.toEpochDay()?.times(24 * 60 * 60 * 1000)
+        baselineEvent?.date?.toEpochDay()?.times(24 * 60 * 60 * 1000)
             ?: (LocalDate.now().toEpochDay() * 24 * 60 * 60 * 1000)
-    val originalDescription = event?.description ?: ""
+    val originalDescription = baselineEvent?.description ?: ""
+    val originalImageUri = baselineEvent?.imageUri
 
-    LaunchedEffect(titleState.text, selectedDateMillis, descriptionState.text, isAddMode) {
-        if (!isAddMode) {
+    LaunchedEffect(
+        titleState.text,
+        selectedDateMillis,
+        descriptionState.text,
+        imageUri,
+        isAddMode,
+    ) {
+        if (!isAddMode && baselineEvent != null) {
             val titleChanged = titleState.text.trim() != originalTitle
             val dateChanged = selectedDateMillis != originalDateMillis
             val descriptionChanged = descriptionState.text.trim() != originalDescription
+            val imageChanged = imageUri != originalImageUri
 
-            val hasChanges = titleChanged || dateChanged || descriptionChanged
+            val hasChanges = titleChanged || dateChanged || descriptionChanged || imageChanged
             onTrackChanges(hasChanges)
+        } else {
+            onTrackChanges(false)
         }
     }
 
@@ -313,6 +348,7 @@ fun EventDetailsContent(
                         title = "",
                         date = LocalDate.now(),
                         description = "",
+                        imageUri = null,
                         isArchived = false,
                     )
 
@@ -322,6 +358,8 @@ fun EventDetailsContent(
                 selectedDateMillis = selectedDateMillis,
                 onDateChanged = { selectedDateMillis = it },
                 descriptionState = descriptionState,
+                imageUri = imageUri,
+                onImagePicked = { picked -> imageUri = picked },
                 screenHorizontalPadding = screenHorizontalPadding,
                 scrollPaddingConfig = scrollPaddingConfig,
                 modifier = Modifier.weight(1f),
@@ -332,6 +370,7 @@ fun EventDetailsContent(
                 titleState = titleState,
                 selectedDateMillis = selectedDateMillis,
                 descriptionState = descriptionState,
+                imageUri = imageUri,
                 isSaving = isSaving,
                 isAddMode = isAddMode,
                 hasChanges = hasChanges,
@@ -354,6 +393,7 @@ private fun SaveEventFab(
     titleState: TextFieldState,
     selectedDateMillis: Long,
     descriptionState: TextFieldState,
+    imageUri: String?,
     isSaving: Boolean,
     isAddMode: Boolean,
     hasChanges: Boolean,
@@ -385,6 +425,7 @@ private fun SaveEventFab(
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate(),
                         description = descriptionState.text.toString().trim(),
+                        imageUri = imageUri,
                     )
                 onSave(updatedEvent)
             }
@@ -410,6 +451,7 @@ private fun BottomActionBar(
     titleState: TextFieldState,
     selectedDateMillis: Long,
     descriptionState: TextFieldState,
+    imageUri: String?,
     isSaving: Boolean,
     isAddMode: Boolean,
     hasChanges: Boolean,
@@ -431,6 +473,7 @@ private fun BottomActionBar(
             titleState = titleState,
             selectedDateMillis = selectedDateMillis,
             descriptionState = descriptionState,
+            imageUri = imageUri,
             isSaving = isSaving,
             isAddMode = isAddMode,
             hasChanges = hasChanges,
@@ -459,6 +502,8 @@ private fun ScrollableEventForm(
     selectedDateMillis: Long,
     onDateChanged: (Long) -> Unit,
     descriptionState: TextFieldState,
+    imageUri: String?,
+    onImagePicked: (String?) -> Unit,
     screenHorizontalPadding: Dp,
     scrollPaddingConfig: ScrollPaddingConfig,
     modifier: Modifier = Modifier,
@@ -484,6 +529,8 @@ private fun ScrollableEventForm(
             selectedDateMillis = selectedDateMillis,
             onDateChanged = onDateChanged,
             descriptionState = descriptionState,
+            imageUri = imageUri,
+            onImagePicked = onImagePicked,
             screenHorizontalPadding = screenHorizontalPadding,
             scrollPaddingConfig = scrollPaddingConfig,
             scrollState = scrollState,
@@ -494,7 +541,7 @@ private fun ScrollableEventForm(
 }
 
 @SuppressLint("ConfigurationScreenWidthHeight")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventContent(
     isArchived: Boolean,
@@ -502,6 +549,8 @@ private fun EventContent(
     selectedDateMillis: Long,
     onDateChanged: (Long) -> Unit,
     descriptionState: TextFieldState,
+    imageUri: String?,
+    onImagePicked: (String?) -> Unit,
     screenHorizontalPadding: Dp,
     scrollPaddingConfig: ScrollPaddingConfig,
     scrollState: ScrollState,
@@ -547,6 +596,34 @@ private fun EventContent(
 
     val titleError by remember { derivedStateOf { titleState.text.isBlank() } }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showImagePickerDialog by rememberSaveable { mutableStateOf(false) }
+    var showConfirmImageDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showFullScreenImage by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val photoPickerLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
+            if (uri != null) {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    )
+                } catch (_: Exception) {}
+
+                val stored = ImageStorage.persistImageFromUri(context, uri)
+                onImagePicked((stored ?: uri).toString())
+            }
+        }
+
+    var cameraTempUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success: Boolean
+            ->
+            if (success) {
+                onImagePicked(cameraTempUri?.toString())
+            }
+        }
 
     Column(modifier = Modifier.padding(horizontal = screenHorizontalPadding)) {
         if (isArchived) {
@@ -732,6 +809,106 @@ private fun EventContent(
             },
         )
 
+        Spacer(modifier = Modifier.height(verticalSpacing))
+
+        val imagePreviewMaxWidth by
+            remember(imageUri) {
+                derivedStateOf {
+                    if (imageUri.isNullOrBlank()) {
+                        1f
+                    } else {
+                        0.9f
+                    }
+                }
+            }
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier =
+                    Modifier.weight(imagePreviewMaxWidth)
+                        .height(180.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(Dimensions.default),
+                        )
+                        .clickable {
+                            if (!imageUri.isNullOrBlank()) {
+                                showFullScreenImage = true
+                            } else {
+                                showImagePickerDialog = true
+                            }
+                        }
+                        .padding(Dimensions.half),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (!imageUri.isNullOrBlank()) {
+                    AsyncImage(
+                        modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.small),
+                        model = imageUri,
+                        contentDescription = "Event image",
+                        contentScale = ContentScale.Crop,
+                    )
+                } else {
+                    Text(
+                        text = "Tap to add an image",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (!imageUri.isNullOrBlank()) {
+                Spacer(modifier = Modifier.width(Dimensions.default))
+                Column(
+                    modifier = Modifier.weight(1f - imagePreviewMaxWidth).height(180.dp),
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    IconButton(
+                        modifier =
+                            Modifier.background(
+                                shape = ShapeDefaults.Small,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                            ),
+                        onClick = { showFullScreenImage = true },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Fullscreen,
+                            contentDescription = "View fullscreen",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    IconButton(
+                        modifier =
+                            Modifier.background(
+                                shape = ShapeDefaults.Small,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                            ),
+                        onClick = { showImagePickerDialog = true },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.PhotoLibrary,
+                            contentDescription = "Change image",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    IconButton(
+                        modifier =
+                            Modifier.background(
+                                shape = ShapeDefaults.Small,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                            ),
+                        onClick = { showConfirmImageDeleteDialog = true },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Remove image",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+
         if (showDatePicker) {
             DatePickerDialog(
                 onDismissRequest = { showDatePicker = false },
@@ -753,6 +930,121 @@ private fun EventContent(
             ) {
                 DatePicker(state = datePickerState)
             }
+        }
+
+        if (showImagePickerDialog) {
+            AlertDialog(
+                onDismissRequest = { showImagePickerDialog = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showImagePickerDialog = false
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        }
+                    ) {
+                        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                            Icon(
+                                imageVector = Icons.Default.PhotoLibrary,
+                                contentDescription = "Choose photo",
+                            )
+                            Text("Choose photo")
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showImagePickerDialog = false
+                            val imageFile = ImageStorage.createImageFileInAppStorage(context)
+                            val uri =
+                                FileProvider.getUriForFile(
+                                    context,
+                                    context.packageName + ".fileprovider",
+                                    imageFile,
+                                )
+                            cameraTempUri = uri
+                            cameraLauncher.launch(uri)
+                        }
+                    ) {
+                        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                            Icon(
+                                imageVector = Icons.Default.PhotoCamera,
+                                contentDescription = "Take photo",
+                            )
+                            Text("Take photo")
+                        }
+                    }
+                },
+                title = { Text("Add image") },
+                text = { Text("Take or Choose an photo") },
+            )
+        }
+
+        if (showFullScreenImage && !imageUri.isNullOrBlank()) {
+            Dialog(
+                onDismissRequest = { showFullScreenImage = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+            ) {
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                    AsyncImage(
+                        modifier = Modifier.fillMaxSize(),
+                        model = imageUri,
+                        contentDescription = "Event image fullscreen",
+                        contentScale = ContentScale.Fit,
+                    )
+                    IconButton(
+                        modifier = Modifier.align(Alignment.TopEnd).padding(Dimensions.default),
+                        onClick = { showFullScreenImage = false },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "Close",
+                            tint = Color.White,
+                        )
+                    }
+                }
+            }
+        }
+
+        if (showConfirmImageDeleteDialog) {
+            AlertDialog(
+                title = {
+                    Text(text = "Delete image?", style = MaterialTheme.typography.titleLarge)
+                },
+                text = { Text("Do you want to delete the image?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onImagePicked(null)
+                            showConfirmImageDeleteDialog = false
+                        }
+                    ) {
+                        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Confirm Delete Image",
+                            )
+                            Text("OK")
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showConfirmImageDeleteDialog = false }) {
+                        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Cancel Delete Image",
+                            )
+                            Text("Cancel")
+                        }
+                    }
+                },
+                onDismissRequest = { showConfirmImageDeleteDialog = false },
+            )
         }
     }
 }
@@ -919,6 +1211,8 @@ fun ScrollableEventFormPreview() {
             selectedDateMillis = sampleEvent.date.toEpochDay() * 24 * 60 * 60 * 1000,
             onDateChanged = { /* Preview - no action */ },
             descriptionState = descriptionState,
+            imageUri = null,
+            onImagePicked = { /* Preview - no action */ },
             screenHorizontalPadding = 16.dp,
             scrollPaddingConfig =
                 ScrollPaddingConfig(
@@ -952,6 +1246,7 @@ fun BottomActionBarPreview() {
                 titleState = titleState,
                 selectedDateMillis = sampleEvent.date.toEpochDay() * 24 * 60 * 60 * 1000,
                 descriptionState = descriptionState,
+                imageUri = null,
                 isSaving = false,
                 isAddMode = false,
                 hasChanges = true,
