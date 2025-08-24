@@ -110,6 +110,7 @@ dependencies {
 
     // DataStore and Kotlinx Serialization
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.kotlinx.serialization.json)
 
     // Image loading
