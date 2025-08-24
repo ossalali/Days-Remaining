@@ -1,35 +1,51 @@
 package com.ossalali.daysremaining.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.ossalali.daysremaining.settings.SettingsRepository
+import com.ossalali.daysremaining.settings.usecases.EnableAutoArchiveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor() : ViewModel() {
+class SettingsViewModel
+@Inject
+constructor(
+    private val repo: SettingsRepository,
+    private val enableAutoArchiveUseCase: EnableAutoArchiveUseCase,
+) : ViewModel() {
+    val darkModeEnabled: StateFlow<Boolean> =
+        repo.darkMode.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false,
+        )
 
-    private val _darkModeEnabled = MutableStateFlow(false)
-    val darkModeEnabled: StateFlow<Boolean> = _darkModeEnabled
+    val notificationsEnabled: StateFlow<Boolean> =
+        repo.notifications.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false,
+        )
 
-    private val _notificationsEnabled = MutableStateFlow(false)
-    val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled
+    val autoArchiveEnabled: StateFlow<Boolean> =
+        repo.autoArchive.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false,
+        )
 
-    private val _autoArchiveEnabled = MutableStateFlow(false)
-    val autoArchiveEnabled: StateFlow<Boolean> = _autoArchiveEnabled
+    fun toggleDarkMode(enabled: Boolean) =
+        viewModelScope.launch { repo.setDarkMode(enabled = enabled) }
 
-    fun toggleDarkMode(enabled: Boolean) {
-        _darkModeEnabled.value = enabled
-        // Add implementation to save preference
-    }
-
-    fun toggleNotifications(enabled: Boolean) {
-        _notificationsEnabled.value = enabled
-        // Add implementation to save preference
-    }
+    fun toggleNotifications(enabled: Boolean) =
+        viewModelScope.launch { repo.setNotifications(enabled = enabled) }
 
     fun toggleAutoArchive(enabled: Boolean) {
-        _autoArchiveEnabled.value = enabled
-        // Add implementation to save preference
+        enableAutoArchiveUseCase(enabled)
     }
 }

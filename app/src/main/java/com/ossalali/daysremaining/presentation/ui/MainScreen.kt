@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.SelectAll
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -113,13 +114,13 @@ fun MainScreen(
                             backStack.add(EventDetailsRoute(eventId))
                         },
                         navigateToDebugScreen = { backStack.add(DebugRoute) },
+                        navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                     )
                 }
 
                 entry<EventDetailsRoute> { route ->
                     MainScreenContent(
                         eventListViewModel = eventListViewModel,
-                        navigateToDebugScreen = { backStack.add(DebugRoute) },
                         title = "Event Details",
                         showBackButton = true,
                         onBackClick = { backStack.removeLastOrNull() },
@@ -140,7 +141,6 @@ fun MainScreen(
                     MainScreenContent(
                         eventListViewModel = eventListViewModel,
                         navigateToAddEvent = { backStack.add(AddEventRoute) },
-                        navigateToDebugScreen = { backStack.add(DebugRoute) },
                         title = "Add Event",
                         showBackButton = true,
                         onBackClick = { backStack.removeLastOrNull() },
@@ -157,7 +157,7 @@ fun MainScreen(
                 entry<SettingsRoute> {
                     MainScreenContent(
                         eventListViewModel = eventListViewModel,
-                        navigateToDebugScreen = { backStack.add(DebugRoute) },
+                        navigateToSettingsScreen = { backStack.add(SettingsRoute) },
                         title = "Settings",
                         showBackButton = true,
                         onBackClick = { backStack.removeLastOrNull() },
@@ -192,6 +192,7 @@ private fun MainScreenContent(
     navigateToAddEvent: () -> Unit = {},
     navigateToEventDetails: (Int) -> Unit = {},
     navigateToDebugScreen: () -> Unit = {},
+    navigateToSettingsScreen: () -> Unit = {},
     title: String = "Days Remaining",
     showBackButton: Boolean = false,
     onBackClick: () -> Unit = {},
@@ -263,6 +264,7 @@ private fun MainScreenContent(
                 showBackButton,
                 onBackClick,
                 navigateToDebugScreen,
+                navigateToSettingsScreen,
                 eventListViewModel,
                 onDeleteAction = { showDeleteConfirmDialog = true },
             )
@@ -304,6 +306,7 @@ private fun SetupTopAppBar(
     showBackButton: Boolean,
     onBackClick: () -> Unit,
     navigateToDebugScreen: () -> Unit,
+    navigateToSettingsScreen: () -> Unit,
     eventListViewModel: EventListViewModel,
     onDeleteAction: () -> Unit,
 ) {
@@ -321,15 +324,15 @@ private fun SetupTopAppBar(
                 }
             },
             actions = {
-                // IconButton(onClick = { navigateToSettingsScreen() }) {
-                //    Icon(
-                //      imageVector = Icons.Filled.Settings,
-                //      contentDescription = "Open Settings screen",
-                //    )
-                // }
+                IconButton(onClick = { navigateToSettingsScreen() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Open Settings screen",
+                    )
+                }
                 if (BuildConfig.DEBUG) {
                     IconButton(
-                        modifier = Modifier.padding(horizontal = Dimensions.default),
+                        modifier = Modifier.padding(horizontal = Dimensions.quarter),
                         onClick = { navigateToDebugScreen() },
                     ) {
                         Icon(
