@@ -7,6 +7,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -17,8 +18,23 @@ class AutoArchiver @Inject constructor() {
     }
 
     fun start(context: Context) {
+        val currentTime = Calendar.getInstance()
+        val nextMidnight =
+            Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+                if (before(currentTime)) {
+                    add(Calendar.DAY_OF_YEAR, 1)
+                }
+            }
+        val initialDelay = nextMidnight.timeInMillis - currentTime.timeInMillis
+
         val periodicRequest =
-            PeriodicWorkRequestBuilder<AutoArchiveWorker>(1, TimeUnit.DAYS).build()
+            PeriodicWorkRequestBuilder<AutoArchiveWorker>(1, TimeUnit.DAYS)
+                .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+                .build()
 
         val wm = WorkManager.getInstance(context.applicationContext)
         wm.enqueueUniquePeriodicWork(
