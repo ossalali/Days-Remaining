@@ -115,6 +115,7 @@ fun MainScreen(
                   navigateToEventDetails = { eventId -> backStack.add(EventDetailsRoute(eventId)) },
                   navigateToDebugScreen = { backStack.add(DebugRoute) },
                   navigateToSettingsScreen = { backStack.add(SettingsRoute) },
+                  showTopAppBarButtons = true,
               )
             }
 
@@ -193,6 +194,7 @@ private fun MainScreenContent(
     navigateToSettingsScreen: () -> Unit = {},
     title: String = "Days Remaining",
     showBackButton: Boolean = false,
+    showTopAppBarButtons: Boolean = false,
     onBackClick: () -> Unit = {},
     content: @Composable ((PaddingValues) -> Unit)? = null,
 ) {
@@ -258,6 +260,7 @@ private fun MainScreenContent(
             selectedEventItems,
             title,
             showBackButton,
+            showTopAppBarButtons,
             onBackClick,
             navigateToDebugScreen,
             navigateToSettingsScreen,
@@ -282,7 +285,9 @@ private fun MainScreenContent(
     if (content != null) {
       content(paddingValues)
     } else {
-      Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+      Box(modifier = Modifier
+          .padding(paddingValues)
+          .fillMaxSize()) {
         EventListScreen(
             viewModel = eventListViewModel,
             onNavigateToEventDetails = navigateToEventDetails,
@@ -300,6 +305,7 @@ private fun SetupTopAppBar(
     selectedEventItems: ImmutableList<EventItem>,
     title: String,
     showBackButton: Boolean,
+    showTopAppBarButtons: Boolean,
     onBackClick: () -> Unit,
     navigateToDebugScreen: () -> Unit,
     navigateToSettingsScreen: () -> Unit,
@@ -320,21 +326,23 @@ private fun SetupTopAppBar(
           }
         },
         actions = {
-          IconButton(onClick = { navigateToSettingsScreen() }) {
-            Icon(
-                imageVector = Icons.Filled.Settings,
-                contentDescription = "Open Settings screen",
-            )
-          }
-          if (BuildConfig.DEBUG) {
-            IconButton(
-                modifier = Modifier.padding(horizontal = Dimensions.quarter),
-                onClick = { navigateToDebugScreen() },
-            ) {
-              Icon(
-                  imageVector = Icons.Filled.BugReport,
-                  contentDescription = "Open Debug screen",
-              )
+            if (showTopAppBarButtons) {
+                IconButton(onClick = { navigateToSettingsScreen() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Open Settings screen",
+                    )
+                }
+                if (BuildConfig.DEBUG) {
+                    IconButton(
+                        modifier = Modifier.padding(horizontal = Dimensions.quarter),
+                        onClick = { navigateToDebugScreen() },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.BugReport,
+                            contentDescription = "Open Debug screen",
+                        )
+                    }
             }
           }
         },
