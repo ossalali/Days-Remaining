@@ -2,50 +2,62 @@ package com.ossalali.daysremaining.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.settings.SettingsRepository
-import com.ossalali.daysremaining.settings.usecases.EnableAutoArchiveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel
 @Inject
 constructor(
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val repo: SettingsRepository,
-    private val enableAutoArchiveUseCase: EnableAutoArchiveUseCase,
 ) : ViewModel() {
-    val darkModeEnabled: StateFlow<Boolean> =
-        repo.darkMode.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false,
-        )
+  val darkModeEnabled: StateFlow<Boolean> =
+      repo.darkMode.stateIn(
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5_000),
+          initialValue = false,
+      )
 
-    val notificationsEnabled: StateFlow<Boolean> =
-        repo.notifications.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false,
-        )
+  val notificationsEnabled: StateFlow<Boolean> =
+      repo.notifications.stateIn(
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5_000),
+          initialValue = false,
+      )
 
-    val autoArchiveEnabled: StateFlow<Boolean> =
-        repo.autoArchive.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false,
-        )
+  val autoArchiveEnabled: StateFlow<Boolean> =
+      repo.autoArchive.stateIn(
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5_000),
+          initialValue = false,
+      )
 
-    fun toggleDarkMode(enabled: Boolean) =
-        viewModelScope.launch { repo.setDarkMode(enabled = enabled) }
+  val customDateNotation: StateFlow<Boolean> =
+      repo.customDateNotation.stateIn(
+          scope = viewModelScope,
+          started = SharingStarted.WhileSubscribed(5_000),
+          initialValue = false,
+      )
 
-    fun toggleNotifications(enabled: Boolean) =
-        viewModelScope.launch { repo.setNotifications(enabled = enabled) }
+  fun toggleDarkMode(enabled: Boolean) =
+      viewModelScope.launch(ioDispatcher) { repo.setDarkMode(enabled = enabled) }
 
-    fun toggleAutoArchive(enabled: Boolean) {
-        enableAutoArchiveUseCase(enabled)
-    }
+  fun toggleNotifications(enabled: Boolean) =
+      viewModelScope.launch(ioDispatcher) { repo.setNotifications(enabled = enabled) }
+
+  fun toggleAutoArchive(enabled: Boolean) {
+    viewModelScope.launch(ioDispatcher) { repo.setAutoArchive(enabled = enabled) }
+  }
+
+  fun toggleCustomDateNotation(enabled: Boolean) {
+    viewModelScope.launch(ioDispatcher) { repo.setCustomDateNotation(enabled = enabled) }
+  }
 }

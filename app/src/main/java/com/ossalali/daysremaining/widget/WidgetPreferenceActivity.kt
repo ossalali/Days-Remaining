@@ -15,56 +15,57 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class WidgetPreferenceActivity : ComponentActivity() {
-    private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
+  private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setResult(RESULT_CANCELED)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
+    setResult(RESULT_CANCELED)
 
-        appWidgetId =
-            intent
-                ?.extras
-                ?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-                ?: AppWidgetManager.INVALID_APPWIDGET_ID
+    appWidgetId =
+        intent
+            ?.extras
+            ?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+            ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
-            finish()
-            return
-        }
-
-        val appWidgetManager = AppWidgetManager.getInstance(this)
-        val appWidgetOptions = appWidgetManager.getAppWidgetOptions(appWidgetId)
-        val widgetEntryPoint =
-            EntryPointAccessors.fromApplication(
-                this.applicationContext,
-                WidgetRepositoryEntryPoint::class.java,
-            )
-        val eventRepo = widgetEntryPoint.eventRepo()
-        val widgetDataStore = widgetEntryPoint.widgetDataStore()
-        val viewModel =
-            WidgetPreferenceScreenViewModel(
-                eventRepo = eventRepo,
-                widgetDataStore = widgetDataStore,
-                appWidgetId = appWidgetId,
-                appWidgetOptions = appWidgetOptions,
-            )
-
-        setContent {
-            WidgetPreferenceScreen(viewModel = viewModel, onSaveComplete = { finishWithSuccess() })
-        }
+    if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+      finish()
+      return
     }
 
-    private fun finishWithSuccess() {
-        val resultValue =
-            Intent().apply { putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId) }
-        setResult(RESULT_OK, resultValue)
+    val appWidgetManager = AppWidgetManager.getInstance(this)
+    val appWidgetOptions = appWidgetManager.getAppWidgetOptions(appWidgetId)
+    val widgetEntryPoint =
+        EntryPointAccessors.fromApplication(
+            this.applicationContext,
+            WidgetRepositoryEntryPoint::class.java,
+        )
+    val eventRepo = widgetEntryPoint.eventRepo()
+    val settingsRepo = widgetEntryPoint.settingsRepo()
+    val widgetDataStore = widgetEntryPoint.widgetDataStore()
+    val viewModel =
+        WidgetPreferenceScreenViewModel(
+            eventRepository = eventRepo,
+            settingsRepo = settingsRepo,
+            widgetDataStore = widgetDataStore,
+            appWidgetId = appWidgetId,
+            appWidgetOptions = appWidgetOptions,
+        )
 
-        lifecycleScope.launch {
-            val glanceId =
-                GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
-            EventWidget().update(this@WidgetPreferenceActivity, glanceId)
-            finish()
-        }
+    setContent {
+      WidgetPreferenceScreen(viewModel = viewModel, onSaveComplete = { finishWithSuccess() })
     }
+  }
+
+  private fun finishWithSuccess() {
+    val resultValue = Intent().apply { putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId) }
+    setResult(RESULT_OK, resultValue)
+
+    lifecycleScope.launch {
+      val glanceId =
+          GlanceAppWidgetManager(this@WidgetPreferenceActivity).getGlanceIdBy(appWidgetId)
+      EventWidget().update(this@WidgetPreferenceActivity, glanceId)
+      finish()
+    }
+  }
 }

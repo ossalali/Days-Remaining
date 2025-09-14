@@ -3,12 +3,12 @@ package com.ossalali.daysremaining.settings
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.ossalali.daysremaining.infrastructure.EventRepo
+import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.settings.di.WorkerEntryPoint
 import com.ossalali.daysremaining.widget.refreshWidget
 import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.flow.first
 import java.time.LocalDate
+import kotlinx.coroutines.flow.first
 
 class AutoArchiveWorker(private val appContext: Context, params: WorkerParameters) :
     CoroutineWorker(appContext, params) {
@@ -25,7 +25,7 @@ class AutoArchiveWorker(private val appContext: Context, params: WorkerParameter
             return Result.success()
         }
 
-        val repo: EventRepo = entryPoint.eventRepo()
+        val repo: EventRepository = entryPoint.eventRepo()
         val allEvents = repo.getAllEvents()
         val today = LocalDate.now()
         val idsToArchive =

@@ -2,7 +2,7 @@ package com.ossalali.daysremaining.di
 
 import android.content.Context
 import com.ossalali.daysremaining.infrastructure.EventDao
-import com.ossalali.daysremaining.infrastructure.EventRepo
+import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.MyDatabase
 import dagger.Module
 import dagger.Provides
@@ -23,13 +23,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMyDao(database: MyDatabase): EventDao {
+    fun provideEventDao(database: MyDatabase): EventDao {
         return database.eventDao()
     }
 
     @Provides
     @Singleton
-    fun provideMyRepository(eventDao: EventDao): EventRepo {
-        return EventRepo(eventDao)
+    fun provideEventRepo(eventDao: EventDao): EventRepository {
+        return EventRepository(eventDao)
     }
 }

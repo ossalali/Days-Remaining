@@ -17,9 +17,9 @@ import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 
 @Composable
 fun ShowDeletionSnackBar(
-  onUndoDelete: () -> Unit,
-  onDismissSnackBar: () -> Unit,
-  snackBarMessage: String,
+    onUndoDelete: () -> Unit,
+    onDismissSnackBar: () -> Unit,
+    snackBarMessage: String,
 ) {
     Snackbar(
       modifier = Modifier.padding(all = Dimensions.default),

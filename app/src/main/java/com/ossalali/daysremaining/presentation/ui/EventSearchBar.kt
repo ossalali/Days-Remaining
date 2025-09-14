@@ -28,9 +28,9 @@ import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventSearchBar(
-  searchText: String,
-  onSearchTextChanged: (String) -> Unit,
-  modifier: Modifier = Modifier,
+    searchText: String,
+    onSearchTextChanged: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -49,9 +49,9 @@ fun EventSearchBar(
             trailingIcon = {
                 if (isFocused) {
                     Icon(
-                      imageVector = Icons.Filled.Close,
-                      contentDescription = "Close search bar",
-                      modifier =
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Close search bar",
+                        modifier =
                         Modifier.clickable {
                             keyboardController?.hide()
                             onSearchTextChanged("")
@@ -61,9 +61,10 @@ fun EventSearchBar(
                 }
             },
             modifier =
-              Modifier.shadow(Dimensions.quarter, shape = CircleShape)
-                .focusRequester(focusRequester)
-                .onFocusChanged { focusState -> isFocused = focusState.isFocused },
+                Modifier
+                    .shadow(Dimensions.quarter, shape = CircleShape)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { focusState -> isFocused = focusState.isFocused },
           )
       },
       expanded = false,
@@ -79,9 +80,9 @@ fun SearchBarPreview() {
 
     MaterialTheme {
         EventSearchBar(
-          searchText = searchText,
-          onSearchTextChanged = { searchText = it },
-          modifier = Modifier,
+            searchText = searchText,
+            onSearchTextChanged = { searchText = it },
+            modifier = Modifier,
         )
     }
 }

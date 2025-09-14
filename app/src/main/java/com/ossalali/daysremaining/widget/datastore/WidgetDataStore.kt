@@ -6,14 +6,14 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
 
 private val Context.dataStore: DataStore<Preferences> by
-  preferencesDataStore(name = "widget_preferences")
+preferencesDataStore(name = "widget_preferences")
 
 class WidgetDataStore @Inject constructor(private val context: Context) {
 
@@ -28,8 +28,8 @@ class WidgetDataStore @Inject constructor(private val context: Context) {
             preferences[selectedEventsKey(appWidgetId)] = jsonString
         }
         android.util.Log.d(
-          "WidgetDataStore",
-          "Successfully saved event IDs for widget $appWidgetId",
+            "WidgetDataStore",
+            "Successfully saved event IDs for widget $appWidgetId",
         )
     }
 
@@ -38,34 +38,34 @@ class WidgetDataStore @Inject constructor(private val context: Context) {
         return context.dataStore.data.map { preferences ->
             val jsonString = preferences[selectedEventsKey(appWidgetId)]
             android.util.Log.d(
-              "WidgetDataStore",
-              "Retrieved JSON for widget $appWidgetId: $jsonString",
+                "WidgetDataStore",
+                "Retrieved JSON for widget $appWidgetId: $jsonString",
             )
             if (jsonString != null) {
                 try {
                     val eventIds = Json.decodeFromString<List<Int>>(jsonString)
                     android.util.Log.d(
-                      "WidgetDataStore",
-                      "Deserialized event IDs for widget $appWidgetId: $eventIds",
+                        "WidgetDataStore",
+                        "Deserialized event IDs for widget $appWidgetId: $eventIds",
                     )
                     eventIds
                 } catch (e: SerializationException) {
                     android.util.Log.e(
-                      "WidgetDataStore",
-                      "Error deserializing event IDs for widget $appWidgetId: ${e.message}",
+                        "WidgetDataStore",
+                        "Error deserializing event IDs for widget $appWidgetId: ${e.message}",
                     )
                     emptyList()
                 } catch (e: Exception) {
                     android.util.Log.e(
-                      "WidgetDataStore",
-                      "Unexpected error deserializing event IDs for widget $appWidgetId: ${e.message}",
+                        "WidgetDataStore",
+                        "Unexpected error deserializing event IDs for widget $appWidgetId: ${e.message}",
                     )
                     emptyList()
                 }
             } else {
                 android.util.Log.d(
-                  "WidgetDataStore",
-                  "No saved event IDs found for widget $appWidgetId",
+                    "WidgetDataStore",
+                    "No saved event IDs found for widget $appWidgetId",
                 )
                 emptyList()
             }

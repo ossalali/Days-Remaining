@@ -7,10 +7,10 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun DeleteAlertDialog(
-  numberOfEventsToBeDeleted: Int = 1,
-  eventTitle: String = "",
-  onConfirm: () -> Unit,
-  onDismiss: () -> Unit,
+    numberOfEventsToBeDeleted: Int = 1,
+    eventTitle: String = "",
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
       onDismissRequest = onDismiss,
@@ -27,8 +27,7 @@ fun DeleteAlertDialog(
             onClick = {
                 onConfirm()
                 onDismiss()
-            }
-          ) {
+            }) {
               Text("Delete")
           }
       },

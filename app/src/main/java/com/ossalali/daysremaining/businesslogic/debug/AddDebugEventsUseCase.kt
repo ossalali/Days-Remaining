@@ -9,12 +9,12 @@ class AddDebugEventsUseCase(private val addEvents: (List<EventItem>) -> Unit) {
         val eventItemList = mutableListOf<EventItem>()
         for (i in 1..numberOfEvents) {
             eventItemList.add(
-              EventItem(
-                id = 0,
-                title = "Event $i",
-                description = "Event $i Description",
-                date = LocalDate.now().plus(i.toLong() * 10, ChronoUnit.DAYS),
-              )
+                EventItem(
+                    id = 0,
+                    title = "Event $i",
+                    description = "Event $i Description",
+                    date = LocalDate.now().plus(i.toLong() * 10, ChronoUnit.DAYS),
+                )
             )
         }
 

@@ -4,8 +4,8 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 /**
- * Central definition of all navigation destinations in the app.
- * Each route is a serializable NavKey for use with Navigation 3.
+ * Central definition of all navigation destinations in the app. Each route is a serializable NavKey
+ * for use with Navigation 3.
  */
 sealed interface DaysRoute : NavKey
 
@@ -22,4 +22,4 @@ data object SettingsRoute : DaysRoute
 data object DebugRoute : DaysRoute
 
 @Serializable
-data object AddEventRoute : DaysRoute 
+data object AddEventRoute : DaysRoute

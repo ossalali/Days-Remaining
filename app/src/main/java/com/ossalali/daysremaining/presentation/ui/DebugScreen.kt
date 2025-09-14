@@ -26,46 +26,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.ossalali.daysremaining.businesslogic.debug.AddDebugEventsUseCase
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.DebugScreenViewModel
 
 @Composable
 fun DebugScreen(
-  debugScreenViewModel: DebugScreenViewModel = hiltViewModel(),
-  paddingValues: PaddingValues = PaddingValues(),
-  onClose: () -> Unit,
+    debugScreenViewModel: DebugScreenViewModel =
+        hiltViewModel(LocalViewModelStoreOwner.current!!, "DebugScreenViewModel"),
+    paddingValues: PaddingValues = PaddingValues(),
+    onClose: () -> Unit,
 ) {
-    var numberOfEvents by rememberSaveable { mutableIntStateOf(0) }
-    var textFieldValue by rememberSaveable { mutableStateOf("") }
-    val textFieldFocusRequester = remember { FocusRequester() }
+  var numberOfEvents by rememberSaveable { mutableIntStateOf(0) }
+  var textFieldValue by rememberSaveable { mutableStateOf("") }
+  val textFieldFocusRequester = remember { FocusRequester() }
 
-    Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-        Column {
-            OutlinedTextField(
-              value = textFieldValue,
-              onValueChange = {
-                  textFieldValue = it
-                  numberOfEvents = it.toIntOrNull() ?: 0
-              },
-              label = { Text("Add Events") },
-              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-              modifier =
-                Modifier.fillMaxWidth()
+  Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+    Column {
+      OutlinedTextField(
+          value = textFieldValue,
+          onValueChange = {
+            textFieldValue = it
+            numberOfEvents = it.toIntOrNull() ?: 0
+          },
+          label = { Text("Add Events") },
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+          modifier =
+              Modifier.fillMaxWidth()
                   .padding(horizontal = Dimensions.default)
                   .focusRequester(textFieldFocusRequester),
-            )
-            Spacer(Modifier.height(Dimensions.default))
-            FloatingActionButton(
-              modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.default),
-              onClick = {
-                  AddDebugEventsUseCase(debugScreenViewModel::insertEvents)(numberOfEvents)
-                  onClose()
-              },
-            ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Events")
-            }
-        }
+      )
+      Spacer(Modifier.height(Dimensions.default))
+      FloatingActionButton(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.default),
+          onClick = {
+            AddDebugEventsUseCase(debugScreenViewModel::insertEvents)(numberOfEvents)
+            onClose()
+          },
+      ) {
+        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Events")
+      }
     }
+  }
 }

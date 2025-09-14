@@ -17,7 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.SettingsViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -25,18 +26,22 @@ import kotlinx.coroutines.flow.StateFlow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    viewModel: SettingsViewModel = hiltViewModel(),
+    viewModel: SettingsViewModel =
+        hiltViewModel(
+            viewModelStoreOwner = LocalViewModelStoreOwner.current!!, key = "SettingsViewModel"),
     paddingValues: PaddingValues = PaddingValues(),
 ) {
-    SettingsScreenImpl(
-        toggleDarkMode = viewModel::toggleDarkMode,
-        toggleNotifications = viewModel::toggleNotifications,
-        toggleAutoArchive = viewModel::toggleAutoArchive,
-        darkModeEnabled = viewModel.darkModeEnabled,
-        notificationsEnabled = viewModel.notificationsEnabled,
-        autoArchiveEnabled = viewModel.autoArchiveEnabled,
-        paddingValues = paddingValues,
-    )
+  SettingsScreenImpl(
+      toggleDarkMode = viewModel::toggleDarkMode,
+      toggleNotifications = viewModel::toggleNotifications,
+      toggleAutoArchive = viewModel::toggleAutoArchive,
+      toggleCustomDateNotation = viewModel::toggleCustomDateNotation,
+      darkModeEnabled = viewModel.darkModeEnabled,
+      notificationsEnabled = viewModel.notificationsEnabled,
+      autoArchiveEnabled = viewModel.autoArchiveEnabled,
+      customDateNotation = viewModel.customDateNotation,
+      paddingValues = paddingValues,
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,41 +50,57 @@ fun SettingsScreenImpl(
     toggleDarkMode: (Boolean) -> Unit,
     toggleNotifications: (Boolean) -> Unit,
     toggleAutoArchive: (Boolean) -> Unit,
+    toggleCustomDateNotation: (Boolean) -> Unit,
     darkModeEnabled: StateFlow<Boolean>,
     notificationsEnabled: StateFlow<Boolean>,
     autoArchiveEnabled: StateFlow<Boolean>,
+    customDateNotation: StateFlow<Boolean>,
     paddingValues: PaddingValues = PaddingValues(),
 ) {
-    val darkModeEnabled by darkModeEnabled.collectAsState()
-    val notificationsEnabled by notificationsEnabled.collectAsState()
-    val autoArchiveEnabled by autoArchiveEnabled.collectAsState()
-    Surface(
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
-        color = MaterialTheme.colorScheme.background,
-    ) {
-        Column(modifier = Modifier.fillMaxSize().padding(Dimensions.default)) {
-            SettingItem(
-                title = "Dark Mode",
-                description = "Enable dark theme",
-                checked = darkModeEnabled,
-                onCheckedChange = { checked -> toggleDarkMode(checked) },
-            )
+  val darkModeEnabled by darkModeEnabled.collectAsState()
+  val notificationsEnabled by notificationsEnabled.collectAsState()
+  val autoArchiveEnabled by autoArchiveEnabled.collectAsState()
+  val customDateNotation by customDateNotation.collectAsState()
 
-            SettingItem(
-                title = "Notifications",
-                description = "Enable notification reminders",
-                checked = notificationsEnabled,
-                onCheckedChange = { checked -> toggleNotifications(checked) },
-            )
+  Surface(
+      modifier = Modifier
+          .fillMaxSize()
+          .padding(paddingValues),
+      color = MaterialTheme.colorScheme.background,
+  ) {
+      Column(modifier = Modifier
+          .fillMaxSize()
+          .padding(Dimensions.default)) {
+      SettingItem(
+          title = "Dark Mode",
+          description = "Enable dark theme",
+          checked = darkModeEnabled,
+          onCheckedChange = { checked -> toggleDarkMode(checked) },
+      )
 
-            SettingItem(
-                title = "Automatically archive events",
-                description = "Archive events after they've passed",
-                checked = autoArchiveEnabled,
-                onCheckedChange = { checked -> toggleAutoArchive(checked) },
-            )
-        }
+      SettingItem(
+          title = "Notifications",
+          description = "Enable notification reminders",
+          checked = notificationsEnabled,
+          onCheckedChange = { checked -> toggleNotifications(checked) },
+      )
+
+      SettingItem(
+          title = "Automatically archive events",
+          description = "Archive events after they've passed",
+          checked = autoArchiveEnabled,
+          onCheckedChange = { checked -> toggleAutoArchive(checked) },
+      )
+
+      SettingItem(
+          title = "Custom date notation (year, month, week, days)",
+          description =
+              "If enabled, show the date notation (year, month, week, days) instead of the days remaining",
+          checked = customDateNotation,
+          onCheckedChange = { checked -> toggleCustomDateNotation(checked) },
+      )
     }
+  }
 }
 
 @Composable
@@ -89,12 +110,14 @@ fun SettingItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.half)) {
-        ListItem(
-            headlineContent = { Text(text = title) },
-            supportingContent = { Text(text = description) },
-            trailingContent = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
-        )
-        Spacer(modifier = Modifier.height(Dimensions.half))
-    }
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = Dimensions.half)) {
+    ListItem(
+        headlineContent = { Text(text = title) },
+        supportingContent = { Text(text = description) },
+        trailingContent = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
+    )
+    Spacer(modifier = Modifier.height(Dimensions.half))
+  }
 }

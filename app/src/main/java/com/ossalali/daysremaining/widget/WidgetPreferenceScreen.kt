@@ -38,96 +38,92 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveComplete: () -> Unit) {
-    val scope = rememberCoroutineScope()
-    val inputEvents by viewModel.getEvents().collectAsState()
+  val scope = rememberCoroutineScope()
+  val inputEvents by viewModel.getEvents().collectAsState()
+  val customDateNotation = viewModel.getCustomDateNotationSetting()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Widget Settings") },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            scope.launch {
-                                viewModel.saveSelectedEvents()
-                                onSaveComplete()
-                            }
-                        }
-                    ) {
-                        Icon(Icons.Filled.Done, contentDescription = "Save")
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("Widget Settings") },
+            actions = {
+              IconButton(
+                  onClick = {
+                    scope.launch {
+                      viewModel.saveSelectedEvents()
+                      onSaveComplete()
                     }
-                },
-            )
-        }
-    ) { paddingValues ->
+                  }) {
+                    Icon(Icons.Filled.Done, contentDescription = "Save")
+                  }
+            },
+        )
+      }) { paddingValues ->
         if (inputEvents.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = "No events found", style = MaterialTheme.typography.titleLarge)
-            }
+          Box(
+              modifier = Modifier.fillMaxSize().padding(paddingValues),
+              contentAlignment = Alignment.Center,
+          ) {
+            Text(text = "No events found", style = MaterialTheme.typography.titleLarge)
+          }
         } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-            ) {
-                items(inputEvents, key = { event -> event.id }) { event ->
-                    val isSelected = viewModel.selectedEventIds.contains(event.id)
-                    appLogger()
-                        .d(
-                            tag = "WidgetPreferenceScreen",
-                            message =
-                                "Composing event ${event.id}, isSelected: $isSelected, selectedIds: ${viewModel.selectedEventIds}",
-                        )
-                    Card(
-                        border =
-                            if (isSelected) {
-                                BorderStroke(Dimensions.eighth, MaterialTheme.colorScheme.primary)
-                            } else {
-                                null
-                            },
-                        shape = MaterialTheme.shapes.medium,
-                        modifier =
-                            Modifier.fillMaxWidth()
-                                .padding(Dimensions.half)
-                                .combinedClickable(
-                                    onClick = { viewModel.toggleSelection(event.id) },
-                                    onClickLabel = "Event Selected",
-                                ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize().padding(Dimensions.half),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f).padding(end = Dimensions.half)) {
-                                Text(
-                                    text = event.title,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    textAlign = TextAlign.Center,
-                                    modifier =
-                                        Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
-                                )
-                                Text(
-                                    text = event.numberOfDays.toString(),
-                                    fontSize = TextUnit(16f, TextUnitType.Em),
-                                    textAlign = TextAlign.Center,
-                                    modifier =
-                                        Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
-                                )
-                                Text(
-                                    text = "Days",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Center,
-                                    modifier =
-                                        Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
-                                )
-                            }
-                        }
-                    }
+          LazyVerticalGrid(
+              columns = GridCells.Fixed(2),
+              modifier = Modifier.fillMaxSize().padding(paddingValues),
+          ) {
+            items(inputEvents, key = { event -> event.id }) { event ->
+              val isSelected = viewModel.selectedEventIds.contains(event.id)
+              appLogger()
+                  .d(
+                      tag = "WidgetPreferenceScreen",
+                      message =
+                          "Composing event ${event.id}, isSelected: $isSelected, selectedIds: ${viewModel.selectedEventIds}",
+                  )
+              Card(
+                  border =
+                      if (isSelected) {
+                        BorderStroke(Dimensions.eighth, MaterialTheme.colorScheme.primary)
+                      } else {
+                        null
+                      },
+                  shape = MaterialTheme.shapes.medium,
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .padding(Dimensions.half)
+                          .combinedClickable(
+                              onClick = { viewModel.toggleSelection(event.id) },
+                              onClickLabel = "Event Selected",
+                          ),
+                  elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
+              ) {
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(Dimensions.half),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                  Column(modifier = Modifier.weight(1f).padding(end = Dimensions.half)) {
+                    Text(
+                        text = event.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
+                    )
+                    Text(
+                        text = event.getNumberOfDays(customDateNotation),
+                        fontSize = TextUnit(16f, TextUnitType.Em),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
+                    )
+                    Text(
+                        text = "Days",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
+                    )
+                  }
                 }
+              }
             }
+          }
         }
-    }
+      }
 }

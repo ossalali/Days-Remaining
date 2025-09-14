@@ -3,23 +3,23 @@ package com.ossalali.daysremaining.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
-import com.ossalali.daysremaining.infrastructure.EventRepo
+import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class EventDetailsViewModel
 @Inject
 constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val eventRepo: EventRepo,
+    private val eventRepository: EventRepository,
 ) : ViewModel() {
 
     private val _event = MutableStateFlow<EventItem?>(null)
@@ -41,7 +41,7 @@ constructor(
         viewModelScope.launch(ioDispatcher) {
             _isSaving.value = true
             try {
-                eventRepo.insertEvent(event)
+                eventRepository.insertEvent(event)
                 _event.value = event
                 _hasChanges.value = false
             } catch (e: Exception) {
@@ -69,7 +69,7 @@ constructor(
         viewModelScope.launch(ioDispatcher) {
             _isLoading.value = true
             try {
-                val loadedEvent = eventRepo.getEventById(eventId)
+                val loadedEvent = eventRepository.getEventById(eventId)
                 _event.value = loadedEvent
             } catch (e: Exception) {
                 appLogger().e(message = "Couldn't load eventItem with id $eventId", throwable = e)

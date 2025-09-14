@@ -73,6 +73,6 @@ class Logger @Inject constructor() {
         fun warn(message: String) = logger.w(message, contextTag)
 
         fun error(message: String, throwable: Throwable? = null) =
-          logger.e(message, throwable, contextTag)
+            logger.e(message, throwable, contextTag)
     }
 }

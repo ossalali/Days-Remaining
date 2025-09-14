@@ -17,17 +17,18 @@ abstract class MyDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
 
     companion object {
-        @Volatile private var INSTANCE: MyDatabase? = null
+        @Volatile
+        private var INSTANCE: MyDatabase? = null
 
         fun getDatabase(context: Context): MyDatabase {
             return INSTANCE
                 ?: synchronized(this) {
                     val instance =
                         Room.databaseBuilder(
-                                context.applicationContext,
-                                MyDatabase::class.java,
-                                "myDatabase",
-                            )
+                            context.applicationContext,
+                            MyDatabase::class.java,
+                            "myDatabase",
+                        )
                             .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
                             .setQueryExecutor(Executors.newFixedThreadPool(4))
                             .addMigrations(MIGRATION_1_2)

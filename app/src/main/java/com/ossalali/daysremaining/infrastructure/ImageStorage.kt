@@ -19,9 +19,7 @@ object ImageStorage {
         return try {
             context.contentResolver.openInputStream(sourceUri)?.use { input ->
                 val destination = createImageFileInAppStorage(context)
-                destination.outputStream().use { output ->
-                    input.copyTo(output)
-                }
+                destination.outputStream().use { output -> input.copyTo(output) }
                 FileProvider.getUriForFile(
                     context,
                     context.packageName + ".fileprovider",
@@ -33,5 +31,3 @@ object ImageStorage {
         }
     }
 }
-
-
