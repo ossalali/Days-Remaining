@@ -202,6 +202,7 @@ private fun MainScreenContent(
   val pendingDeleteEventsState by
       eventListViewModel.pendingDeleteEvents.collectAsStateWithLifecycle()
   var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var showArchiveConfirmDialog by remember { mutableStateOf(false) }
   val snackBarHostState = remember { SnackbarHostState() }
   val coroutineScope = rememberCoroutineScope()
 
@@ -253,6 +254,18 @@ private fun MainScreenContent(
     }
   }
 
+    if (showArchiveConfirmDialog && selectedEventItems.isNotEmpty()) {
+        ArchiveAlertDialog(
+            numberOfEvents = selectedEventItems.size,
+            firstTitle = selectedEventItems.firstOrNull()?.title ?: "",
+            onConfirm = {
+                eventListViewModel.archiveEvents(selectedEventItems)
+                showArchiveConfirmDialog = false
+            },
+            onDismiss = { showArchiveConfirmDialog = false },
+        )
+    }
+
   Scaffold(
       modifier = Modifier.background(Color.Transparent),
       topBar = {
@@ -266,6 +279,7 @@ private fun MainScreenContent(
             navigateToSettingsScreen,
             eventListViewModel,
             onDeleteAction = { showDeleteConfirmDialog = true },
+            onArchiveAction = { showArchiveConfirmDialog = true },
         )
       },
       floatingActionButton = {
@@ -311,6 +325,7 @@ private fun SetupTopAppBar(
     navigateToSettingsScreen: () -> Unit,
     eventListViewModel: EventListViewModel,
     onDeleteAction: () -> Unit,
+    onArchiveAction: () -> Unit,
 ) {
   if (selectedEventItems.isEmpty()) {
     CenterAlignedTopAppBar(
@@ -368,7 +383,7 @@ private fun SetupTopAppBar(
             )
             Spacer(Modifier.weight(1f))
             if (eventListViewModel.hasUnarchivedEventItems()) {
-              IconButton(onClick = { eventListViewModel.archiveEvents(selectedEventItems) }) {
+                IconButton(onClick = onArchiveAction) {
                 Icon(
                     imageVector = Icons.Outlined.Archive,
                     contentDescription = "Archive selected Events",
@@ -399,6 +414,32 @@ private fun SetupTopAppBar(
         },
     )
   }
+}
+
+@Composable
+private fun ArchiveAlertDialog(
+    numberOfEvents: Int,
+    firstTitle: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirm Archive") },
+        text = {
+            if (numberOfEvents == 1) Text("Archiving '$firstTitle' will cancel scheduled notifications. Proceed?")
+            else Text("Archiving $numberOfEvents events will cancel scheduled notifications. Proceed?")
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = {
+                onConfirm()
+                onDismiss()
+            }) { Text("Archive") }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
 }
 
 private fun slideInFromRight(): EnterTransition {

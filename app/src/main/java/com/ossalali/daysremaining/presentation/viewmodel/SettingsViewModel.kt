@@ -5,12 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.settings.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel
@@ -26,8 +26,8 @@ constructor(
           initialValue = false,
       )
 
-  val notificationsEnabled: StateFlow<Boolean> =
-      repo.notifications.stateIn(
+    val scheduleRemindersEnabled: StateFlow<Boolean> =
+        repo.scheduleReminders.stateIn(
           scope = viewModelScope,
           started = SharingStarted.WhileSubscribed(5_000),
           initialValue = false,
@@ -50,8 +50,8 @@ constructor(
   fun toggleDarkMode(enabled: Boolean) =
       viewModelScope.launch(ioDispatcher) { repo.setDarkMode(enabled = enabled) }
 
-  fun toggleNotifications(enabled: Boolean) =
-      viewModelScope.launch(ioDispatcher) { repo.setNotifications(enabled = enabled) }
+    fun toggleScheduleReminders(enabled: Boolean) =
+        viewModelScope.launch(ioDispatcher) { repo.setScheduleReminders(enabled = enabled) }
 
   fun toggleAutoArchive(enabled: Boolean) {
     viewModelScope.launch(ioDispatcher) { repo.setAutoArchive(enabled = enabled) }

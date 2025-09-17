@@ -33,11 +33,11 @@ fun SettingsScreen(
 ) {
   SettingsScreenImpl(
       toggleDarkMode = viewModel::toggleDarkMode,
-      toggleNotifications = viewModel::toggleNotifications,
+      toggleScheduleReminders = viewModel::toggleScheduleReminders,
       toggleAutoArchive = viewModel::toggleAutoArchive,
       toggleCustomDateNotation = viewModel::toggleCustomDateNotation,
       darkModeEnabled = viewModel.darkModeEnabled,
-      notificationsEnabled = viewModel.notificationsEnabled,
+      scheduleRemindersEnabled = viewModel.scheduleRemindersEnabled,
       autoArchiveEnabled = viewModel.autoArchiveEnabled,
       customDateNotation = viewModel.customDateNotation,
       paddingValues = paddingValues,
@@ -48,17 +48,17 @@ fun SettingsScreen(
 @Composable
 fun SettingsScreenImpl(
     toggleDarkMode: (Boolean) -> Unit,
-    toggleNotifications: (Boolean) -> Unit,
+    toggleScheduleReminders: (Boolean) -> Unit,
     toggleAutoArchive: (Boolean) -> Unit,
     toggleCustomDateNotation: (Boolean) -> Unit,
     darkModeEnabled: StateFlow<Boolean>,
-    notificationsEnabled: StateFlow<Boolean>,
+    scheduleRemindersEnabled: StateFlow<Boolean>,
     autoArchiveEnabled: StateFlow<Boolean>,
     customDateNotation: StateFlow<Boolean>,
     paddingValues: PaddingValues = PaddingValues(),
 ) {
   val darkModeEnabled by darkModeEnabled.collectAsState()
-  val notificationsEnabled by notificationsEnabled.collectAsState()
+    val scheduleRemindersEnabled by scheduleRemindersEnabled.collectAsState()
   val autoArchiveEnabled by autoArchiveEnabled.collectAsState()
   val customDateNotation by customDateNotation.collectAsState()
 
@@ -79,10 +79,10 @@ fun SettingsScreenImpl(
       )
 
       SettingItem(
-          title = "Notifications",
-          description = "Enable notification reminders",
-          checked = notificationsEnabled,
-          onCheckedChange = { checked -> toggleNotifications(checked) },
+          title = "Schedule reminders",
+          description = "Enable per-event reminder scheduling",
+          checked = scheduleRemindersEnabled,
+          onCheckedChange = { checked -> toggleScheduleReminders(checked) },
       )
 
       SettingItem(

@@ -56,6 +56,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -100,15 +101,18 @@ import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.ImageStorage
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.model.RelativeUnit
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventDetailsViewModel
+import com.ossalali.daysremaining.presentation.viewmodel.EventRemindersViewModel
+import com.ossalali.daysremaining.presentation.viewmodel.SettingsViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,6 +122,10 @@ fun EventDetailsScreen(
     onDeleteEvent: (EventItem) -> Unit = {},
     viewModel: EventDetailsViewModel =
         hiltViewModel(LocalViewModelStoreOwner.current!!, "EventDetailsViewModel"),
+    settingsViewModel: SettingsViewModel =
+        hiltViewModel(LocalViewModelStoreOwner.current!!, key = "SettingsViewModel"),
+    remindersViewModel: EventRemindersViewModel =
+        hiltViewModel(LocalViewModelStoreOwner.current!!, key = "EventRemindersViewModel"),
     paddingValues: PaddingValues,
 ) {
   val isAddMode = eventId == null
@@ -154,6 +162,8 @@ fun EventDetailsScreen(
         onBackClick()
       },
       onTrackChanges = { changes -> viewModel.trackChanges(changes) },
+      scheduleRemindersEnabledState = settingsViewModel.scheduleRemindersEnabled.collectAsState(),
+      remindersViewModel = remindersViewModel,
       paddingValues = paddingValues,
   )
 }
@@ -267,6 +277,8 @@ fun EventDetailsContent(
     onUpdateEvent: (EventItem) -> Unit,
     onDeleteEvent: (EventItem) -> Unit,
     onTrackChanges: (Boolean) -> Unit,
+    scheduleRemindersEnabledState: State<Boolean> = mutableStateOf(false),
+    remindersViewModel: EventRemindersViewModel? = null,
     paddingValues: PaddingValues,
 ) {
   var showDeleteConfirmDialog by remember { mutableStateOf(false) }
@@ -337,10 +349,10 @@ fun EventDetailsContent(
   val actionBarPadding = calculateActionBarPadding()
   val scrollPaddingConfig = calculateScrollPadding()
 
-  Column(modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .imePadding()) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(paddingValues)
+        .imePadding()) {
     if (isLoading) {
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator()
@@ -370,6 +382,16 @@ fun EventDetailsContent(
           modifier = Modifier.weight(1f),
       )
 
+        val scheduleRemindersEnabled by scheduleRemindersEnabledState
+
+        if (scheduleRemindersEnabled && remindersViewModel != null) {
+            val currentEventId = event?.id ?: 0
+            LaunchedEffect(currentEventId) {
+                if (currentEventId != 0) remindersViewModel.load(currentEventId)
+            }
+            RemindersSetupSection(eventId = currentEventId, viewModel = remindersViewModel)
+        }
+
       BottomActionBar(
           event = displayEvent,
           titleState = titleState,
@@ -389,6 +411,80 @@ fun EventDetailsContent(
       }
     }
   }
+}
+
+@Composable
+private fun RemindersSetupSection(eventId: Int, viewModel: EventRemindersViewModel) {
+    val triggers by viewModel.triggers.collectAsState()
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.default, vertical = Dimensions.default),
+    ) {
+        Text(text = "Reminders", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(Dimensions.half))
+        // Existing triggers list
+        triggers.forEach { trigger ->
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(Dimensions.default),
+                        )
+                        .padding(Dimensions.half),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val label =
+                    when (trigger.type) {
+                        com.ossalali.daysremaining.model.NotificationTriggerType.RELATIVE -> {
+                            val unit = trigger.unit ?: RelativeUnit.DAYS
+                            val step = trigger.step ?: 1
+                            "Every $step ${unit.name.lowercase()} until event day"
+                        }
+
+                        com.ossalali.daysremaining.model.NotificationTriggerType.ON_COMPLETION ->
+                            "On completion (event day at midnight)"
+                    }
+                Text(text = label, modifier = Modifier.weight(1f))
+                TextButton(onClick = {
+                    viewModel.removeTrigger(
+                        eventId,
+                        trigger.id
+                    )
+                }) { Text("Remove") }
+            }
+            Spacer(modifier = Modifier.height(Dimensions.quarter))
+        }
+
+        Spacer(modifier = Modifier.height(Dimensions.half))
+        Text(text = "Add reminder", style = MaterialTheme.typography.titleSmall)
+        Spacer(modifier = Modifier.height(Dimensions.quarter))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = { viewModel.addRelativeTrigger(eventId, RelativeUnit.DAYS, 1) }) {
+                Text("Daily")
+            }
+            Spacer(modifier = Modifier.width(Dimensions.quarter))
+            TextButton(onClick = { viewModel.addRelativeTrigger(eventId, RelativeUnit.WEEKS, 1) }) {
+                Text("Weekly")
+            }
+            Spacer(modifier = Modifier.width(Dimensions.quarter))
+            TextButton(onClick = {
+                viewModel.addRelativeTrigger(
+                    eventId,
+                    RelativeUnit.MONTHS,
+                    1
+                )
+            }) {
+                Text("Monthly")
+            }
+            Spacer(modifier = Modifier.width(Dimensions.quarter))
+            TextButton(onClick = { viewModel.addCompletionTrigger(eventId) }) { Text("On completion") }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -532,22 +628,23 @@ private fun ScrollableEventForm(
               ) {
                   focusManager.clearFocus()
                   keyboardController?.hide()
-              }) {
-        EventContent(
-            isArchived = event.isArchived,
-            titleState = titleState,
-            selectedDateMillis = selectedDateMillis,
-            onDateChanged = onDateChanged,
-            descriptionState = descriptionState,
-            imageUri = imageUri,
-            onImagePicked = onImagePicked,
-            screenHorizontalPadding = screenHorizontalPadding,
-            scrollPaddingConfig = scrollPaddingConfig,
-            scrollState = scrollState,
-            focusManager = focusManager,
-            keyboardController = keyboardController,
-        )
-      }
+              }
+  ) {
+      EventContent(
+          isArchived = event.isArchived,
+          titleState = titleState,
+          selectedDateMillis = selectedDateMillis,
+          onDateChanged = onDateChanged,
+          descriptionState = descriptionState,
+          imageUri = imageUri,
+          onImagePicked = onImagePicked,
+          screenHorizontalPadding = screenHorizontalPadding,
+          scrollPaddingConfig = scrollPaddingConfig,
+          scrollState = scrollState,
+          focusManager = focusManager,
+          keyboardController = keyboardController,
+      )
+  }
 }
 
 @SuppressLint("ConfigurationScreenWidthHeight")
@@ -818,7 +915,8 @@ private fun EventContent(
         onKeyboardAction = {
           focusManager.clearFocus()
           keyboardController?.hide()
-        })
+        },
+    )
 
     Spacer(modifier = Modifier.height(verticalSpacing))
 
@@ -925,6 +1023,8 @@ private fun EventContent(
       }
     }
 
+      // New: Reminder scheduler/preview section is added below image via parent composable
+
     if (showDatePicker) {
       DatePickerDialog(
           onDismissRequest = { showDatePicker = false },
@@ -933,9 +1033,10 @@ private fun EventContent(
                 onClick = {
                   datePickerState.selectedDateMillis?.let { millis -> onDateChanged(millis) }
                   showDatePicker = false
-                }) {
-                  Text("OK")
                 }
+            ) {
+                Text("OK")
+            }
           },
           dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } },
       ) {
@@ -951,16 +1052,18 @@ private fun EventContent(
                 onClick = {
                   showImagePickerDialog = false
                   photoPickerLauncher.launch(
-                      PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }) {
-                  Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                      PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                  )
+                }
+            ) {
+                Row(horizontalArrangement = Arrangement.SpaceBetween) {
                     Icon(
                         imageVector = Icons.Default.PhotoLibrary,
                         contentDescription = "Choose photo",
                     )
                     Text("Choose photo")
-                  }
                 }
+            }
           },
           dismissButton = {
             TextButton(
@@ -975,15 +1078,16 @@ private fun EventContent(
                       )
                   cameraTempUri = uri
                   cameraLauncher.launch(uri)
-                }) {
-                  Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                }
+            ) {
+                Row(horizontalArrangement = Arrangement.SpaceBetween) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
                         contentDescription = "Take photo",
                     )
                     Text("Take photo")
-                  }
                 }
+            }
           },
           title = { Text("Add image") },
           text = { Text("Take or Choose an photo") },
@@ -995,9 +1099,9 @@ private fun EventContent(
           onDismissRequest = { showFullScreenImage = false },
           properties = DialogProperties(usePlatformDefaultWidth = false),
       ) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)) {
+          Box(modifier = Modifier
+              .fillMaxSize()
+              .background(Color.Black)) {
           AsyncImage(
               modifier = Modifier.fillMaxSize(),
               model = imageUri,
@@ -1029,15 +1133,16 @@ private fun EventContent(
                 onClick = {
                   onImagePicked(null)
                   showConfirmImageDeleteDialog = false
-                }) {
-                  Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                }
+            ) {
+                Row(horizontalArrangement = Arrangement.SpaceBetween) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Confirm Delete Image",
                     )
                     Text("OK")
-                  }
                 }
+            }
           },
           dismissButton = {
             TextButton(onClick = { showConfirmImageDeleteDialog = false }) {

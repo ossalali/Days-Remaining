@@ -1,6 +1,8 @@
 package com.ossalali.daysremaining.settings.di
 
+import com.ossalali.daysremaining.infrastructure.EventNotificationTriggerRepository
 import com.ossalali.daysremaining.infrastructure.EventRepository
+import com.ossalali.daysremaining.presentation.notification.DoesNotificationChannelExistUseCase
 import com.ossalali.daysremaining.settings.SettingsRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -12,4 +14,8 @@ interface WorkerEntryPoint {
     fun eventRepo(): EventRepository
 
     fun settingsRepository(): SettingsRepository
+
+    fun triggerRepo(): EventNotificationTriggerRepository
+
+    fun doesNotificationChannelExistUseCase(): DoesNotificationChannelExistUseCase
 }

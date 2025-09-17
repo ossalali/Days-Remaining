@@ -2,6 +2,8 @@ package com.ossalali.daysremaining.di
 
 import android.content.Context
 import com.ossalali.daysremaining.infrastructure.EventDao
+import com.ossalali.daysremaining.infrastructure.EventNotificationTriggerDao
+import com.ossalali.daysremaining.infrastructure.EventNotificationTriggerRepository
 import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.MyDatabase
 import dagger.Module
@@ -31,5 +33,19 @@ object AppModule {
     @Singleton
     fun provideEventRepo(eventDao: EventDao): EventRepository {
         return EventRepository(eventDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEventNotificationTriggerDao(database: MyDatabase): EventNotificationTriggerDao {
+        return database.eventNotificationTriggerDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideEventNotificationTriggerRepository(
+        dao: EventNotificationTriggerDao
+    ): EventNotificationTriggerRepository {
+        return EventNotificationTriggerRepository(dao)
     }
 }

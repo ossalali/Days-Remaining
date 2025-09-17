@@ -1,13 +1,17 @@
 package com.ossalali.daysremaining.presentation.viewmodel
 
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkManager
+import com.ossalali.daysremaining.App
 import com.ossalali.daysremaining.di.IoDispatcher
+import com.ossalali.daysremaining.infrastructure.EventNotificationTriggerRepository
 import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.notification.EventNotificationScheduler
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -20,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 open class EventListViewModel
@@ -27,6 +32,7 @@ open class EventListViewModel
 constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val eventRepository: EventRepository,
+    private val triggerRepository: EventNotificationTriggerRepository,
 ) : BaseViewModel<Interaction>() {
 
     private val _activeFilterEnabled = MutableStateFlow(true)
@@ -62,9 +68,9 @@ constructor(
           )
 
     val eventUiState: StateFlow<ImmutableList<EventItem>> =
-      combine(allEventsFlow, _searchText, _pendingDeleteEvents) { events,
-                                                                  searchQuery,
-                                                                  pendingDeletes ->
+        combine(allEventsFlow, _searchText, _pendingDeleteEvents) { events,
+                                                                    searchQuery,
+                                                                    pendingDeletes ->
             val eventsToShow =
                 events.filterNot { event -> pendingDeletes.any { pd -> pd.id == event.id } }
             if (searchQuery.isEmpty()) {
@@ -77,7 +83,7 @@ constructor(
                   }
                   .toImmutableList()
             }
-      }
+        }
           .stateIn(
               scope = viewModelScope,
               started = SharingStarted.WhileSubscribed(5000L),
@@ -97,6 +103,7 @@ constructor(
             Interaction.ClearSelection -> _selectedEventItems.value = persistentListOf()
             Interaction.SelectAll -> _selectedEventItems.value = eventUiState.value
             is Interaction.ConfirmDeletions -> commitSpecificDeletions(interaction.itemsToConfirm)
+            is Interaction.RequestArchiveConfirmation -> archiveEvents(interaction.items)
         }
     }
 
@@ -214,6 +221,13 @@ constructor(
     fun archiveEvents(eventItems: ImmutableList<EventItem>) {
         viewModelScope.launch(ioDispatcher) {
             eventRepository.archiveEvents(eventItems.map { it.id })
+            val triggers = triggerRepository.getEnabledTriggersByEventIds(eventItems.map { it.id })
+            val wm = WorkManager.getInstance(App.getInstance().applicationContext)
+            triggers.forEach { trigger ->
+                wm.cancelUniqueWork(EventNotificationScheduler.UNIQUE_PREFIX + trigger.id)
+            }
+            val nm = NotificationManagerCompat.from(App.getInstance().applicationContext)
+            eventItems.forEach { nm.cancel(it.id) }
             val currentSelection = _selectedEventItems.value.toMutableList()
             currentSelection.removeAll(eventItems)
             _selectedEventItems.value = currentSelection.toPersistentList()
@@ -261,6 +275,8 @@ constructor(
         data object SelectAll : Interaction
 
         data class ConfirmDeletions(val itemsToConfirm: ImmutableList<EventItem>) : Interaction
+
+        data class RequestArchiveConfirmation(val items: ImmutableList<EventItem>) : Interaction
     }
 
     companion object {
