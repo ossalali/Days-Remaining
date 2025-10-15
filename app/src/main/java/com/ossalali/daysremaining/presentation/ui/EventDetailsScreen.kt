@@ -154,6 +154,8 @@ fun EventDetailsScreen(
       hasChanges = hasChanges,
       onUpdateEvent = { updatedEvent ->
         viewModel.saveEvent(updatedEvent)
+          val savedId = updatedEvent.id.takeIf { it != 0 } ?: eventState?.id ?: 0
+          if (savedId != 0) remindersViewModel.commit(savedId)
         onBackClick()
       },
       onDeleteEvent = { eventToDelete ->
@@ -384,12 +386,18 @@ fun EventDetailsContent(
 
         val scheduleRemindersEnabled by scheduleRemindersEnabledState
 
-        if (scheduleRemindersEnabled && remindersViewModel != null) {
+        if (scheduleRemindersEnabled) {
             val currentEventId = event?.id ?: 0
             LaunchedEffect(currentEventId) {
-                if (currentEventId != 0) remindersViewModel.load(currentEventId)
+                if (currentEventId != 0) remindersViewModel?.load(currentEventId)
             }
-            RemindersSetupSection(eventId = currentEventId, viewModel = remindersViewModel)
+            if (remindersViewModel != null) {
+                RemindersSetupSection(
+                    eventId = currentEventId,
+                    viewModel = remindersViewModel,
+                    onAnyChange = { onTrackChanges(true) },
+                )
+            }
         }
 
       BottomActionBar(
@@ -414,8 +422,14 @@ fun EventDetailsContent(
 }
 
 @Composable
-private fun RemindersSetupSection(eventId: Int, viewModel: EventRemindersViewModel) {
-    val triggers by viewModel.triggers.collectAsState()
+private fun RemindersSetupSection(
+    eventId: Int,
+    viewModel: EventRemindersViewModel,
+    onAnyChange: () -> Unit,
+) {
+    val pendingTriggers by viewModel.pending.collectAsState()
+    val list = pendingTriggers
+
     Column(
         modifier =
             Modifier
@@ -424,8 +438,8 @@ private fun RemindersSetupSection(eventId: Int, viewModel: EventRemindersViewMod
     ) {
         Text(text = "Reminders", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(Dimensions.half))
-        // Existing triggers list
-        triggers.forEach { trigger ->
+
+        list.forEachIndexed { index, trigger ->
             Row(
                 modifier =
                     Modifier
@@ -449,12 +463,31 @@ private fun RemindersSetupSection(eventId: Int, viewModel: EventRemindersViewMod
                             "On completion (event day at midnight)"
                     }
                 Text(text = label, modifier = Modifier.weight(1f))
-                TextButton(onClick = {
-                    viewModel.removeTrigger(
-                        eventId,
-                        trigger.id
+                if (trigger.type == com.ossalali.daysremaining.model.NotificationTriggerType.RELATIVE) {
+                    var stepText by remember(trigger.id) {
+                        mutableStateOf(
+                            (trigger.step ?: 1).toString()
+                        )
+                    }
+                    OutlinedTextField(
+                        value = stepText,
+                        onValueChange = { new ->
+                            stepText = new.filter { it.isDigit() }
+                            val step = stepText.toIntOrNull() ?: 1
+                            viewModel.updatePendingRelativeStep(index, step)
+                            onAnyChange()
+                        },
+                        label = { Text("Every") },
+                        singleLine = true,
+                        modifier = Modifier.width(90.dp),
                     )
-                }) { Text("Remove") }
+                }
+                Spacer(modifier = Modifier.width(Dimensions.quarter))
+                TextButton(
+                    onClick = {
+                        viewModel.removePendingAt(index)
+                        onAnyChange()
+                    }) { Text("Remove") }
             }
             Spacer(modifier = Modifier.height(Dimensions.quarter))
         }
@@ -464,25 +497,27 @@ private fun RemindersSetupSection(eventId: Int, viewModel: EventRemindersViewMod
         Spacer(modifier = Modifier.height(Dimensions.quarter))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { viewModel.addRelativeTrigger(eventId, RelativeUnit.DAYS, 1) }) {
-                Text("Daily")
-            }
-            Spacer(modifier = Modifier.width(Dimensions.quarter))
-            TextButton(onClick = { viewModel.addRelativeTrigger(eventId, RelativeUnit.WEEKS, 1) }) {
-                Text("Weekly")
-            }
+            TextButton(onClick = {
+                viewModel.addRelativeTrigger(eventId.takeIf { it != 0 } ?: 0, RelativeUnit.DAYS, 1)
+                onAnyChange()
+            }) { Text("Daily") }
             Spacer(modifier = Modifier.width(Dimensions.quarter))
             TextButton(onClick = {
-                viewModel.addRelativeTrigger(
-                    eventId,
-                    RelativeUnit.MONTHS,
-                    1
-                )
-            }) {
-                Text("Monthly")
-            }
+                viewModel.addRelativeTrigger(eventId.takeIf { it != 0 } ?: 0, RelativeUnit.WEEKS, 1)
+                onAnyChange()
+            }) { Text("Weekly") }
             Spacer(modifier = Modifier.width(Dimensions.quarter))
-            TextButton(onClick = { viewModel.addCompletionTrigger(eventId) }) { Text("On completion") }
+            TextButton(onClick = {
+                viewModel.addRelativeTrigger(eventId.takeIf { it != 0 } ?: 0,
+                    RelativeUnit.MONTHS,
+                    1)
+                onAnyChange()
+            }) { Text("Monthly") }
+            Spacer(modifier = Modifier.width(Dimensions.quarter))
+            TextButton(onClick = {
+                viewModel.addCompletionTrigger(eventId.takeIf { it != 0 } ?: 0)
+                onAnyChange()
+            }) { Text("On completion") }
         }
     }
 }

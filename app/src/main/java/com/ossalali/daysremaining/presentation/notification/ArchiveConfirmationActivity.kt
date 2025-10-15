@@ -1,8 +1,6 @@
 package com.ossalali.daysremaining.presentation.notification
 
 import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,11 +24,6 @@ class ArchiveConfirmationActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_EVENT_ID = "extra_event_id"
-        fun newIntent(context: Context, eventId: Int): Intent {
-            return Intent(context, ArchiveConfirmationActivity::class.java).apply {
-                putExtra(EXTRA_EVENT_ID, eventId)
-            }
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,26 +46,36 @@ private fun ConfirmArchiveDialog(eventId: Int, activity: Activity) {
         title = { Text("Archive Event") },
         text = { Text("Archiving will cancel scheduled notifications. Proceed?") },
         confirmButton = {
-            TextButton(onClick = {
-                open.value = false
-                CoroutineScope(Dispatchers.IO).launch {
-                    val entry =
-                        EntryPointAccessors.fromApplication(activity, WorkerEntryPoint::class.java)
-                    val repo: EventRepository = entry.eventRepo()
-                    repo.archiveEvents(listOf(eventId))
-                    // Cancel WorkManager unique works for this event's triggers by prefix pruning is not direct; callers schedule per trigger id
+            TextButton(
+                onClick = {
+                    open.value = false
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val entry =
+                            EntryPointAccessors.fromApplication(
+                                activity,
+                                WorkerEntryPoint::class.java
+                            )
+                        val repo: EventRepository = entry.eventRepo()
+                        repo.archiveEvents(listOf(eventId))
+                        // Cancel WorkManager unique works for this event's triggers by prefix pruning is
+                        // not direct; callers schedule per trigger id
+                    }
+                    activity.finish()
                 }
-                activity.finish()
-            }) { Text("Archive", style = MaterialTheme.typography.labelLarge) }
+            ) {
+                Text("Archive", style = MaterialTheme.typography.labelLarge)
+            }
         },
         dismissButton = {
-            TextButton(onClick = {
-                open.value = false
-                activity.finish()
-            }) { Text("Cancel", style = MaterialTheme.typography.labelLarge) }
+            TextButton(
+                onClick = {
+                    open.value = false
+                    activity.finish()
+                }
+            ) {
+                Text("Cancel", style = MaterialTheme.typography.labelLarge)
+            }
         },
         properties = DialogProperties(dismissOnClickOutside = true, usePlatformDefaultWidth = true),
     )
 }
-
-

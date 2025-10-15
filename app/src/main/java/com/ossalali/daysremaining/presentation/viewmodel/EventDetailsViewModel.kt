@@ -7,12 +7,12 @@ import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class EventDetailsViewModel
@@ -81,9 +81,11 @@ constructor(
     }
 
     fun trackChanges(hasChanges: Boolean) {
-        if (!_isAddMode.value) {
-            _hasChanges.value = hasChanges
-        }
+        _hasChanges.value = hasChanges
+    }
+
+    fun markChanged() {
+        _hasChanges.value = true
     }
 
     fun eventDeletedHandled() {

@@ -21,15 +21,11 @@ constructor(
         return dao.getEnabledTriggersByEventIds(eventIds)
     }
 
-    suspend fun deleteTriggersForEvent(eventId: Int) {
-        dao.deleteTriggersForEvent(eventId)
-    }
-
-    suspend fun deleteTriggersForEvents(eventIds: List<Int>) {
-        if (eventIds.isNotEmpty()) dao.deleteTriggersForEvents(eventIds)
-    }
-
     suspend fun deleteTriggerById(triggerId: Int) {
         dao.deleteTriggerById(triggerId)
+    }
+
+    suspend fun deleteTriggersForEvent(eventId: Int) {
+        dao.deleteTriggersForEvent(eventId)
     }
 }
