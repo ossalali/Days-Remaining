@@ -22,75 +22,87 @@ constructor(
     private val eventRepository: EventRepository,
 ) : ViewModel() {
 
-    private val _event = MutableStateFlow<EventItem?>(null)
-    val event: StateFlow<EventItem?> = _event.asStateFlow()
+  private val _event = MutableStateFlow<EventItem?>(null)
+  val event: StateFlow<EventItem?> = _event.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+  private val _isLoading = MutableStateFlow(false)
+  val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _isSaving = MutableStateFlow(false)
-    val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+  private val _isSaving = MutableStateFlow(false)
+  val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
-    private val _isAddMode = MutableStateFlow(false)
-    val isAddMode: StateFlow<Boolean> = _isAddMode.asStateFlow()
+  private val _isAddMode = MutableStateFlow(false)
+  val isAddMode: StateFlow<Boolean> = _isAddMode.asStateFlow()
 
-    private val _hasChanges = MutableStateFlow(false)
-    val hasChanges: StateFlow<Boolean> = _hasChanges.asStateFlow()
+  private val _hasChanges = MutableStateFlow(false)
+  val hasChanges: StateFlow<Boolean> = _hasChanges.asStateFlow()
 
-    fun saveEvent(event: EventItem) {
-        viewModelScope.launch(ioDispatcher) {
-            _isSaving.value = true
-            try {
-                eventRepository.insertEvent(event)
-                _event.value = event
-                _hasChanges.value = false
-            } catch (e: Exception) {
-                appLogger().e(tag = TAG, message = "Couldn't save eventItem $event", throwable = e)
-            } finally {
-                _isSaving.value = false
+  fun saveEvent(event: EventItem, onSaved: (Int) -> Unit = {}) {
+    viewModelScope.launch(ioDispatcher) {
+      _isSaving.value = true
+      try {
+        eventRepository.insertEvent(event)
+        // Get the saved event with generated ID
+        val savedEvent =
+            if (event.id == 0) {
+              // For new events, query the most recently inserted event
+              eventRepository.getEventById(
+                  eventRepository.getAllEvents().maxByOrNull { it.id }?.id ?: 0)
+            } else {
+              // For existing events, use the same ID
+              event
             }
-        }
+        _event.value = savedEvent
+        _hasChanges.value = false
+        // Call the callback with the generated/existing ID
+        onSaved(savedEvent.id)
+      } catch (e: Exception) {
+        appLogger().e(tag = TAG, message = "Couldn't save eventItem $event", throwable = e)
+      } finally {
+        _isSaving.value = false
+      }
     }
+  }
 
-    fun initializeForAddMode() {
-        _isAddMode.value = true
+  fun initializeForAddMode() {
+    _isAddMode.value = true
+    _event.value = null
+    _isLoading.value = false
+    _hasChanges.value = false
+  }
+
+  fun initializeForEditMode(eventId: Int) {
+    _isAddMode.value = false
+    _hasChanges.value = false
+    loadEventById(eventId)
+  }
+
+  fun loadEventById(eventId: Int) {
+    viewModelScope.launch(ioDispatcher) {
+      _isLoading.value = true
+      try {
+        val loadedEvent = eventRepository.getEventById(eventId)
+        _event.value = loadedEvent
+      } catch (e: Exception) {
+        appLogger().e(message = "Couldn't load eventItem with id $eventId", throwable = e)
         _event.value = null
+      } finally {
         _isLoading.value = false
-        _hasChanges.value = false
+      }
     }
+  }
 
-    fun initializeForEditMode(eventId: Int) {
-        _isAddMode.value = false
-        _hasChanges.value = false
-        loadEventById(eventId)
+  fun trackChanges(hasChanges: Boolean) {
+    if (!_isAddMode.value) {
+      _hasChanges.value = hasChanges
     }
+  }
 
-    fun loadEventById(eventId: Int) {
-        viewModelScope.launch(ioDispatcher) {
-            _isLoading.value = true
-            try {
-                val loadedEvent = eventRepository.getEventById(eventId)
-                _event.value = loadedEvent
-            } catch (e: Exception) {
-                appLogger().e(message = "Couldn't load eventItem with id $eventId", throwable = e)
-                _event.value = null
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
+  fun eventDeletedHandled() {
+    _event.value = null
+  }
 
-    fun trackChanges(hasChanges: Boolean) {
-        if (!_isAddMode.value) {
-            _hasChanges.value = hasChanges
-        }
-    }
-
-    fun eventDeletedHandled() {
-        _event.value = null
-    }
-
-    companion object {
-        private const val TAG = "EventDetailsViewModel"
-    }
+  companion object {
+    private const val TAG = "EventDetailsViewModel"
+  }
 }

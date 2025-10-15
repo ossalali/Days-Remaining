@@ -10,15 +10,15 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
 class EventWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = EventWidget()
+  override val glanceAppWidget: GlanceAppWidget = EventWidget()
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray,
-    ) {
-        super.onUpdate(context, appWidgetManager, appWidgetIds)
+  override fun onUpdate(
+      context: Context,
+      appWidgetManager: AppWidgetManager,
+      appWidgetIds: IntArray,
+  ) {
+    super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-        ProcessLifecycleOwner.get().lifecycleScope.launch { glanceAppWidget.updateAll(context) }
-    }
+    ProcessLifecycleOwner.get().lifecycleScope.launch { glanceAppWidget.updateAll(context) }
+  }
 }

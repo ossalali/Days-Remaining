@@ -9,17 +9,12 @@ import kotlinx.serialization.Serializable
  */
 sealed interface DaysRoute : NavKey
 
-@Serializable
-data object EventListRoute : DaysRoute
+@Serializable data object EventListRoute : DaysRoute
 
-@Serializable
-data class EventDetailsRoute(val eventId: Int) : DaysRoute
+@Serializable data class EventDetailsRoute(val eventId: Int) : DaysRoute
 
-@Serializable
-data object SettingsRoute : DaysRoute
+@Serializable data object SettingsRoute : DaysRoute
 
-@Serializable
-data object DebugRoute : DaysRoute
+@Serializable data object DebugRoute : DaysRoute
 
-@Serializable
-data object AddEventRoute : DaysRoute
+@Serializable data object AddEventRoute : DaysRoute

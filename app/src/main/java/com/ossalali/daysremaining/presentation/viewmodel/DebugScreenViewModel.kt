@@ -17,7 +17,7 @@ constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val eventRepository: EventRepository,
 ) : ViewModel() {
-    fun insertEvents(eventItemList: List<EventItem>) {
-        viewModelScope.launch(ioDispatcher) { eventRepository.insertEvents(eventItemList) }
-    }
+  fun insertEvents(eventItemList: List<EventItem>) {
+    viewModelScope.launch(ioDispatcher) { eventRepository.insertEvents(eventItemList) }
+  }
 }

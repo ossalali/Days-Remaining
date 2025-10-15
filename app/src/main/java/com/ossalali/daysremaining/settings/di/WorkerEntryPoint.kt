@@ -9,7 +9,7 @@ import dagger.hilt.components.SingletonComponent
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface WorkerEntryPoint {
-    fun eventRepo(): EventRepository
+  fun eventRepo(): EventRepository
 
-    fun settingsRepository(): SettingsRepository
+  fun settingsRepository(): SettingsRepository
 }

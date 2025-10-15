@@ -2,6 +2,8 @@ package com.ossalali.daysremaining.di
 
 import android.content.Context
 import com.ossalali.daysremaining.infrastructure.EventDao
+import com.ossalali.daysremaining.infrastructure.EventNotificationTriggerDao
+import com.ossalali.daysremaining.infrastructure.EventNotificationTriggerRepository
 import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.MyDatabase
 import dagger.Module
@@ -15,21 +17,35 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    @Provides
-    @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): MyDatabase {
-        return MyDatabase.getDatabase(context)
-    }
+  @Provides
+  @Singleton
+  fun provideDatabase(@ApplicationContext context: Context): MyDatabase {
+    return MyDatabase.getDatabase(context)
+  }
 
-    @Provides
-    @Singleton
-    fun provideEventDao(database: MyDatabase): EventDao {
-        return database.eventDao()
-    }
+  @Provides
+  @Singleton
+  fun provideEventDao(database: MyDatabase): EventDao {
+    return database.eventDao()
+  }
 
-    @Provides
-    @Singleton
-    fun provideEventRepo(eventDao: EventDao): EventRepository {
-        return EventRepository(eventDao)
-    }
+  @Provides
+  @Singleton
+  fun provideEventRepo(eventDao: EventDao): EventRepository {
+    return EventRepository(eventDao)
+  }
+
+  @Provides
+  @Singleton
+  fun provideEventNotificationTriggerDao(database: MyDatabase): EventNotificationTriggerDao {
+    return database.triggerDao()
+  }
+
+  @Provides
+  @Singleton
+  fun provideEventNotificationTriggerRepo(
+      triggerDao: EventNotificationTriggerDao
+  ): EventNotificationTriggerRepository {
+    return EventNotificationTriggerRepository(triggerDao)
+  }
 }

@@ -1,9 +1,12 @@
 package com.ossalali.daysremaining.presentation.ui
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -85,6 +88,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
@@ -96,13 +100,21 @@ import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.ImageStorage
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.model.EventNotificationTrigger
+import com.ossalali.daysremaining.model.RelativeUnit
+import com.ossalali.daysremaining.presentation.ui.components.AddReminderDialog
+import com.ossalali.daysremaining.presentation.ui.components.ReminderCard
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviews
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventDetailsViewModel
+import com.ossalali.daysremaining.presentation.viewmodel.EventRemindersViewModel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -118,15 +130,20 @@ fun EventDetailsScreen(
     onDeleteEvent: (EventItem) -> Unit = {},
     viewModel: EventDetailsViewModel =
         hiltViewModel(LocalViewModelStoreOwner.current!!, "EventDetailsViewModel"),
+    remindersViewModel: EventRemindersViewModel =
+        hiltViewModel(LocalViewModelStoreOwner.current!!, "EventRemindersViewModel"),
     paddingValues: PaddingValues,
 ) {
   val isAddMode = eventId == null
+  val currentEventId = eventId ?: 0
 
   LaunchedEffect(eventId, isAddMode) {
     if (isAddMode) {
       viewModel.initializeForAddMode()
+      remindersViewModel.loadForNewEvent()
     } else {
       viewModel.initializeForEditMode(eventId)
+      remindersViewModel.load(eventId)
     }
   }
 
@@ -137,6 +154,7 @@ fun EventDetailsScreen(
   val viewModelIsAddMode by viewModel.isAddMode.collectAsState()
 
   val displayEvent = if (isAddMode) null else eventState
+  val pendingReminders by remindersViewModel.pending.collectAsState()
 
   EventDetailsContent(
       event = displayEvent,
@@ -144,8 +162,28 @@ fun EventDetailsScreen(
       isSaving = isSaving,
       isAddMode = viewModelIsAddMode,
       hasChanges = hasChanges,
+      pendingReminders = pendingReminders,
+      hasUnsavedChanges = remindersViewModel::hasUnsavedChanges,
+      removePendingAt = remindersViewModel::removePendingAt,
+      addRelativeTrigger = remindersViewModel::addRelativeTrigger,
+      addCompletionTrigger = remindersViewModel::addCompletionTrigger,
+      currentEventId = currentEventId,
+      onBackClick = onBackClick,
       onUpdateEvent = { updatedEvent ->
-        viewModel.saveEvent(updatedEvent)
+        // CRITICAL: Capture reminder state NOW to prevent race conditions
+        // When user navigates away quickly, state may be cleared before the async
+        // save callback executes. By capturing state here (at button-click time),
+        // we ensure the correct reminders are saved even if navigation happens first.
+        val remindersToSave = remindersViewModel.pending.value.toList()
+
+        // Save event and get the generated ID via callback
+        viewModel.saveEvent(updatedEvent) { generatedId ->
+          // Commit reminders with the captured state and the actual event ID
+          // For new events, generatedId will be the database-generated ID
+          // For existing events, generatedId will be the same as currentEventId
+          remindersViewModel.commitWithTriggers(generatedId, remindersToSave)
+        }
+
         onBackClick()
       },
       onDeleteEvent = { eventToDelete ->
@@ -264,12 +302,20 @@ fun EventDetailsContent(
     isSaving: Boolean,
     isAddMode: Boolean,
     hasChanges: Boolean,
+    pendingReminders: List<EventNotificationTrigger>,
+    hasUnsavedChanges: () -> Boolean,
+    removePendingAt: (Int) -> Unit,
+    addRelativeTrigger: (Int, RelativeUnit, Int) -> Unit,
+    addCompletionTrigger: (Int) -> Unit,
+    currentEventId: Int,
+    onBackClick: () -> Unit,
     onUpdateEvent: (EventItem) -> Unit,
     onDeleteEvent: (EventItem) -> Unit,
     onTrackChanges: (Boolean) -> Unit,
     paddingValues: PaddingValues,
 ) {
   var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+  var showUnsavedChangesDialog by remember { mutableStateOf(false) }
 
   val titleState = remember { TextFieldState() }
   var selectedDateMillis by rememberSaveable {
@@ -302,6 +348,37 @@ fun EventDetailsContent(
   val originalDescription = baselineEvent?.description ?: ""
   val originalImageUri = baselineEvent?.imageUri
 
+  // Track individual field changes
+  val titleChanged by
+      remember(titleState.text, originalTitle, isAddMode) {
+        derivedStateOf {
+          if (isAddMode || baselineEvent == null) false else titleState.text.trim() != originalTitle
+        }
+      }
+
+  val dateChanged by
+      remember(selectedDateMillis, originalDateMillis, isAddMode) {
+        derivedStateOf {
+          if (isAddMode || baselineEvent == null) false
+          else selectedDateMillis != originalDateMillis
+        }
+      }
+
+  val descriptionChanged by
+      remember(descriptionState.text, originalDescription, isAddMode) {
+        derivedStateOf {
+          if (isAddMode || baselineEvent == null) false
+          else descriptionState.text.trim() != originalDescription
+        }
+      }
+
+  val imageChanged by
+      remember(imageUri, originalImageUri, isAddMode) {
+        derivedStateOf {
+          if (isAddMode || baselineEvent == null) false else imageUri != originalImageUri
+        }
+      }
+
   LaunchedEffect(
       titleState.text,
       selectedDateMillis,
@@ -322,6 +399,35 @@ fun EventDetailsContent(
     }
   }
 
+  // Check for unsaved changes before navigating back
+  val handleBackClick = {
+    val hasEventChanges = hasChanges
+
+    if (!isAddMode && (hasEventChanges || hasUnsavedChanges())) {
+      showUnsavedChangesDialog = true
+    } else {
+      onBackClick()
+    }
+  }
+
+  // Intercept Android system back button
+  BackHandler(onBack = handleBackClick)
+
+  if (showUnsavedChangesDialog) {
+    UnsavedChangesDialog(
+        titleChanged = titleChanged,
+        dateChanged = dateChanged,
+        descriptionChanged = descriptionChanged,
+        imageChanged = imageChanged,
+        hasReminderChanges = hasUnsavedChanges(),
+        onDiscard = {
+          showUnsavedChangesDialog = false
+          onBackClick()
+        },
+        onDismiss = { showUnsavedChangesDialog = false },
+    )
+  }
+
   if (showDeleteConfirmDialog && event != null) {
     DeleteAlertDialog(
         eventTitle = event.title,
@@ -337,10 +443,7 @@ fun EventDetailsContent(
   val actionBarPadding = calculateActionBarPadding()
   val scrollPaddingConfig = calculateScrollPadding()
 
-  Column(modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .imePadding()) {
+  Column(modifier = Modifier.fillMaxSize().padding(paddingValues).imePadding()) {
     if (isLoading) {
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator()
@@ -365,6 +468,11 @@ fun EventDetailsContent(
           descriptionState = descriptionState,
           imageUri = imageUri,
           onImagePicked = { picked -> imageUri = picked },
+          pendingReminders = pendingReminders,
+          removePendingAt = removePendingAt,
+          addRelativeTrigger = addRelativeTrigger,
+          addCompletionTrigger = addCompletionTrigger,
+          currentEventId = currentEventId,
           screenHorizontalPadding = screenHorizontalPadding,
           scrollPaddingConfig = scrollPaddingConfig,
           modifier = Modifier.weight(1f),
@@ -379,6 +487,7 @@ fun EventDetailsContent(
           isSaving = isSaving,
           isAddMode = isAddMode,
           hasChanges = hasChanges,
+          hasUnsavedReminders = hasUnsavedChanges(),
           onSave = onUpdateEvent,
           onDelete = { showDeleteConfirmDialog = true },
           horizontalPadding = actionBarPadding,
@@ -402,19 +511,20 @@ private fun SaveEventFab(
     isSaving: Boolean,
     isAddMode: Boolean,
     hasChanges: Boolean,
+    hasUnsavedReminders: Boolean,
     onSave: (EventItem) -> Unit,
 ) {
   val isTitleValid by remember { derivedStateOf { titleState.text.isNotBlank() } }
 
   val canSave by
-      remember(isTitleValid, hasChanges, isSaving, isAddMode) {
+      remember(isTitleValid, hasChanges, hasUnsavedReminders, isSaving, isAddMode) {
         derivedStateOf {
           if (isAddMode) {
-
+            // In add mode, can save if title is valid
             isTitleValid && !isSaving
           } else {
-
-            isTitleValid && hasChanges && !isSaving
+            // In edit mode, can save if title is valid AND (event fields OR reminders changed)
+            isTitleValid && (hasChanges || hasUnsavedReminders) && !isSaving
           }
         }
       }
@@ -460,16 +570,14 @@ private fun BottomActionBar(
     isSaving: Boolean,
     isAddMode: Boolean,
     hasChanges: Boolean,
+    hasUnsavedReminders: Boolean,
     onSave: (EventItem) -> Unit,
     onDelete: () -> Unit,
     horizontalPadding: Dp,
     modifier: Modifier = Modifier,
 ) {
   Row(
-      modifier = modifier
-          .fillMaxWidth()
-          .padding(horizontal = horizontalPadding)
-          .imePadding(),
+      modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding).imePadding(),
       horizontalArrangement = if (isAddMode) Arrangement.End else Arrangement.SpaceBetween,
   ) {
     if (!isAddMode) {
@@ -485,6 +593,7 @@ private fun BottomActionBar(
         isSaving = isSaving,
         isAddMode = isAddMode,
         hasChanges = hasChanges,
+        hasUnsavedReminders = hasUnsavedReminders,
         onSave = onSave,
     )
   }
@@ -512,6 +621,11 @@ private fun ScrollableEventForm(
     descriptionState: TextFieldState,
     imageUri: String?,
     onImagePicked: (String?) -> Unit,
+    pendingReminders: List<EventNotificationTrigger>,
+    removePendingAt: (Int) -> Unit,
+    addRelativeTrigger: (Int, RelativeUnit, Int) -> Unit,
+    addCompletionTrigger: (Int) -> Unit,
+    currentEventId: Int,
     screenHorizontalPadding: Dp,
     scrollPaddingConfig: ScrollPaddingConfig,
     modifier: Modifier = Modifier,
@@ -523,16 +637,13 @@ private fun ScrollableEventForm(
 
   Column(
       modifier =
-          modifier
-              .verticalScroll(scrollState)
-              .padding(horizontal = Dimensions.default)
-              .clickable(
-                  indication = null,
-                  interactionSource = remember { MutableInteractionSource() },
-              ) {
-                  focusManager.clearFocus()
-                  keyboardController?.hide()
-              }) {
+          modifier.verticalScroll(scrollState).padding(horizontal = Dimensions.default).clickable(
+              indication = null,
+              interactionSource = remember { MutableInteractionSource() },
+          ) {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+          }) {
         EventContent(
             isArchived = event.isArchived,
             titleState = titleState,
@@ -541,6 +652,11 @@ private fun ScrollableEventForm(
             descriptionState = descriptionState,
             imageUri = imageUri,
             onImagePicked = onImagePicked,
+            pendingReminders = pendingReminders,
+            removePendingAt = removePendingAt,
+            addRelativeTrigger = addRelativeTrigger,
+            addCompletionTrigger = addCompletionTrigger,
+            currentEventId = currentEventId,
             screenHorizontalPadding = screenHorizontalPadding,
             scrollPaddingConfig = scrollPaddingConfig,
             scrollState = scrollState,
@@ -551,7 +667,7 @@ private fun ScrollableEventForm(
 }
 
 @SuppressLint("ConfigurationScreenWidthHeight")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 private fun EventContent(
     isArchived: Boolean,
@@ -561,6 +677,11 @@ private fun EventContent(
     descriptionState: TextFieldState,
     imageUri: String?,
     onImagePicked: (String?) -> Unit,
+    pendingReminders: List<EventNotificationTrigger>,
+    removePendingAt: (Int) -> Unit,
+    addRelativeTrigger: (Int, RelativeUnit, Int) -> Unit,
+    addCompletionTrigger: (Int) -> Unit,
+    currentEventId: Int,
     screenHorizontalPadding: Dp,
     scrollPaddingConfig: ScrollPaddingConfig,
     scrollState: ScrollState,
@@ -609,7 +730,26 @@ private fun EventContent(
   var showImagePickerDialog by rememberSaveable { mutableStateOf(false) }
   var showConfirmImageDeleteDialog by rememberSaveable { mutableStateOf(false) }
   var showFullScreenImage by rememberSaveable { mutableStateOf(false) }
+  var showAddReminderDialog by rememberSaveable { mutableStateOf(false) }
   val context = LocalContext.current
+
+  // Permission state for notifications (Android 13+)
+  val notificationPermissionState =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+      } else {
+        null
+      }
+
+  var wasWaitingForPermission by rememberSaveable { mutableStateOf(false) }
+
+  // Show dialog after permission is granted
+  LaunchedEffect(notificationPermissionState?.status?.isGranted) {
+    if (wasWaitingForPermission && notificationPermissionState?.status?.isGranted == true) {
+      showAddReminderDialog = true
+      wasWaitingForPermission = false
+    }
+  }
 
   val photoPickerLauncher =
       rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
@@ -638,8 +778,7 @@ private fun EventContent(
     if (isArchived) {
       Text(
           modifier =
-              Modifier
-                  .align(Alignment.CenterHorizontally)
+              Modifier.align(Alignment.CenterHorizontally)
                   .background(
                       color = MaterialTheme.colorScheme.secondaryContainer,
                       shape = CircleShape,
@@ -677,35 +816,33 @@ private fun EventContent(
     OutlinedTextField(
         state = titleState,
         modifier =
-            Modifier
-                .fillMaxWidth()
+            Modifier.fillMaxWidth()
                 .focusRequester(titleFocusRequester)
                 .onGloballyPositioned { coordinates: LayoutCoordinates ->
-                    titleFieldPosition = coordinates.positionInParent().y.toInt()
+                  titleFieldPosition = coordinates.positionInParent().y.toInt()
                 }
                 .onFocusChanged { focusState ->
-                    if (focusState.isFocused) {
-                        coroutineScope.launch {
-                            val targetScrollPosition =
-                                maxOf(
-                                    0,
-                                    titleFieldPosition - scrollPaddingConfig.titleFieldPadding,
-                                )
-                            scrollState.animateScrollTo(targetScrollPosition)
-                        }
-                    } else {
-
-                        coroutineScope.launch {
-                            if (scrollState.value > titleFieldPosition) {
-                                scrollState.animateScrollTo(
-                                    maxOf(
-                                        0,
-                                        titleFieldPosition - scrollPaddingConfig.focusLostPadding,
-                                    )
-                                )
-                            }
-                        }
+                  if (focusState.isFocused) {
+                    coroutineScope.launch {
+                      val targetScrollPosition =
+                          maxOf(
+                              0,
+                              titleFieldPosition - scrollPaddingConfig.titleFieldPadding,
+                          )
+                      scrollState.animateScrollTo(targetScrollPosition)
                     }
+                  } else {
+
+                    coroutineScope.launch {
+                      if (scrollState.value > titleFieldPosition) {
+                        scrollState.animateScrollTo(
+                            maxOf(
+                                0,
+                                titleFieldPosition - scrollPaddingConfig.focusLostPadding,
+                            ))
+                      }
+                    }
+                  }
                 },
         label = { Text(text = "Title") },
         placeholder = { Text(text = "Enter event title") },
@@ -755,9 +892,7 @@ private fun EventContent(
         }
 
     InputChip(
-        modifier = Modifier
-            .height(chipHeight)
-            .width(chipWidth),
+        modifier = Modifier.height(chipHeight).width(chipWidth),
         selected = true,
         onClick = { showDatePicker = true },
         label = { Text(formattedDate) },
@@ -774,37 +909,35 @@ private fun EventContent(
     OutlinedTextField(
         state = descriptionState,
         modifier =
-            Modifier
-                .fillMaxWidth()
+            Modifier.fillMaxWidth()
                 .focusRequester(descriptionFocusRequester)
                 .onGloballyPositioned { coordinates: LayoutCoordinates ->
-                    descriptionFieldPosition = coordinates.positionInParent().y.toInt()
+                  descriptionFieldPosition = coordinates.positionInParent().y.toInt()
                 }
                 .onFocusChanged { focusState ->
-                    isDescriptionFocused = focusState.isFocused
-                    if (focusState.isFocused) {
-                        coroutineScope.launch {
-                            val targetScrollPosition =
-                                maxOf(
-                                    0,
-                                    descriptionFieldPosition -
-                                            scrollPaddingConfig.descriptionFieldPadding,
-                                )
-                            scrollState.animateScrollTo(targetScrollPosition)
-                        }
-                    } else {
-
-                        coroutineScope.launch {
-                            if (scrollState.value > descriptionFieldPosition) {
-                                scrollState.animateScrollTo(
-                                    maxOf(
-                                        0,
-                                        descriptionFieldPosition - scrollPaddingConfig.focusLostPadding,
-                                    )
-                                )
-                            }
-                        }
+                  isDescriptionFocused = focusState.isFocused
+                  if (focusState.isFocused) {
+                    coroutineScope.launch {
+                      val targetScrollPosition =
+                          maxOf(
+                              0,
+                              descriptionFieldPosition -
+                                  scrollPaddingConfig.descriptionFieldPadding,
+                          )
+                      scrollState.animateScrollTo(targetScrollPosition)
                     }
+                  } else {
+
+                    coroutineScope.launch {
+                      if (scrollState.value > descriptionFieldPosition) {
+                        scrollState.animateScrollTo(
+                            maxOf(
+                                0,
+                                descriptionFieldPosition - scrollPaddingConfig.focusLostPadding,
+                            ))
+                      }
+                    }
+                  }
                 },
         lineLimits = descriptionLineLimits,
         label = { Text(text = "Description") },
@@ -836,28 +969,25 @@ private fun EventContent(
     Row(modifier = Modifier.fillMaxWidth()) {
       Box(
           modifier =
-              Modifier
-                  .weight(imagePreviewMaxWidth)
+              Modifier.weight(imagePreviewMaxWidth)
                   .height(180.dp)
                   .background(
                       color = MaterialTheme.colorScheme.surfaceVariant,
                       shape = RoundedCornerShape(Dimensions.default),
                   )
                   .clickable {
-                      if (!imageUri.isNullOrBlank()) {
-                          showFullScreenImage = true
-                      } else {
-                          showImagePickerDialog = true
-                      }
+                    if (!imageUri.isNullOrBlank()) {
+                      showFullScreenImage = true
+                    } else {
+                      showImagePickerDialog = true
+                    }
                   }
                   .padding(Dimensions.half),
           contentAlignment = Alignment.Center,
       ) {
         if (!imageUri.isNullOrBlank()) {
           AsyncImage(
-              modifier = Modifier
-                  .fillMaxSize()
-                  .clip(MaterialTheme.shapes.small),
+              modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.small),
               model = imageUri,
               contentDescription = "Event image",
               contentScale = ContentScale.Crop,
@@ -873,9 +1003,7 @@ private fun EventContent(
       if (!imageUri.isNullOrBlank()) {
         Spacer(modifier = Modifier.width(Dimensions.default))
         Column(
-            modifier = Modifier
-                .weight(1f - imagePreviewMaxWidth)
-                .height(180.dp),
+            modifier = Modifier.weight(1f - imagePreviewMaxWidth).height(180.dp),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -923,6 +1051,52 @@ private fun EventContent(
           }
         }
       }
+    }
+
+    Spacer(modifier = Modifier.height(verticalSpacing))
+
+    // Reminders Section
+    Text(
+        text = "Reminders",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+    )
+    Spacer(modifier = Modifier.height(Dimensions.half))
+
+    pendingReminders.forEachIndexed { index, trigger ->
+      ReminderCard(
+          trigger = trigger,
+          onRemove = { removePendingAt(index) },
+      )
+      Spacer(modifier = Modifier.height(Dimensions.half))
+    }
+
+    TextButton(
+        onClick = {
+          // Check and request notification permission if needed (Android 13+)
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (notificationPermissionState?.status?.isGranted == true) {
+              showAddReminderDialog = true
+            } else {
+              wasWaitingForPermission = true
+              notificationPermissionState?.launchPermissionRequest()
+            }
+          } else {
+            // Permission not needed for older versions
+            showAddReminderDialog = true
+          }
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      Text("+ Add Reminder")
+    }
+
+    if (showAddReminderDialog) {
+      AddReminderDialog(
+          onDismiss = { showAddReminderDialog = false },
+          onAddRelative = { unit, step -> addRelativeTrigger(currentEventId, unit, step) },
+          onAddCompletion = { addCompletionTrigger(currentEventId) },
+      )
     }
 
     if (showDatePicker) {
@@ -995,9 +1169,7 @@ private fun EventContent(
           onDismissRequest = { showFullScreenImage = false },
           properties = DialogProperties(usePlatformDefaultWidth = false),
       ) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
           AsyncImage(
               modifier = Modifier.fillMaxSize(),
               model = imageUri,
@@ -1005,9 +1177,7 @@ private fun EventContent(
               contentScale = ContentScale.Fit,
           )
           IconButton(
-              modifier = Modifier
-                  .align(Alignment.TopEnd)
-                  .padding(Dimensions.default),
+              modifier = Modifier.align(Alignment.TopEnd).padding(Dimensions.default),
               onClick = { showFullScreenImage = false },
           ) {
             Icon(
@@ -1056,6 +1226,76 @@ private fun EventContent(
   }
 }
 
+@Composable
+private fun UnsavedChangesDialog(
+    titleChanged: Boolean,
+    dateChanged: Boolean,
+    descriptionChanged: Boolean,
+    imageChanged: Boolean,
+    hasReminderChanges: Boolean,
+    onDiscard: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text(text = "Unsaved Changes", style = MaterialTheme.typography.titleLarge) },
+      text = {
+        Column {
+          Text("You have unsaved changes:")
+          Spacer(modifier = Modifier.height(Dimensions.half))
+          if (titleChanged) {
+            Text("• Title", style = MaterialTheme.typography.bodyMedium)
+          }
+          if (dateChanged) {
+            Text("• Date", style = MaterialTheme.typography.bodyMedium)
+          }
+          if (descriptionChanged) {
+            Text("• Description", style = MaterialTheme.typography.bodyMedium)
+          }
+          if (imageChanged) {
+            Text("• Image", style = MaterialTheme.typography.bodyMedium)
+          }
+          if (hasReminderChanges) {
+            Text("• Reminders", style = MaterialTheme.typography.bodyMedium)
+          }
+          Spacer(modifier = Modifier.height(Dimensions.half))
+          Text("Do you want to discard these changes?", fontWeight = FontWeight.Bold)
+        }
+      },
+      confirmButton = {
+        TextButton(
+            onClick = onDiscard,
+        ) {
+          Text("Discard", color = MaterialTheme.colorScheme.error)
+        }
+      },
+      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+  )
+}
+
+@Composable
+private fun DeleteAlertDialog(
+    eventTitle: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text(text = "Delete Event?", style = MaterialTheme.typography.titleLarge) },
+      text = {
+        Text("Are you sure you want to delete \"$eventTitle\"? This action cannot be undone.")
+      },
+      confirmButton = {
+        TextButton(
+            onClick = onConfirm,
+        ) {
+          Text("Delete", color = MaterialTheme.colorScheme.error)
+        }
+      },
+      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+  )
+}
+
 // region Edit mode
 
 @DefaultPreviews()
@@ -1068,6 +1308,13 @@ fun EventDetailsContentLoadingPreview() {
         isSaving = false,
         isAddMode = false,
         hasChanges = false,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 0,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },
@@ -1095,6 +1342,13 @@ fun EventDetailsContentSavingPreview() {
         isSaving = true,
         isAddMode = false,
         hasChanges = true,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 1,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },
@@ -1113,6 +1367,13 @@ fun EventDetailsContentNotFoundPreview() {
         isSaving = false,
         isAddMode = false,
         hasChanges = false,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 0,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },
@@ -1133,6 +1394,13 @@ fun EventDetailsEmptyFieldsEditModePreview() {
         isSaving = false,
         isAddMode = false,
         hasChanges = false,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 1,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },
@@ -1160,6 +1428,13 @@ fun EventDetailsWithSystemBarsEditModePreview() {
         isSaving = false,
         isAddMode = false,
         hasChanges = true,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 1,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },
@@ -1188,6 +1463,13 @@ fun EventDetailsArchivedEditModePreview() {
         isSaving = false,
         isAddMode = false,
         hasChanges = true,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 1,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },
@@ -1220,6 +1502,11 @@ fun ScrollableEventFormPreview() {
         descriptionState = descriptionState,
         imageUri = null,
         onImagePicked = { /* Preview - no action */ },
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 1,
         screenHorizontalPadding = 16.dp,
         scrollPaddingConfig =
             ScrollPaddingConfig(
@@ -1257,6 +1544,7 @@ fun BottomActionBarPreview() {
           isSaving = false,
           isAddMode = false,
           hasChanges = true,
+          hasUnsavedReminders = false,
           onSave = { /* Preview - no action */ },
           onDelete = { /* Preview - no action */ },
           horizontalPadding = 16.dp,
@@ -1285,6 +1573,13 @@ fun EventDetailsKeyboardSimulationEditModePreview() {
         isSaving = false,
         isAddMode = false,
         hasChanges = true,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 1,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },
@@ -1307,6 +1602,13 @@ fun EventDetailsAddModePreview() {
         isSaving = false,
         isAddMode = true,
         hasChanges = false,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 0,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },
@@ -1325,6 +1627,13 @@ fun EventDetailsAddModeSavingPreview() {
         isSaving = true,
         isAddMode = true,
         hasChanges = false,
+        pendingReminders = emptyList(),
+        removePendingAt = {},
+        hasUnsavedChanges = { false },
+        addRelativeTrigger = { _, _, _ -> },
+        addCompletionTrigger = {},
+        currentEventId = 0,
+        onBackClick = { /* Preview - no action */ },
         onUpdateEvent = { /* Preview - no action */ },
         onDeleteEvent = { /* Preview - no action */ },
         onTrackChanges = { /* Preview - no action */ },

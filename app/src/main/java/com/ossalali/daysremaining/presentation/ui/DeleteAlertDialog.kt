@@ -12,25 +12,25 @@ fun DeleteAlertDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+  AlertDialog(
       onDismissRequest = onDismiss,
       title = { Text("Confirm Deletion") },
       text = {
-          if (numberOfEventsToBeDeleted == 1) {
-              Text("Are you sure you want to delete '$eventTitle'?")
-          } else {
-              Text("Are you sure you want to delete $numberOfEventsToBeDeleted events?")
-          }
+        if (numberOfEventsToBeDeleted == 1) {
+          Text("Are you sure you want to delete '$eventTitle'?")
+        } else {
+          Text("Are you sure you want to delete $numberOfEventsToBeDeleted events?")
+        }
       },
       confirmButton = {
-          TextButton(
+        TextButton(
             onClick = {
-                onConfirm()
-                onDismiss()
+              onConfirm()
+              onDismiss()
             }) {
               Text("Delete")
-          }
+            }
       },
       dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-    )
+  )
 }

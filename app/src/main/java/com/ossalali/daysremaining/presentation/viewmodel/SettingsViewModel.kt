@@ -26,13 +26,6 @@ constructor(
           initialValue = false,
       )
 
-  val notificationsEnabled: StateFlow<Boolean> =
-      repo.notifications.stateIn(
-          scope = viewModelScope,
-          started = SharingStarted.WhileSubscribed(5_000),
-          initialValue = false,
-      )
-
   val autoArchiveEnabled: StateFlow<Boolean> =
       repo.autoArchive.stateIn(
           scope = viewModelScope,
@@ -49,9 +42,6 @@ constructor(
 
   fun toggleDarkMode(enabled: Boolean) =
       viewModelScope.launch(ioDispatcher) { repo.setDarkMode(enabled = enabled) }
-
-  fun toggleNotifications(enabled: Boolean) =
-      viewModelScope.launch(ioDispatcher) { repo.setNotifications(enabled = enabled) }
 
   fun toggleAutoArchive(enabled: Boolean) {
     viewModelScope.launch(ioDispatcher) { repo.setAutoArchive(enabled = enabled) }

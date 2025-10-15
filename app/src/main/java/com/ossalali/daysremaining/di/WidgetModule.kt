@@ -13,9 +13,9 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object WidgetModule {
 
-    @Provides
-    @Singleton
-    fun provideWidgetDataStore(@ApplicationContext context: Context): WidgetDataStore {
-        return WidgetDataStore(context)
-    }
+  @Provides
+  @Singleton
+  fun provideWidgetDataStore(@ApplicationContext context: Context): WidgetDataStore {
+    return WidgetDataStore(context)
+  }
 }

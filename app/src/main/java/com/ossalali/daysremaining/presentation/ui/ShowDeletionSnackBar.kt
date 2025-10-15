@@ -21,27 +21,27 @@ fun ShowDeletionSnackBar(
     onDismissSnackBar: () -> Unit,
     snackBarMessage: String,
 ) {
-    Snackbar(
+  Snackbar(
       modifier = Modifier.padding(all = Dimensions.default),
       action = {
-          TextButton(onClick = onUndoDelete) {
-              Text("Undo", color = Color.hsl(267.44f, 0.9707f, 0.598f))
-          }
+        TextButton(onClick = onUndoDelete) {
+          Text("Undo", color = Color.hsl(267.44f, 0.9707f, 0.598f))
+        }
       },
       dismissAction = {
-          IconButton(onClick = onDismissSnackBar) {
-              Icon(imageVector = Icons.Filled.Close, contentDescription = "Close snackbar")
-          }
+        IconButton(onClick = onDismissSnackBar) {
+          Icon(imageVector = Icons.Filled.Close, contentDescription = "Close snackbar")
+        }
       },
-    ) {
-        Text(text = snackBarMessage)
-    }
+  ) {
+    Text(text = snackBarMessage)
+  }
 }
 
 @DefaultPreviewsNoSystemUI()
 @Composable
 fun SnackBarPreview() {
-    MyAppTheme {
-        ShowDeletionSnackBar(onUndoDelete = {}, onDismissSnackBar = {}, snackBarMessage = "Test")
-    }
+  MyAppTheme {
+    ShowDeletionSnackBar(onUndoDelete = {}, onDismissSnackBar = {}, snackBarMessage = "Test")
+  }
 }

@@ -312,8 +312,7 @@ class EventWidget : GlanceAppWidget() {
               MEDIUM_SQUARE,
               BIG_SQUARE,
               EXTRA_BIG_SQUARE,
-          )
-      )
+          ))
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
     val widgetEntryPoint =
@@ -495,7 +494,7 @@ fun EventItemCard(
 
       Spacer(modifier = GlanceModifier.height(Dimensions.quarter))
 
-        val daysRemaining = eventItem.getNumberOfDays(customDateNotation)
+      val daysRemaining = eventItem.getNumberOfDays(customDateNotation)
 
       Text(
           modifier = GlanceModifier.fillMaxWidth(),

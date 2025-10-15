@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew.bat build:*)",
+      "Bash(./gradlew.bat ktfmtFormat:*)",
+      "Bash(./gradlew.bat test:*)",
+      "Bash(./gradlew.bat clean:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

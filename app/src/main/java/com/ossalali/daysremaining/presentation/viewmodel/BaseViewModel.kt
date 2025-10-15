@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 abstract class BaseViewModel<I> : ViewModel() {
-    abstract fun onInteraction(interaction: I)
+  abstract fun onInteraction(interaction: I)
 }
 
 fun BaseViewModel<*>.launch(block: suspend CoroutineScope.() -> Unit) =

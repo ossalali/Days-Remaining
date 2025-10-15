@@ -32,14 +32,14 @@ fun EventSearchBar(
     onSearchTextChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusRequester = remember { FocusRequester() }
-    var isFocused by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
+  val keyboardController = LocalSoftwareKeyboardController.current
+  val focusRequester = remember { FocusRequester() }
+  var isFocused by remember { mutableStateOf(false) }
+  val focusManager = LocalFocusManager.current
 
-    SearchBar(
+  SearchBar(
       inputField = {
-          SearchBarDefaults.InputField(
+        SearchBarDefaults.InputField(
             query = searchText,
             onQueryChange = onSearchTextChanged,
             onSearch = { keyboardController?.hide() },
@@ -47,42 +47,41 @@ fun EventSearchBar(
             onExpandedChange = {},
             placeholder = { Text("Search events") },
             trailingIcon = {
-                if (isFocused) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Close search bar",
-                        modifier =
+              if (isFocused) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Close search bar",
+                    modifier =
                         Modifier.clickable {
-                            keyboardController?.hide()
-                            onSearchTextChanged("")
-                            focusManager.clearFocus()
+                          keyboardController?.hide()
+                          onSearchTextChanged("")
+                          focusManager.clearFocus()
                         },
-                    )
-                }
+                )
+              }
             },
             modifier =
-                Modifier
-                    .shadow(Dimensions.quarter, shape = CircleShape)
+                Modifier.shadow(Dimensions.quarter, shape = CircleShape)
                     .focusRequester(focusRequester)
                     .onFocusChanged { focusState -> isFocused = focusState.isFocused },
-          )
+        )
       },
       expanded = false,
       onExpandedChange = {},
       modifier = modifier,
-    ) {}
+  ) {}
 }
 
 @Preview(showBackground = true)
 @Composable
 fun SearchBarPreview() {
-    var searchText by remember { mutableStateOf("") }
+  var searchText by remember { mutableStateOf("") }
 
-    MaterialTheme {
-        EventSearchBar(
-            searchText = searchText,
-            onSearchTextChanged = { searchText = it },
-            modifier = Modifier,
-        )
-    }
+  MaterialTheme {
+    EventSearchBar(
+        searchText = searchText,
+        onSearchTextChanged = { searchText = it },
+        modifier = Modifier,
+    )
+  }
 }

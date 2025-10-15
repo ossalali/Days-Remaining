@@ -90,16 +90,15 @@ fun EventListGrid(
                   CardDefaults.cardColors()
                 },
             modifier =
-                Modifier
-                    .fillMaxWidth()
+                Modifier.fillMaxWidth()
                     .padding(Dimensions.half)
                     .combinedClickable(
                         onClick = {
-                            if (selectedEventItems.isEmpty()) {
-                                onEventItemClick(event.id)
-                            } else {
-                                onEventItemSelection(event.id)
-                            }
+                          if (selectedEventItems.isEmpty()) {
+                            onEventItemClick(event.id)
+                          } else {
+                            onEventItemSelection(event.id)
+                          }
                         },
                         onLongClickLabel = "Event Selected",
                         onLongClick = { onEventItemSelection(event.id) },
@@ -107,9 +106,7 @@ fun EventListGrid(
             elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
         ) {
           Row(
-              modifier = Modifier
-                  .fillMaxSize()
-                  .padding(Dimensions.half),
+              modifier = Modifier.fillMaxSize().padding(Dimensions.half),
               verticalAlignment = Alignment.CenterVertically,
           ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -117,25 +114,18 @@ fun EventListGrid(
                   text = event.title,
                   style = MaterialTheme.typography.titleMedium,
                   textAlign = TextAlign.Center,
-                  modifier = Modifier
-                      .fillMaxWidth()
-                      .padding(bottom = Dimensions.quarter),
+                  modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
               )
               Text(
                   text = numberOfDays,
                   style = MaterialTheme.typography.headlineLarge,
                   textAlign = TextAlign.Center,
-                  modifier = Modifier
-                      .fillMaxWidth()
-                      .padding(bottom = Dimensions.quarter),
+                  modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
               )
               if (!event.imageUri.isNullOrBlank()) {
                 AsyncImage(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(80.dp)
-                            .clip(MaterialTheme.shapes.small),
+                        Modifier.fillMaxWidth().height(80.dp).clip(MaterialTheme.shapes.small),
                     model = event.imageUri,
                     contentDescription = "Event image thumbnail",
                     contentScale = ContentScale.Crop,
@@ -149,9 +139,7 @@ fun EventListGrid(
                     textAlign = TextAlign.Center,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = Dimensions.quarter),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = Dimensions.quarter),
                 )
               }
             }
@@ -159,9 +147,7 @@ fun EventListGrid(
         }
         if (event.isArchived) {
           BoxWithConstraints(
-              modifier = Modifier
-                  .fillMaxWidth()
-                  .align(Alignment.Center),
+              modifier = Modifier.fillMaxWidth().align(Alignment.Center),
               contentAlignment = Alignment.Center,
           ) {
             val density = LocalDensity.current
