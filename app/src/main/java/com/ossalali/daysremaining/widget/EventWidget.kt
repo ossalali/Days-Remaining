@@ -390,7 +390,7 @@ fun WidgetContent(eventItems: List<EventItem>, customDateNotation: Boolean, cont
               Spacer(modifier = GlanceModifier.width(Dimensions.half))
               CircleIconButton(
                   modifier = GlanceModifier.size(uiState.iconSize),
-                  imageProvider = ImageProvider(R.drawable.outline_add_24),
+                  imageProvider = ImageProvider(R.drawable.add_24px),
                   onClick = addEventAction,
                   contentDescription = "Add event",
                   backgroundColor = GlanceTheme.colors.primaryContainer,
