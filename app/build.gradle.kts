@@ -71,7 +71,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.material)
-    implementation(libs.androidx.material3.v140alpha07)
+    implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
 
     implementation(libs.androidx.glance.preview)
