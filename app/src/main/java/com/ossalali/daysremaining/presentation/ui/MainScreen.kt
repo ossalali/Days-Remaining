@@ -17,15 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -50,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -59,6 +51,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.ossalali.daysremaining.BuildConfig
+import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.navigation.AddEventRoute
@@ -176,6 +169,9 @@ fun MainScreen(
                     )
                 }
 
+                //debugScreen(
+                //    backStack = backStack
+                //)
                 entry<DebugRoute> {
                     MainScreenContent(
                         eventListViewModel = eventListViewModel,
@@ -290,7 +286,10 @@ private fun MainScreenContent(
                     modifier = Modifier.imePadding(),
                     onClick = { navigateToAddEvent() },
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add Event")
+                    Icon(
+                        painter = painterResource(R.drawable.add_24px),
+                        contentDescription = "Add Event"
+                    )
                 }
             }
         },
@@ -337,7 +336,7 @@ private fun SetupTopAppBar(
                 if (showBackButton) {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            painter = painterResource(R.drawable.arrow_back_24px),
                             contentDescription = "Back",
                         )
                     }
@@ -347,7 +346,7 @@ private fun SetupTopAppBar(
                 if (showTopAppBarButtons) {
                     IconButton(onClick = { navigateToSettingsScreen() }) {
                         Icon(
-                            imageVector = Icons.Filled.Settings,
+                            painter = painterResource(R.drawable.settings_24px),
                             contentDescription = "Open Settings screen",
                         )
                     }
@@ -357,7 +356,7 @@ private fun SetupTopAppBar(
                             onClick = { navigateToDebugScreen() },
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.BugReport,
+                                painter = painterResource(R.drawable.bug_report_24px),
                                 contentDescription = "Open Debug screen",
                             )
                         }
@@ -375,7 +374,7 @@ private fun SetupTopAppBar(
                 ) {
                     IconButton(onClick = { eventListViewModel.onInteraction(Interaction.ClearSelection) }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            painter = painterResource(R.drawable.arrow_back_24px),
                             contentDescription = "Back",
                         )
                     }
@@ -388,7 +387,7 @@ private fun SetupTopAppBar(
                     if (eventListViewModel.hasUnarchivedEventItems()) {
                         IconButton(onClick = { eventListViewModel.archiveEvents(selectedEventItems) }) {
                             Icon(
-                                imageVector = Icons.Outlined.Archive,
+                                painter = painterResource(R.drawable.archive_24px),
                                 contentDescription = "Archive selected Events",
                             )
                         }
@@ -396,20 +395,20 @@ private fun SetupTopAppBar(
                     if (eventListViewModel.hasArchivedEventItems()) {
                         IconButton(onClick = { eventListViewModel.unarchiveEvents(selectedEventItems) }) {
                             Icon(
-                                imageVector = Icons.Outlined.Inbox,
+                                painter = painterResource(R.drawable.inbox_24px),
                                 contentDescription = "Unarchive selected Events",
                             )
                         }
                     }
                     IconButton(onClick = onDeleteAction) {
                         Icon(
-                            imageVector = Icons.Filled.Delete,
+                            painter = painterResource(R.drawable.delete_24px),
                             contentDescription = "Delete selected Events",
                         )
                     }
                     IconButton(onClick = { eventListViewModel.onInteraction(Interaction.SelectAll) }) {
                         Icon(
-                            imageVector = Icons.Filled.SelectAll,
+                            painter = painterResource(R.drawable.select_all_24px),
                             contentDescription = "Select all Events",
                         )
                     }
