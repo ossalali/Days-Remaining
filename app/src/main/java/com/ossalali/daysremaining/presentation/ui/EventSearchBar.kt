@@ -2,8 +2,6 @@ package com.ossalali.daysremaining.presentation.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,7 +20,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,38 +38,38 @@ fun EventSearchBar(
     val focusManager = LocalFocusManager.current
 
     SearchBar(
-      inputField = {
-          SearchBarDefaults.InputField(
-            query = searchText,
-            onQueryChange = onSearchTextChanged,
-            onSearch = { keyboardController?.hide() },
-            expanded = false,
-            onExpandedChange = {},
-            placeholder = { Text("Search events") },
-            trailingIcon = {
-                if (isFocused) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Close search bar",
-                        modifier =
-                        Modifier.clickable {
-                            keyboardController?.hide()
-                            onSearchTextChanged("")
-                            focusManager.clearFocus()
-                        },
-                    )
-                }
-            },
-            modifier =
-                Modifier
-                    .shadow(Dimensions.quarter, shape = CircleShape)
-                    .focusRequester(focusRequester)
-                    .onFocusChanged { focusState -> isFocused = focusState.isFocused },
-          )
-      },
-      expanded = false,
-      onExpandedChange = {},
-      modifier = modifier,
+        inputField = {
+            SearchBarDefaults.InputField(
+                query = searchText,
+                onQueryChange = onSearchTextChanged,
+                onSearch = { keyboardController?.hide() },
+                expanded = false,
+                onExpandedChange = {},
+                placeholder = { Text("Search events") },
+                trailingIcon = {
+                    if (isFocused) {
+                        Icon(
+                            painter = painterResource(R.drawable.close_24px),
+                            contentDescription = "Close search bar",
+                            modifier =
+                                Modifier.clickable {
+                                    keyboardController?.hide()
+                                    onSearchTextChanged("")
+                                    focusManager.clearFocus()
+                                },
+                        )
+                    }
+                },
+                modifier =
+                    Modifier
+                        .shadow(Dimensions.quarter, shape = CircleShape)
+                        .focusRequester(focusRequester)
+                        .onFocusChanged { focusState -> isFocused = focusState.isFocused },
+            )
+        },
+        expanded = false,
+        onExpandedChange = {},
+        modifier = modifier,
     ) {}
 }
 
