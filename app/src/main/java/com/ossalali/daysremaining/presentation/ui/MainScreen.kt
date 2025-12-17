@@ -68,8 +68,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    eventListViewModel: EventListViewModel =
-        hiltViewModel(LocalViewModelStoreOwner.current!!, "EventListViewModel"),
+    eventListViewModel: EventListViewModel = hiltViewModel(
+        LocalViewModelStoreOwner.current!!,
+        "EventListViewModel"
+    ),
     eventId: Long? = null,
     shouldNavigateToAddEvent: Boolean = false,
 ) {
@@ -86,11 +88,10 @@ fun MainScreen(
 
     NavDisplay(
         backStack = backStack,
-        entryDecorators =
-            listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator()
-            ),
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator()
+        ),
         transitionSpec = {
             if (isIntentLaunch) {
                 EnterTransition.None togetherWith ExitTransition.None
@@ -100,94 +101,67 @@ fun MainScreen(
         },
         popTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
         predictivePopTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
-        entryProvider =
-            entryProvider {
-                entry<EventListRoute> {
-                    MainScreenContent(
-                        eventListViewModel = eventListViewModel,
-                        isOnEventList = true,
-                        navigateToAddEvent = { backStack.add(AddEventRoute) },
-                        navigateToEventDetails = { eventId ->
-                            backStack.add(
-                                EventDetailsRoute(
-                                    eventId
+        entryProvider = entryProvider {
+            entry<EventListRoute> {
+                MainScreenContent(
+                    eventListViewModel = eventListViewModel,
+                    isOnEventList = true,
+                    navigateToAddEvent = { backStack.add(AddEventRoute) },
+                    navigateToEventDetails = { eventId ->
+                        backStack.add(
+                            EventDetailsRoute(
+                                eventId
+                            )
+                        )
+                    },
+                    navigateToDebugScreen = { backStack.add(DebugRoute) },
+                    navigateToSettingsScreen = { backStack.add(SettingsRoute) },
+                    showTopAppBarButtons = true,
+                )
+            }
+
+            entry<EventDetailsRoute> { route ->
+                MainScreenContent(
+                    eventListViewModel = eventListViewModel,
+                    title = "Event Details",
+                    showBackButton = true,
+                    onBackClick = { backStack.removeLastOrNull() },
+                    content = { paddingValues ->
+                        EventDetailsScreen(
+                            eventId = route.eventId,
+                            onBackClick = { backStack.removeLastOrNull() },
+                            onDeleteEvent = { eventItem ->
+                                eventListViewModel.deleteEvent(
+                                    eventItem
                                 )
-                            )
-                        },
-                        navigateToDebugScreen = { backStack.add(DebugRoute) },
-                        navigateToSettingsScreen = { backStack.add(SettingsRoute) },
-                        showTopAppBarButtons = true,
-                    )
-                }
+                            },
+                            paddingValues = paddingValues,
+                        )
+                    },
+                )
+            }
 
-                entry<EventDetailsRoute> { route ->
-                    MainScreenContent(
-                        eventListViewModel = eventListViewModel,
-                        title = "Event Details",
-                        showBackButton = true,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        content = { paddingValues ->
-                            EventDetailsScreen(
-                                eventId = route.eventId,
-                                onBackClick = { backStack.removeLastOrNull() },
-                                onDeleteEvent = { eventItem ->
-                                    eventListViewModel.deleteEvent(
-                                        eventItem
-                                    )
-                                },
-                                paddingValues = paddingValues,
-                            )
-                        },
-                    )
-                }
-
-                entry<AddEventRoute> {
-                    MainScreenContent(
-                        eventListViewModel = eventListViewModel,
-                        navigateToAddEvent = { backStack.add(AddEventRoute) },
-                        title = "Add Event",
-                        showBackButton = true,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        content = { paddingValues ->
-                            EventDetailsScreen(
-                                eventId = null,
-                                onBackClick = { backStack.removeLastOrNull() },
-                                paddingValues = paddingValues,
-                            )
-                        },
-                    )
-                }
-
-                entry<SettingsRoute> {
-                    MainScreenContent(
-                        eventListViewModel = eventListViewModel,
-                        navigateToSettingsScreen = { backStack.add(SettingsRoute) },
-                        title = "Settings",
-                        showBackButton = true,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        content = { paddingValues -> SettingsScreen(paddingValues = paddingValues) },
-                    )
-                }
-
-                //debugScreen(
-                //    backStack = backStack
-                //)
-                entry<DebugRoute> {
-                    MainScreenContent(
-                        eventListViewModel = eventListViewModel,
-                        navigateToDebugScreen = { backStack.add(DebugRoute) },
-                        title = "Debug",
-                        showBackButton = true,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        content = { paddingValues ->
-                            DebugScreen(
-                                paddingValues = paddingValues,
-                                onClose = { backStack.removeLastOrNull() },
-                            )
-                        },
-                    )
-                }
-            },
+            entry<AddEventRoute> {
+                MainScreenContent(
+                    eventListViewModel = eventListViewModel,
+                    navigateToAddEvent = { backStack.add(AddEventRoute) },
+                    title = "Add Event",
+                    showBackButton = true,
+                    onBackClick = { backStack.removeLastOrNull() },
+                    content = { paddingValues ->
+                        EventDetailsScreen(
+                            eventId = null,
+                            onBackClick = { backStack.removeLastOrNull() },
+                            paddingValues = paddingValues,
+                        )
+                    },
+                )
+            }
+            // title settings
+            settingsScreen(backStack = backStack)
+            // title debug
+            debugScreen(backStack = backStack)
+        },
     )
 }
 
@@ -207,8 +181,7 @@ private fun MainScreenContent(
     content: @Composable ((PaddingValues) -> Unit)? = null,
 ) {
     val selectedEventItems by eventListViewModel.selectedEventItems.collectAsStateWithLifecycle()
-    val pendingDeleteEventsState by
-    eventListViewModel.pendingDeleteEvents.collectAsStateWithLifecycle()
+    val pendingDeleteEventsState by eventListViewModel.pendingDeleteEvents.collectAsStateWithLifecycle()
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -224,12 +197,11 @@ private fun MainScreenContent(
             coroutineScope.launch {
                 snackBarHostState.currentSnackbarData?.dismiss()
 
-                val result =
-                    snackBarHostState.showSnackbar(
-                        message = snackBarMessage,
-                        actionLabel = "Undo",
-                        duration = SnackbarDuration.Short,
-                    )
+                val result = snackBarHostState.showSnackbar(
+                    message = snackBarMessage,
+                    actionLabel = "Undo",
+                    duration = SnackbarDuration.Short,
+                )
                 if (result == SnackbarResult.ActionPerformed) {
                     eventListViewModel.onInteraction(Interaction.UndoDelete(itemsForThisSnackbar))
                 } else {

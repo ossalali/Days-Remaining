@@ -35,6 +35,9 @@ interface EventDao {
     @Query("SELECT * FROM eventitem WHERE id = :eventId")
     suspend fun getEventById(eventId: Int): EventItem
 
+    @Query("SELECT * FROM eventitem WHERE id = :eventId")
+    fun getEventByIdFlow(eventId: Int): Flow<EventItem>
+
     @Query("SELECT * FROM eventitem WHERE id IN (:eventIds) AND isArchived = 0 ORDER BY date ASC")
     suspend fun getActiveEventsByIds(eventIds: List<Int>): List<EventItem>
 

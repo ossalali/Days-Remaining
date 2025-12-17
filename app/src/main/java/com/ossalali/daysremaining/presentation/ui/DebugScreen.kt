@@ -2,7 +2,6 @@ package com.ossalali.daysremaining.presentation.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -57,7 +56,6 @@ fun EntryProviderScope<NavKey>.debugScreen(
 @Composable
 fun DebugScreen(
     insertEvents: (List<EventItem>) -> Unit = {},
-    paddingValues: PaddingValues = PaddingValues(),
     onClose: () -> Unit = {},
 ) {
     var numberOfEvents by rememberSaveable { mutableIntStateOf(0) }
@@ -67,7 +65,6 @@ fun DebugScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
     ) {
         Column {
             OutlinedTextField(

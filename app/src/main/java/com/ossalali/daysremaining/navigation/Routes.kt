@@ -13,7 +13,7 @@ sealed interface DaysRoute : NavKey
 data object EventListRoute : DaysRoute
 
 @Serializable
-data class EventDetailsRoute(val eventId: Int) : DaysRoute
+data class EventDetailsRoute(val eventId: Int, val isAddMode: Boolean = false) : DaysRoute
 
 @Serializable
 data object SettingsRoute : DaysRoute
