@@ -6,6 +6,7 @@ import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.ui.v2.EventUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,12 +40,10 @@ constructor(
     private val _hasChanges = MutableStateFlow(false)
     val hasChanges: StateFlow<Boolean> = _hasChanges.asStateFlow()
 
-
     private val _detailsState = MutableStateFlow<DetailsState>(DetailsState.Loading)
     val detailsState: StateFlow<DetailsState> = _detailsState.asStateFlow()
 
     private lateinit var currentEvent: EventItem
-
 
     fun saveEvent(event: EventItem) {
         viewModelScope.launch(ioDispatcher) {
@@ -93,30 +92,29 @@ constructor(
         if (isAddMode) {
             _detailsState.value = DetailsState.AddMode
         } else {
-            eventRepository.getEventByIdFlow(eventId).onStart {
-                _detailsState.value = DetailsState.Loading
-            }.collect { eventItem ->
-                _detailsState.value = DetailsState.Loaded(event = eventItem)
-                currentEvent = eventItem
-            }
+            eventRepository
+                .getEventByIdFlow(eventId)
+                .onStart { _detailsState.value = DetailsState.Loading }
+                .collect { eventItem ->
+                    _detailsState.value = DetailsState.Loaded(event = eventItem)
+                    currentEvent = eventItem
+                }
         }
     }
 
-    fun saveEvent(formData: EventFormData) {
+    fun saveEvent(formData: EventUiModel) {
         viewModelScope.launch(ioDispatcher) {
             _detailsState.value = DetailsState.Saving
-            val updatedEvent = currentEvent.copy(
-                title = formData.title,
-                description = formData.description,
-                //date = formData.date,
-                imageUri = formData.imageUri
-            )
+            val updatedEvent =
+                currentEvent.copy(
+                    title = formData.title,
+                    description = formData.description,
+                    // date = formData.date,
+                    imageUri = formData.imageUri,
+                )
             eventRepository.insertEvent(updatedEvent)
-            _detailsState.value = DetailsState.Loaded(
-                event = updatedEvent,
-            )
+            _detailsState.value = DetailsState.Loaded(event = updatedEvent)
         }
-
     }
 
     fun trackChanges(hasChanges: Boolean) {
@@ -130,26 +128,19 @@ constructor(
     }
 
     fun updateDate(date: LocalDate) {
-        (_detailsState.value as DetailsState.Loaded).eventFormData.copy(date = date.toString())
+        (_detailsState.value as DetailsState.Loaded).eventUiModel.copy(date = date.toString())
     }
 
     sealed interface DetailsState {
-        data class Loaded(
-            val event: EventItem,
-            val eventFormData: EventFormData = EventFormData()
-        ) : DetailsState
+        data class Loaded(val event: EventItem, val eventUiModel: EventUiModel = EventUiModel()) :
+            DetailsState
 
         data object Loading : DetailsState
+
         data object Saving : DetailsState
+
         data object AddMode : DetailsState
     }
-
-    data class EventFormData(
-        val title: String = "",
-        val description: String = "",
-        val date: String = "",
-        val imageUri: String? = null
-    )
 
     companion object {
         private const val TAG = "EventDetailsViewModel"

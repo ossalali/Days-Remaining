@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">DaysRemaining</string>
     <string name="days_remaining">days remaining</string>
+    <string name="event_title">Title</string>
+    <string name="enter_event_title">Enter event title</string>
+    <string name="description">Description</string>
+    <string name="add_event_details_optional">Add event details (optional)</string>
+    <string name="ok">OK</string>
+    <string name="back">Back</string>
+    <string name="open_settings_screen">Open Settings screen</string>
+    <string name="open_debug_screen">Open Debug screen</string>
 </resources>

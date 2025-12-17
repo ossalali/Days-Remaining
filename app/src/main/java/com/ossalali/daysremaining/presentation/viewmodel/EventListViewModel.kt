@@ -5,9 +5,10 @@ import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.presentation.ui.v2.EventUiModel
+import com.ossalali.daysremaining.presentation.ui.v2.toEventUiModels
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -18,8 +19,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 open class EventListViewModel
@@ -28,12 +31,49 @@ constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val eventRepository: EventRepository,
 ) : BaseViewModel<Interaction>() {
-
     private val _activeFilterEnabled = MutableStateFlow(true)
     val activeFilterEnabled: StateFlow<Boolean> = _activeFilterEnabled
-
     private val _archivedFilterEnabled = MutableStateFlow(false)
     val archivedFilterEnabled: StateFlow<Boolean> = _archivedFilterEnabled
+    private val allEventsFlow: StateFlow<ImmutableList<EventItem>> =
+        combine(
+            eventRepository.activeEventsAsFlow,
+            eventRepository.archivedEventsAsFlow,
+            _activeFilterEnabled,
+            _archivedFilterEnabled,
+        ) { activeEvents, archivedEvents, showActive, showArchived ->
+            val result = mutableListOf<EventItem>()
+            if (showActive) result.addAll(activeEvents)
+            if (showArchived) result.addAll(archivedEvents)
+            result.toPersistentList()
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = persistentListOf(),
+            )
+
+    private val _listState = MutableStateFlow<ListState>(ListState.Loading)
+    val listState: StateFlow<ListState> = _listState.asStateFlow()
+
+    sealed interface ListState {
+        data class Loaded(val eventUiModels: ImmutableList<EventUiModel> = persistentListOf()) :
+            ListState
+
+        data object Loading : ListState
+
+        data object Error : ListState
+    }
+
+    init {
+        viewModelScope.launch {
+            allEventsFlow
+                .onStart { _listState.value = ListState.Loading }
+                .collect { eventItems ->
+                    _listState.value = ListState.Loaded(eventItems.toEventUiModels())
+                }
+        }
+    }
 
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText.asStateFlow()
@@ -43,46 +83,28 @@ constructor(
     val pendingDeleteEvents: StateFlow<ImmutableList<EventItem>> =
         _pendingDeleteEvents.asStateFlow()
 
-    private val allEventsFlow: StateFlow<ImmutableList<EventItem>> =
-      combine(
-          eventRepository.activeEventsAsFlow,
-          eventRepository.archivedEventsAsFlow,
-          _activeFilterEnabled,
-          _archivedFilterEnabled,
-      ) { activeEvents, archivedEvents, showActive, showArchived ->
-            val result = mutableListOf<EventItem>()
-            if (showActive) result.addAll(activeEvents)
-            if (showArchived) result.addAll(archivedEvents)
-            result.toPersistentList()
-      }
-          .stateIn(
-              scope = viewModelScope,
-              started = SharingStarted.WhileSubscribed(5000L),
-              initialValue = persistentListOf(),
-          )
-
     val eventUiState: StateFlow<ImmutableList<EventItem>> =
-      combine(allEventsFlow, _searchText, _pendingDeleteEvents) { events,
-                                                                  searchQuery,
-                                                                  pendingDeletes ->
+        combine(allEventsFlow, _searchText, _pendingDeleteEvents) { events,
+                                                                    searchQuery,
+                                                                    pendingDeletes ->
             val eventsToShow =
                 events.filterNot { event -> pendingDeletes.any { pd -> pd.id == event.id } }
             if (searchQuery.isEmpty()) {
                 eventsToShow.toImmutableList()
             } else {
                 eventsToShow
-                  .filter { event ->
-                      event.title.contains(searchQuery, ignoreCase = true) ||
-                        event.description.contains(searchQuery, ignoreCase = true)
-                  }
-                  .toImmutableList()
+                    .filter { event ->
+                        event.title.contains(searchQuery, ignoreCase = true) ||
+                                event.description.contains(searchQuery, ignoreCase = true)
+                    }
+                    .toImmutableList()
             }
-      }
-          .stateIn(
-              scope = viewModelScope,
-              started = SharingStarted.WhileSubscribed(5000L),
-              initialValue = persistentListOf(),
-          )
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = persistentListOf(),
+            )
 
     private val _selectedEventItems = MutableStateFlow<ImmutableList<EventItem>>(persistentListOf())
     val selectedEventItems: StateFlow<ImmutableList<EventItem>> = _selectedEventItems.asStateFlow()
@@ -141,8 +163,8 @@ constructor(
 
         val wasSelectAllActive =
             selectedItemsAtStart.isNotEmpty() &&
-            selectedItemsAtStart.size == eventUiStateAtStart.size &&
-            eventUiStateAtStart.containsAll(selectedItemsAtStart)
+                    selectedItemsAtStart.size == eventUiStateAtStart.size &&
+                    eventUiStateAtStart.containsAll(selectedItemsAtStart)
 
         val previousActiveFilterState = _activeFilterEnabled.value
 
@@ -163,8 +185,8 @@ constructor(
 
         val wasSelectAllActive =
             selectedItemsAtStart.isNotEmpty() &&
-            selectedItemsAtStart.size == eventUiStateAtStart.size &&
-            eventUiStateAtStart.containsAll(selectedItemsAtStart)
+                    selectedItemsAtStart.size == eventUiStateAtStart.size &&
+                    eventUiStateAtStart.containsAll(selectedItemsAtStart)
 
         val previousArchivedFilterState = _archivedFilterEnabled.value
         val previousActiveFilterState = _activeFilterEnabled.value

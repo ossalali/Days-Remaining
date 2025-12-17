@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
-import com.ossalali.daysremaining.presentation.ui.MainScreen
+import com.ossalali.daysremaining.presentation.ui.v2.MainScreen2
 import com.ossalali.daysremaining.widget.EventWidget.Companion.EVENT_ID
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -43,9 +43,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyAppTheme {
-                MainScreen(
-                    eventId = eventId?.toLong(),
-                    shouldNavigateToAddEvent = shouldNavigateToAddEvent,
+                MainScreen2(
+                    //eventId = eventId?.toLong(),
+                    //shouldNavigateToAddEvent = shouldNavigateToAddEvent,
                 )
             }
         }

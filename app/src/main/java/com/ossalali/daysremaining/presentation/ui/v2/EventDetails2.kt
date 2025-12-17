@@ -6,16 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,12 +28,11 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.ossalali.daysremaining.MyAppTheme
+import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.EventDetailsViewModel
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey>) {
@@ -57,7 +49,7 @@ fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey
             is EventDetailsViewModel.DetailsState.Loaded -> {
                 EventDetails(
                     formData =
-                        (state.value as EventDetailsViewModel.DetailsState.Loaded).eventFormData,
+                        (state.value as EventDetailsViewModel.DetailsState.Loaded).eventUiModel,
                     onDateChanged = { date: LocalDate -> eventDetailsViewModel.updateDate(date) },
                     onSave = {},
                 )
@@ -71,8 +63,8 @@ fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey
 
 @Composable
 fun EventDetails(
-    formData: EventDetailsViewModel.EventFormData = EventDetailsViewModel.EventFormData(),
-    onSave: (EventDetailsViewModel.EventFormData) -> Unit = {},
+    formData: EventUiModel = EventUiModel(),
+    onSave: (EventUiModel) -> Unit = {},
     onDateChanged: (LocalDate) -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
@@ -85,8 +77,8 @@ fun EventDetails(
             }
         }
     var title by remember { mutableStateOf(formData.title) }
+    var description by remember { mutableStateOf(formData.description) }
     val chipText = remember(formData.date) { formData.date.ifBlank { LocalDate.now().toString() } }
-    var showDatePickerDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier =
@@ -100,63 +92,27 @@ fun EventDetails(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         EventDetailsNumberOfDays(numberOfDays.toString())
-
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = title,
             onValueChange = { title = it },
-            label = { Text(text = "Title") },
-            placeholder = { Text(text = "Enter event title") },
+            label = { Text(text = stringResource(R.string.event_title)) },
+            placeholder = { Text(text = stringResource(R.string.enter_event_title)) },
         )
-
-        AssistChip(
+        DatePickerChip(
             modifier = Modifier.align(Alignment.Start),
-            onClick = {
-                focusManager.clearFocus()
-                showDatePickerDialog = true
-            },
-            label = { Text(text = chipText) },
+            clearFocus = focusManager::clearFocus,
+            chipText = chipText,
+            onDateChanged = onDateChanged,
+        )
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = description,
+            onValueChange = { description = it },
+            label = { Text(text = stringResource(R.string.description)) },
+            placeholder = { Text(text = stringResource(R.string.add_event_details_optional)) },
         )
 
-        if (showDatePickerDialog) {
-            val datePickerState = rememberDatePickerState()
-            DatePickerDialog(
-                onDismissRequest = { showDatePickerDialog = false },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            val selectedDateMillis = datePickerState.selectedDateMillis
-                            val selectedDate =
-                                if (selectedDateMillis != null) {
-                                    Instant.ofEpochMilli(selectedDateMillis)
-                                        .atZone(ZoneId.systemDefault())
-                                        .toLocalDate()
-                                } else {
-                                    LocalDate.now()
-                                }
-                            onDateChanged(selectedDate)
-                            showDatePickerDialog = false
-                        }
-                    ) {
-                        Text("OK", color = MaterialTheme.colorScheme.primary)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePickerDialog = false }) {
-                        Text("Cancel", color = MaterialTheme.colorScheme.primary)
-                    }
-                },
-            ) {
-                DatePicker(
-                    state = datePickerState,
-                    // Make DatePicker smaller
-                    modifier = Modifier.sizeIn(maxWidth = 350.dp),
-                )
-            }
-        }
-
-        // DatePicker
-        // Description
         // Image
         // reminders
         // bottom bar
@@ -172,13 +128,33 @@ fun EventDetailsPreview() {
             var inputDate by remember { mutableStateOf(LocalDate.now().plusDays(5).toString()) }
             EventDetails(
                 formData =
-                    EventDetailsViewModel.EventFormData(
-                        // title = "Birthday",
-                        description = "This is the description of the birthday event",
+                    EventUiModel(
+                        title = "Birthday",
+                        description =
+                            """
+                            This is the description of the birthday event 
+                            with a new line
+                            !!!
+                            """
+                                .trimIndent(),
                         date = inputDate,
                         imageUri =
                             "C:\\Users\\ossma\\Projects\\Days-Remaining\\app\\src\\main\\icon_1-playstore.png",
                     ),
+                onDateChanged = { date -> inputDate = date.toString() },
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+fun EventDetailsEmptyPreview() {
+    MyAppTheme {
+        Surface {
+            var inputDate by remember { mutableStateOf(LocalDate.now().toString()) }
+            EventDetails(
+                formData = EventUiModel(date = inputDate),
                 onDateChanged = { date -> inputDate = date.toString() },
             )
         }
