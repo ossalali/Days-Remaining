@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +62,7 @@ fun EventSearchBar(
                 },
                 modifier =
                     Modifier
-                        .shadow(Dimensions.quarter, shape = CircleShape)
+                        .shadow(PaddingDimension.quarter, shape = CircleShape)
                         .focusRequester(focusRequester)
                         .onFocusChanged { focusState -> isFocused = focusState.isFocused },
             )

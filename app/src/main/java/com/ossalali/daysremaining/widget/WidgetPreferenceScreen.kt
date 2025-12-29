@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.appLogger
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,7 +89,10 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                     Card(
                         border =
                             if (isSelected) {
-                                BorderStroke(Dimensions.eighth, MaterialTheme.colorScheme.primary)
+                                BorderStroke(
+                                    PaddingDimension.eighth,
+                                    MaterialTheme.colorScheme.primary
+                                )
                             } else {
                                 null
                             },
@@ -97,23 +100,23 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .padding(Dimensions.half)
+                                .padding(PaddingDimension.half)
                                 .combinedClickable(
                                     onClick = { viewModel.toggleSelection(event.id) },
                                     onClickLabel = "Event Selected",
                                 ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.half),
+                        elevation = CardDefaults.cardElevation(defaultElevation = PaddingDimension.half),
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(Dimensions.half),
+                                .padding(PaddingDimension.half),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(end = Dimensions.half)
+                                    .padding(end = PaddingDimension.half)
                             ) {
                                 Text(
                                     text = event.title,
@@ -121,7 +124,7 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(bottom = Dimensions.quarter),
+                                        .padding(bottom = PaddingDimension.quarter),
                                 )
                                 Text(
                                     text = event.getNumberOfDays(customDateNotation),
@@ -129,7 +132,7 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(bottom = Dimensions.quarter),
+                                        .padding(bottom = PaddingDimension.quarter),
                                 )
                                 Text(
                                     text = "Days",
@@ -137,7 +140,7 @@ fun WidgetPreferenceScreen(viewModel: WidgetPreferenceScreenViewModel, onSaveCom
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(bottom = Dimensions.quarter),
+                                        .padding(bottom = PaddingDimension.quarter),
                                 )
                             }
                         }

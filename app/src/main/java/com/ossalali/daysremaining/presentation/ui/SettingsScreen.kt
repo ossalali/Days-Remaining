@@ -22,7 +22,7 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.navigation.SettingsRoute
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
 import com.ossalali.daysremaining.presentation.viewmodel.SettingsViewModel
 
 fun EntryProviderScope<NavKey>.settingsScreen(
@@ -66,7 +66,7 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(Dimensions.default)
+            .padding(PaddingDimension.default)
     ) {
         SettingItem(
             title = "Dark Mode",
@@ -108,14 +108,14 @@ fun SettingItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = Dimensions.half)
+            .padding(vertical = PaddingDimension.half)
     ) {
         ListItem(
             headlineContent = { Text(text = title) },
             supportingContent = { Text(text = description) },
             trailingContent = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
         )
-        Spacer(modifier = Modifier.height(Dimensions.half))
+        Spacer(modifier = Modifier.height(PaddingDimension.half))
     }
 }
 

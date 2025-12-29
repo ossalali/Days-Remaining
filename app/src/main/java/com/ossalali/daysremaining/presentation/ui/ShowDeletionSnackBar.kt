@@ -13,7 +13,7 @@ import androidx.compose.ui.res.painterResource
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviewsNoSystemUI
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
 
 @Composable
 fun ShowDeletionSnackBar(
@@ -22,7 +22,7 @@ fun ShowDeletionSnackBar(
     snackBarMessage: String,
 ) {
     Snackbar(
-        modifier = Modifier.padding(all = Dimensions.default),
+        modifier = Modifier.padding(all = PaddingDimension.default),
         action = {
             TextButton(onClick = onUndoDelete) {
                 Text("Undo", color = Color.hsl(267.44f, 0.9707f, 0.598f))

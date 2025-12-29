@@ -32,8 +32,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.ossalali.daysremaining.MyAppTheme
+import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import com.ossalali.daysremaining.presentation.viewmodel.SettingsViewModel
@@ -41,7 +42,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import com.ossalali.daysremaining.R
 
 @Composable
 internal fun EventListScreen(
@@ -102,7 +102,7 @@ private fun EventListImpl(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Dimensions.default + Dimensions.half),
+                    .padding(horizontal = PaddingDimension.default + PaddingDimension.half),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AddChips(
@@ -127,8 +127,8 @@ private fun EventListImpl(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding =
                     PaddingValues(
-                        start = Dimensions.default,
-                        end = Dimensions.default,
+                        start = PaddingDimension.default,
+                        end = PaddingDimension.default,
                         bottom = 80.dp,
                     ),
             )
@@ -141,9 +141,9 @@ private fun EventListImpl(
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                         .padding(
-                            start = Dimensions.default,
-                            end = if (showFab) 72.dp + Dimensions.default else Dimensions.default,
-                            bottom = Dimensions.default,
+                            start = PaddingDimension.default,
+                            end = if (showFab) 72.dp + PaddingDimension.default else PaddingDimension.default,
+                            bottom = PaddingDimension.default,
                         ),
             )
         }
@@ -176,7 +176,7 @@ fun AddChips(
                 },
         )
 
-        Spacer(Modifier.width(Dimensions.quarter))
+        Spacer(Modifier.width(PaddingDimension.quarter))
 
         FilterChip(
             selected = archivedFilterEnabled,

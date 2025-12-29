@@ -6,13 +6,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
 
 @Composable
 fun EventDetailsNumberOfDays(numberOfDays: String) {
     Text(text = numberOfDays)
     Text(
-        modifier = Modifier.padding(bottom = Dimensions.default),
+        modifier = Modifier.padding(bottom = PaddingDimension.default),
         text = stringResource(R.string.days_remaining),
     )
 }

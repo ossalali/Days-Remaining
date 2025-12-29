@@ -2,7 +2,7 @@ package com.ossalali.daysremaining.presentation.ui.theme
 
 import androidx.compose.ui.unit.dp
 
-object Dimensions {
+object PaddingDimension {
     val default = 16.dp
     val half = default / 2
     val quarter = default / 4

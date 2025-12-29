@@ -59,7 +59,7 @@ import com.ossalali.daysremaining.navigation.DebugRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import kotlinx.collections.immutable.ImmutableList
@@ -324,7 +324,7 @@ private fun SetupTopAppBar(
                     }
                     if (BuildConfig.DEBUG) {
                         IconButton(
-                            modifier = Modifier.padding(horizontal = Dimensions.quarter),
+                            modifier = Modifier.padding(horizontal = PaddingDimension.quarter),
                             onClick = { navigateToDebugScreen() },
                         ) {
                             Icon(
@@ -341,7 +341,7 @@ private fun SetupTopAppBar(
             title = {},
             actions = {
                 Row(
-                    modifier = Modifier.padding(horizontal = Dimensions.default),
+                    modifier = Modifier.padding(horizontal = PaddingDimension.default),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = { eventListViewModel.onInteraction(Interaction.ClearSelection) }) {
@@ -350,7 +350,7 @@ private fun SetupTopAppBar(
                             contentDescription = "Back",
                         )
                     }
-                    Spacer(Modifier.width(Dimensions.half))
+                    Spacer(Modifier.width(PaddingDimension.half))
                     Text(
                         text = "${selectedEventItems.size}",
                         style = MaterialTheme.typography.titleLarge,

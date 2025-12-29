@@ -42,7 +42,7 @@ import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.ImageStorage
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
-import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import com.ossalali.daysremaining.presentation.ui.v2.model.toNumberOfDays
 import com.ossalali.daysremaining.presentation.ui.v2.viewmodel.EventDetailsViewModel
@@ -151,7 +151,7 @@ fun EventDetailsLoaded(
         modifier =
             Modifier
                 .fillMaxSize()
-                .padding(Dimensions.default)
+                .padding(PaddingDimension.default)
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { focusManager.clearFocus() })
                 },
