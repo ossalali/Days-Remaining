@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @Composable
 fun ImagePicker(
@@ -42,11 +42,11 @@ fun ImagePicker(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(top = PaddingDimension.default, bottom = PaddingDimension.default)
+                    .padding(top = PaddingSize.default, bottom = PaddingSize.default)
                     .height(180.dp)
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(PaddingDimension.default),
+                        shape = RoundedCornerShape(PaddingSize.default),
                     )
                     .clickable {
                         if (!imageUri.isNullOrBlank()) {
@@ -79,9 +79,9 @@ fun ImagePicker(
                 modifier =
                     Modifier
                         .padding(
-                            top = PaddingDimension.default,
-                            bottom = PaddingDimension.default,
-                            start = PaddingDimension.half,
+                            top = PaddingSize.default,
+                            bottom = PaddingSize.default,
+                            start = PaddingSize.half,
                         )
                         .height(180.dp),
                 verticalArrangement = Arrangement.SpaceEvenly,

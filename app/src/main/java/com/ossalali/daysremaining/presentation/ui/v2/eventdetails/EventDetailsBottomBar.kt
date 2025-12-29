@@ -15,7 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @Composable
 fun EventDetailsBottomBar(
@@ -31,7 +31,7 @@ fun EventDetailsBottomBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = PaddingDimension.default),
+            .padding(horizontal = PaddingSize.default),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {

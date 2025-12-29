@@ -34,7 +34,7 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import com.ossalali.daysremaining.presentation.viewmodel.SettingsViewModel
@@ -102,7 +102,7 @@ private fun EventListImpl(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = PaddingDimension.default + PaddingDimension.half),
+                    .padding(horizontal = PaddingSize.default + PaddingSize.half),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AddChips(
@@ -127,8 +127,8 @@ private fun EventListImpl(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding =
                     PaddingValues(
-                        start = PaddingDimension.default,
-                        end = PaddingDimension.default,
+                        start = PaddingSize.default,
+                        end = PaddingSize.default,
                         bottom = 80.dp,
                     ),
             )
@@ -141,9 +141,9 @@ private fun EventListImpl(
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                         .padding(
-                            start = PaddingDimension.default,
-                            end = if (showFab) 72.dp + PaddingDimension.default else PaddingDimension.default,
-                            bottom = PaddingDimension.default,
+                            start = PaddingSize.default,
+                            end = if (showFab) 72.dp + PaddingSize.default else PaddingSize.default,
+                            bottom = PaddingSize.default,
                         ),
             )
         }
@@ -176,7 +176,7 @@ fun AddChips(
                 },
         )
 
-        Spacer(Modifier.width(PaddingDimension.quarter))
+        Spacer(Modifier.width(PaddingSize.quarter))
 
         FilterChip(
             selected = archivedFilterEnabled,

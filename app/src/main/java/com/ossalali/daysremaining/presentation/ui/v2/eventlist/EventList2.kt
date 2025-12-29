@@ -26,7 +26,7 @@ import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.navigation.AddEventRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.ui.theme.TextSize
 import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventListEmpty
 import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventListError
@@ -93,13 +93,13 @@ fun EventListLoaded(
             Card(
                 modifier =
                     Modifier
-                        .padding(PaddingDimension.half)
+                        .padding(PaddingSize.half)
                         .clickable(onClick = { onItemClicked(item.id) })
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = PaddingDimension.half),
+                        .padding(vertical = PaddingSize.half),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(text = item.title)

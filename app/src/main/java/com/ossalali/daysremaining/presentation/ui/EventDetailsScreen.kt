@@ -94,7 +94,7 @@ import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.ImageStorage
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviews
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.viewmodel.EventDetailsViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -175,7 +175,7 @@ private fun calculateResponsiveHorizontalPadding(): Dp {
 
         !isTablet && isLandscape -> screenWidthDp * 0.2f
 
-        else -> PaddingDimension.default
+        else -> PaddingSize.default
     }
 }
 
@@ -195,11 +195,11 @@ private fun calculateActionBarPadding(): Dp {
         }
 
     return when {
-        isTablet -> PaddingDimension.triple
+        isTablet -> PaddingSize.triple
 
-        isLandscape -> PaddingDimension.double
+        isLandscape -> PaddingSize.double
 
-        else -> PaddingDimension.default * 2
+        else -> PaddingSize.default * 2
     }
 }
 
@@ -523,7 +523,7 @@ private fun ScrollableEventForm(
         modifier =
             modifier
                 .verticalScroll(scrollState)
-                .padding(horizontal = PaddingDimension.default)
+                .padding(horizontal = PaddingSize.default)
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
@@ -644,8 +644,8 @@ private fun EventContent(
                             shape = CircleShape,
                         )
                         .padding(
-                            horizontal = PaddingDimension.default + PaddingDimension.half,
-                            vertical = PaddingDimension.half + PaddingDimension.quarter,
+                            horizontal = PaddingSize.default + PaddingSize.half,
+                            vertical = PaddingSize.half + PaddingSize.quarter,
                         ),
                 text = "ARCHIVED",
                 textAlign = TextAlign.Center,
@@ -666,9 +666,9 @@ private fun EventContent(
 
         val verticalSpacing =
             when {
-                isTablet -> PaddingDimension.double
-                isLandscape -> PaddingDimension.half
-                else -> PaddingDimension.default
+                isTablet -> PaddingSize.double
+                isLandscape -> PaddingSize.half
+                else -> PaddingSize.default
             }
 
         Spacer(modifier = Modifier.height(verticalSpacing))
@@ -729,7 +729,7 @@ private fun EventContent(
 
         val chipHeight =
             with(density) {
-                val baseHeight = PaddingDimension.triple
+                val baseHeight = PaddingSize.triple
                 val fontScale = density.fontScale
                 val isTablet =
                     minOf(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp) >= 600.dp
@@ -742,7 +742,7 @@ private fun EventContent(
 
         val chipWidth =
             with(density) {
-                val baseWidth = PaddingDimension.nonuple
+                val baseWidth = PaddingSize.nonuple
                 val fontScale = density.fontScale
                 val isTablet =
                     minOf(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp) >= 600.dp
@@ -840,7 +840,7 @@ private fun EventContent(
                         .height(180.dp)
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(PaddingDimension.default),
+                            shape = RoundedCornerShape(PaddingSize.default),
                         )
                         .clickable {
                             if (!imageUri.isNullOrBlank()) {
@@ -849,7 +849,7 @@ private fun EventContent(
                                 showImagePickerDialog = true
                             }
                         }
-                        .padding(PaddingDimension.half),
+                        .padding(PaddingSize.half),
                 contentAlignment = Alignment.Center,
             ) {
                 if (!imageUri.isNullOrBlank()) {
@@ -870,7 +870,7 @@ private fun EventContent(
                 }
             }
             if (!imageUri.isNullOrBlank()) {
-                Spacer(modifier = Modifier.width(PaddingDimension.default))
+                Spacer(modifier = Modifier.width(PaddingSize.default))
                 Column(
                     modifier = Modifier
                         .weight(1f - imagePreviewMaxWidth)
@@ -1013,7 +1013,7 @@ private fun EventContent(
                     IconButton(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(PaddingDimension.default),
+                            .padding(PaddingSize.default),
                         onClick = { showFullScreenImage = false },
                     ) {
                         Icon(

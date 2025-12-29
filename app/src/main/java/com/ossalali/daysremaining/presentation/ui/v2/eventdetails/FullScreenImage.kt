@@ -16,7 +16,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @Composable
 fun FullScreenImage(showFullScreenImage: (Boolean) -> Unit = {}, imageUri: String? = null) {
@@ -36,7 +36,7 @@ fun FullScreenImage(showFullScreenImage: (Boolean) -> Unit = {}, imageUri: Strin
             IconButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(PaddingDimension.default),
+                    .padding(PaddingSize.default),
                 onClick = { showFullScreenImage(false) },
             ) {
                 Icon(

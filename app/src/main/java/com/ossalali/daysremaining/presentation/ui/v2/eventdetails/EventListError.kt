@@ -15,7 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @Composable
 fun EventListError() {
@@ -26,7 +26,7 @@ fun EventListError() {
         ) {
             Text(modifier = Modifier, text = "ERROR WHILE LOADING LIST")
             Icon(
-                modifier = Modifier.size(PaddingDimension.triple),
+                modifier = Modifier.size(PaddingSize.triple),
                 painter = painterResource(R.drawable.warning_24px),
                 contentDescription = "error",
                 tint = MaterialTheme.colorScheme.onErrorContainer,

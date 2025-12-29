@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.ossalali.daysremaining.BuildConfig
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +39,7 @@ fun TopAppBar(
             } else {
                 if (BuildConfig.DEBUG) {
                     IconButton(
-                        modifier = Modifier.padding(horizontal = PaddingDimension.quarter),
+                        modifier = Modifier.padding(horizontal = PaddingSize.quarter),
                         onClick = { navigateToDebugScreen() },
                     ) {
                         Icon(

@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.presentation.ui.previews.DefaultPreviews
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDate
@@ -75,7 +75,7 @@ fun EventListGrid(
         Card(
             border =
                 if (isSelected) {
-                    BorderStroke(PaddingDimension.eighth, MaterialTheme.colorScheme.primary)
+                    BorderStroke(PaddingSize.eighth, MaterialTheme.colorScheme.primary)
                 } else {
                   null
                 },
@@ -92,7 +92,7 @@ fun EventListGrid(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(PaddingDimension.half)
+                    .padding(PaddingSize.half)
                     .combinedClickable(
                         onClick = {
                             if (selectedEventItems.isEmpty()) {
@@ -104,12 +104,12 @@ fun EventListGrid(
                         onLongClickLabel = "Event Selected",
                         onLongClick = { onEventItemSelection(event.id) },
                     ),
-            elevation = CardDefaults.cardElevation(defaultElevation = PaddingDimension.half),
+            elevation = CardDefaults.cardElevation(defaultElevation = PaddingSize.half),
         ) {
           Row(
               modifier = Modifier
                   .fillMaxSize()
-                  .padding(PaddingDimension.half),
+                  .padding(PaddingSize.half),
               verticalAlignment = Alignment.CenterVertically,
           ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -119,7 +119,7 @@ fun EventListGrid(
                   textAlign = TextAlign.Center,
                   modifier = Modifier
                       .fillMaxWidth()
-                      .padding(bottom = PaddingDimension.quarter),
+                      .padding(bottom = PaddingSize.quarter),
               )
               Text(
                   text = numberOfDays,
@@ -127,7 +127,7 @@ fun EventListGrid(
                   textAlign = TextAlign.Center,
                   modifier = Modifier
                       .fillMaxWidth()
-                      .padding(bottom = PaddingDimension.quarter),
+                      .padding(bottom = PaddingSize.quarter),
               )
               if (!event.imageUri.isNullOrBlank()) {
                 AsyncImage(
@@ -142,7 +142,7 @@ fun EventListGrid(
                 )
               }
               if (event.description.isNotEmpty()) {
-                  Spacer(modifier = Modifier.height(PaddingDimension.quarter))
+                  Spacer(modifier = Modifier.height(PaddingSize.quarter))
                 Text(
                     text = event.description,
                     style = MaterialTheme.typography.bodyMedium,
@@ -151,7 +151,7 @@ fun EventListGrid(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = PaddingDimension.quarter),
+                        .padding(bottom = PaddingSize.quarter),
                 )
               }
             }

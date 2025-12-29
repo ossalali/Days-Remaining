@@ -48,7 +48,7 @@ import androidx.glance.text.TextStyle
 import com.ossalali.daysremaining.MainActivity
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.widget.EventWidget.Companion.ADD_EVENT_ACTION
 import com.ossalali.daysremaining.widget.EventWidget.Companion.EVENT_ID
 import com.ossalali.daysremaining.widget.EventWidget.Companion.VIEW_EVENT_ACTION
@@ -376,7 +376,7 @@ fun WidgetContent(eventItems: List<EventItem>, customDateNotation: Boolean, cont
       titleBar = {
         if (uiState.showTitleBar) {
           Box(
-              modifier = GlanceModifier.fillMaxWidth().padding(PaddingDimension.default),
+              modifier = GlanceModifier.fillMaxWidth().padding(PaddingSize.default),
               contentAlignment = Alignment.TopEnd,
           ) {
             Row {
@@ -387,7 +387,7 @@ fun WidgetContent(eventItems: List<EventItem>, customDateNotation: Boolean, cont
                   contentDescription = "Refresh widget",
                   backgroundColor = GlanceTheme.colors.primaryContainer,
               )
-                Spacer(modifier = GlanceModifier.width(PaddingDimension.half))
+                Spacer(modifier = GlanceModifier.width(PaddingSize.half))
               CircleIconButton(
                   modifier = GlanceModifier.size(uiState.iconSize),
                   imageProvider = ImageProvider(R.drawable.add_24px),
@@ -470,13 +470,13 @@ fun EventItemCard(
       }
   val itemClickAction = actionStartActivity(eventDetailIntent)
 
-    Box(modifier = GlanceModifier.padding(PaddingDimension.quarter).clickable(itemClickAction)) {
+    Box(modifier = GlanceModifier.padding(PaddingSize.quarter).clickable(itemClickAction)) {
     Column(
         modifier =
             GlanceModifier.fillMaxSize()
                 .background(GlanceTheme.colors.secondaryContainer)
-                .cornerRadius(PaddingDimension.default)
-                .padding(PaddingDimension.half),
+                .cornerRadius(PaddingSize.default)
+                .padding(PaddingSize.half),
         verticalAlignment = Alignment.CenterVertically,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -493,7 +493,7 @@ fun EventItemCard(
           maxLines = 1,
       )
 
-        Spacer(modifier = GlanceModifier.height(PaddingDimension.quarter))
+        Spacer(modifier = GlanceModifier.height(PaddingSize.quarter))
 
         val daysRemaining = eventItem.getNumberOfDays(customDateNotation)
 

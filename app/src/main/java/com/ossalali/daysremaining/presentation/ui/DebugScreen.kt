@@ -36,7 +36,7 @@ import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.businesslogic.debug.AddDebugEventsUseCase
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.navigation.DebugRoute
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.viewmodel.DebugScreenViewModel
 
 fun EntryProviderScope<NavKey>.debugScreen(backStack: NavBackStack<NavKey>) {
@@ -67,14 +67,14 @@ fun DebugScreen(insertEvents: (List<EventItem>) -> Unit = {}, onClose: () -> Uni
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = PaddingDimension.default)
+                        .padding(horizontal = PaddingSize.default)
                         .focusRequester(textFieldFocusRequester),
             )
-            Spacer(Modifier.height(PaddingDimension.default))
+            Spacer(Modifier.height(PaddingSize.default))
             FloatingActionButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = PaddingDimension.default),
+                    .padding(horizontal = PaddingSize.default),
                 onClick = {
                     AddDebugEventsUseCase(insertEvents)(numberOfEvents)
                     onClose()
