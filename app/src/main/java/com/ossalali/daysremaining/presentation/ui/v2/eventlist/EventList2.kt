@@ -27,6 +27,7 @@ import com.ossalali.daysremaining.navigation.AddEventRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingDimension
+import com.ossalali.daysremaining.presentation.ui.theme.TextSize
 import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventListEmpty
 import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventListError
 import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventListLoading
@@ -86,7 +87,7 @@ fun EventListLoaded(
 ) {
     LazyVerticalStaggeredGrid(
         modifier = Modifier.fillMaxSize(),
-        columns = StaggeredGridCells.Adaptive(200.dp),
+        columns = StaggeredGridCells.Adaptive(150.dp),
     ) {
         items(items = eventUiModels, key = { eventItem -> eventItem.id }) { item ->
             Card(
@@ -96,13 +97,15 @@ fun EventListLoaded(
                         .clickable(onClick = { onItemClicked(item.id) })
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = PaddingDimension.half),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(text = item.title)
-                    Text(text = item.date.toNumberOfDays(), fontSize = PaddingDimension)
+                    Text(text = item.date.toNumberOfDays(), fontSize = TextSize.double)
                     if (item.description.isNotBlank()) {
-                        Text(text = item.description)
+                        Text(text = item.description, fontSize = TextSize.subtext)
                     }
                     if (item.imageUri != null && item.imageUri.isNotBlank()) {
                         Text(text = item.imageUri)
