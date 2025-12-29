@@ -35,7 +35,7 @@ class EventDataSource @Inject constructor(
         eventDao.upsertEvents(eventItemList)
     }
 
-    suspend fun getEventById(eventId: Int): EventItem {
+    suspend fun getEventById(eventId: Int): EventItem? {
         return eventDao.getEventById(eventId)
     }
 

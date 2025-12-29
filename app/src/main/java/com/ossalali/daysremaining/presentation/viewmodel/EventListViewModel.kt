@@ -1,36 +1,28 @@
 package com.ossalali.daysremaining.presentation.viewmodel
 
 import androidx.lifecycle.viewModelScope
-import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.presentation.ui.v2.EventUiModel
-import com.ossalali.daysremaining.presentation.ui.v2.toEventUiModels
+import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import com.ossalali.daysremaining.presentation.viewmodel.EventListViewModel.Interaction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-open class EventListViewModel
-@Inject
-constructor(
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val eventRepository: EventRepository,
-) : BaseViewModel<Interaction>() {
+open class EventListViewModel @Inject constructor(private val eventRepository: EventRepository) :
+    BaseViewModel<Interaction>() {
     private val _activeFilterEnabled = MutableStateFlow(true)
     val activeFilterEnabled: StateFlow<Boolean> = _activeFilterEnabled
     private val _archivedFilterEnabled = MutableStateFlow(false)
@@ -66,13 +58,13 @@ constructor(
     }
 
     init {
-        viewModelScope.launch {
-            allEventsFlow
-                .onStart { _listState.value = ListState.Loading }
-                .collect { eventItems ->
-                    _listState.value = ListState.Loaded(eventItems.toEventUiModels())
-                }
-        }
+        // viewModelScope.launch {
+        //     allEventsFlow
+        //         .onStart { _listState.value = ListState.Loading }
+        //         .collect { eventItems ->
+        //             _listState.value = ListState.Loaded(eventItems.toEventUiModels())
+        //         }
+        // }
     }
 
     private val _searchText = MutableStateFlow("")
@@ -129,7 +121,7 @@ constructor(
     private fun commitSpecificDeletions(itemsToCommit: ImmutableList<EventItem>) {
         if (itemsToCommit.isEmpty()) return
 
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             try {
                 eventRepository.deleteEvents(itemsToCommit.map { it.id })
 
@@ -225,7 +217,7 @@ constructor(
     }
 
     fun unarchiveEvents(eventItems: ImmutableList<EventItem>) {
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             eventRepository.unarchiveEvents(eventItems.map { it.id })
             val currentSelection = _selectedEventItems.value.toMutableList()
             currentSelection.removeAll(eventItems)
@@ -234,7 +226,7 @@ constructor(
     }
 
     fun archiveEvents(eventItems: ImmutableList<EventItem>) {
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             eventRepository.archiveEvents(eventItems.map { it.id })
             val currentSelection = _selectedEventItems.value.toMutableList()
             currentSelection.removeAll(eventItems)

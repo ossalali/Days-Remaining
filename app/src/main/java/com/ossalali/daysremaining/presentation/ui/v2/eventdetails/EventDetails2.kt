@@ -1,11 +1,13 @@
-package com.ossalali.daysremaining.presentation.ui.v2
+package com.ossalali.daysremaining.presentation.ui.v2.eventdetails
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,9 +23,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -31,54 +33,68 @@ import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
-import com.ossalali.daysremaining.presentation.viewmodel.EventDetailsViewModel
+import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
+import com.ossalali.daysremaining.presentation.ui.v2.viewmodel.EventDetailsViewModel
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey>) {
     entry<EventDetailsRoute> { route ->
         val eventDetailsViewModel =
-            viewModel<EventDetailsViewModel>(LocalViewModelStoreOwner.current!!)
+            hiltViewModel<EventDetailsViewModel>(LocalViewModelStoreOwner.current!!)
 
         LaunchedEffect(route.eventId) { eventDetailsViewModel.init(route.eventId, route.isAddMode) }
 
-        val state = eventDetailsViewModel.detailsState.collectAsStateWithLifecycle()
+        val state = eventDetailsViewModel.state.collectAsStateWithLifecycle()
 
         when (state.value) {
-            EventDetailsViewModel.DetailsState.AddMode -> TODO()
+            EventDetailsViewModel.DetailsState.AddMode -> {}
+
             is EventDetailsViewModel.DetailsState.Loaded -> {
-                EventDetails(
-                    formData =
-                        (state.value as EventDetailsViewModel.DetailsState.Loaded).eventUiModel,
+                EventDetailsLoaded(
+                    eventUiModel = (state.value as EventDetailsViewModel.DetailsState.Loaded).event,
                     onDateChanged = { date: LocalDate -> eventDetailsViewModel.updateDate(date) },
                     onSave = {},
                 )
             }
 
-            EventDetailsViewModel.DetailsState.Loading -> TODO()
-            EventDetailsViewModel.DetailsState.Saving -> TODO()
+            EventDetailsViewModel.DetailsState.Loading -> {
+                EventDetailsLoading()
+            }
+
+            EventDetailsViewModel.DetailsState.Saving -> {}
+
+            EventDetailsViewModel.DetailsState.Error -> {}
         }
     }
 }
 
 @Composable
-fun EventDetails(
-    formData: EventUiModel = EventUiModel(),
+fun EventDetailsLoading() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+    }
+}
+
+@Composable
+fun EventDetailsLoaded(
+    eventUiModel: EventUiModel = EventUiModel(),
     onSave: (EventUiModel) -> Unit = {},
     onDateChanged: (LocalDate) -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     val numberOfDays =
-        remember(formData.date) {
-            if (formData.date.isNotBlank()) {
-                LocalDate.now().until(LocalDate.parse(formData.date), ChronoUnit.DAYS)
+        remember(eventUiModel.date) {
+            if (eventUiModel.date.isNotBlank()) {
+                LocalDate.now().until(LocalDate.parse(eventUiModel.date), ChronoUnit.DAYS)
             } else {
                 0
             }
         }
-    var title by remember { mutableStateOf(formData.title) }
-    var description by remember { mutableStateOf(formData.description) }
-    val chipText = remember(formData.date) { formData.date.ifBlank { LocalDate.now().toString() } }
+    var title by remember { mutableStateOf(eventUiModel.title) }
+    var description by remember { mutableStateOf(eventUiModel.description) }
+    val chipText =
+        remember(eventUiModel.date) { eventUiModel.date.ifBlank { LocalDate.now().toString() } }
 
     Column(
         modifier =
@@ -92,6 +108,7 @@ fun EventDetails(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         EventDetailsNumberOfDays(numberOfDays.toString())
+        // Event Title
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = title,
@@ -99,12 +116,14 @@ fun EventDetails(
             label = { Text(text = stringResource(R.string.event_title)) },
             placeholder = { Text(text = stringResource(R.string.enter_event_title)) },
         )
+        // Event Date
         DatePickerChip(
             modifier = Modifier.align(Alignment.Start),
             clearFocus = focusManager::clearFocus,
             chipText = chipText,
             onDateChanged = onDateChanged,
         )
+        // Event Description
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = description,
@@ -122,12 +141,12 @@ fun EventDetails(
 
 @PreviewLightDark
 @Composable
-fun EventDetailsPreview() {
+fun EventDetailsLoadedPreview() {
     MyAppTheme {
         Surface {
             var inputDate by remember { mutableStateOf(LocalDate.now().plusDays(5).toString()) }
-            EventDetails(
-                formData =
+            EventDetailsLoaded(
+                eventUiModel =
                     EventUiModel(
                         title = "Birthday",
                         description =
@@ -149,12 +168,12 @@ fun EventDetailsPreview() {
 
 @PreviewLightDark
 @Composable
-fun EventDetailsEmptyPreview() {
+fun EventDetailsLoadedEmptyPreview() {
     MyAppTheme {
         Surface {
             var inputDate by remember { mutableStateOf(LocalDate.now().toString()) }
-            EventDetails(
-                formData = EventUiModel(date = inputDate),
+            EventDetailsLoaded(
+                eventUiModel = EventUiModel(date = inputDate),
                 onDateChanged = { date -> inputDate = date.toString() },
             )
         }

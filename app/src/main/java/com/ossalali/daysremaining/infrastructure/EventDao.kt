@@ -33,7 +33,7 @@ interface EventDao {
     suspend fun getAllArchivedEvents(): List<EventItem>
 
     @Query("SELECT * FROM eventitem WHERE id = :eventId")
-    suspend fun getEventById(eventId: Int): EventItem
+    suspend fun getEventById(eventId: Int): EventItem?
 
     @Query("SELECT * FROM eventitem WHERE id = :eventId")
     fun getEventByIdFlow(eventId: Int): Flow<EventItem>

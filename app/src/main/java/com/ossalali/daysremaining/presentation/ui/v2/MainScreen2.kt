@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -23,6 +24,9 @@ import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
 import com.ossalali.daysremaining.presentation.ui.debugScreen
 import com.ossalali.daysremaining.presentation.ui.settingsScreen
+import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventDetailsBottomBar
+import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.eventDetailsScreen
+import com.ossalali.daysremaining.presentation.ui.v2.eventlist.eventListScreen
 
 @Composable
 fun MainScreen2() {
@@ -47,6 +51,14 @@ fun MainScreen2() {
                     TopAppBar(
                         onBackClick = { backStack.removeLastOrNull() },
                         showTopAppBarButtons = true,
+                        navigateToDebugScreen = {
+                            if (backStack.contains(DebugRoute)) return@TopAppBar
+                            backStack.add(DebugRoute)
+                        },
+                        navigateToSettingsScreen = {
+                            if (backStack.contains(SettingsRoute)) return@TopAppBar
+                            backStack.add(SettingsRoute)
+                        },
                     )
                 }
             }
@@ -57,10 +69,16 @@ fun MainScreen2() {
                     EventDetailsBottomBar()
                 }
 
-                is SettingsRoute -> {}
-                is DebugRoute -> {}
+                is SettingsRoute -> {
+                    // no bottom bar
+                }
+
+                is DebugRoute -> {
+                    // no bottom bar
+                }
                 else -> {
-                    /* EventListRoute */
+                    // search bar and add button
+                    Text(text = "Event List Bottom Bar")
                 }
             }
         },

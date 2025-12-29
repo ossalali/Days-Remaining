@@ -1,4 +1,4 @@
-package com.ossalali.daysremaining.presentation.ui.v2
+package com.ossalali.daysremaining.presentation.ui.v2.model
 
 import com.ossalali.daysremaining.model.EventItem
 import kotlinx.collections.immutable.ImmutableList

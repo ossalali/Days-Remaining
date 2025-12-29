@@ -2,13 +2,11 @@ package com.ossalali.daysremaining.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ossalali.daysremaining.di.IoDispatcher
 import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.infrastructure.appLogger
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.presentation.ui.v2.EventUiModel
+import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,12 +16,8 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
-class EventDetailsViewModel
-@Inject
-constructor(
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val eventRepository: EventRepository,
-) : ViewModel() {
+class EventDetailsViewModel @Inject constructor(private val eventRepository: EventRepository) :
+    ViewModel() {
 
     private val _event = MutableStateFlow<EventItem?>(null)
     val event: StateFlow<EventItem?> = _event.asStateFlow()
@@ -46,7 +40,7 @@ constructor(
     private lateinit var currentEvent: EventItem
 
     fun saveEvent(event: EventItem) {
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             _isSaving.value = true
             try {
                 eventRepository.insertEvent(event)
@@ -74,7 +68,7 @@ constructor(
     }
 
     fun loadEventById(eventId: Int) {
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             _isLoading.value = true
             try {
                 val loadedEvent = eventRepository.getEventById(eventId)
@@ -103,7 +97,7 @@ constructor(
     }
 
     fun saveEvent(formData: EventUiModel) {
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             _detailsState.value = DetailsState.Saving
             val updatedEvent =
                 currentEvent.copy(

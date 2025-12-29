@@ -1,4 +1,4 @@
-package com.ossalali.daysremaining.presentation.ui.v2
+package com.ossalali.daysremaining.presentation.ui.v2.eventdetails
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text

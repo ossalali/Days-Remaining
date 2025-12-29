@@ -26,8 +26,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -39,33 +39,22 @@ import com.ossalali.daysremaining.navigation.DebugRoute
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 import com.ossalali.daysremaining.presentation.viewmodel.DebugScreenViewModel
 
-fun EntryProviderScope<NavKey>.debugScreen(
-    backStack: NavBackStack<NavKey>
-) {
+fun EntryProviderScope<NavKey>.debugScreen(backStack: NavBackStack<NavKey>) {
     entry<DebugRoute> {
         val debugScreenViewModel =
-            viewModel<DebugScreenViewModel>(LocalViewModelStoreOwner.current!!)
+            hiltViewModel<DebugScreenViewModel>(LocalViewModelStoreOwner.current!!)
 
-        DebugScreen(
-            debugScreenViewModel::insertEvents,
-            onClose = { backStack.removeLastOrNull() },
-        )
+        DebugScreen(debugScreenViewModel::insertEvents, onClose = { backStack.removeLastOrNull() })
     }
 }
 
 @Composable
-fun DebugScreen(
-    insertEvents: (List<EventItem>) -> Unit = {},
-    onClose: () -> Unit = {},
-) {
+fun DebugScreen(insertEvents: (List<EventItem>) -> Unit = {}, onClose: () -> Unit = {}) {
     var numberOfEvents by rememberSaveable { mutableIntStateOf(0) }
     var textFieldValue by rememberSaveable { mutableStateOf("") }
     val textFieldFocusRequester = remember { FocusRequester() }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column {
             OutlinedTextField(
                 value = textFieldValue,
@@ -93,7 +82,7 @@ fun DebugScreen(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.add_24px),
-                    contentDescription = "Add Events"
+                    contentDescription = "Add Events",
                 )
             }
         }
@@ -103,9 +92,5 @@ fun DebugScreen(
 @PreviewLightDark
 @Composable
 fun DebugScreenPreview() {
-    MyAppTheme {
-        Surface {
-            DebugScreen()
-        }
-    }
+    MyAppTheme { Surface { DebugScreen() } }
 }
