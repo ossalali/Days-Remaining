@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -24,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class EventListViewModel @Inject constructor(eventRepository: EventRepository) : ViewModel() {
 
-    private val _listState = MutableStateFlow<ListState>(ListState.Loading)
+    private val _listState = MutableStateFlow<ListState>(ListState.Empty)
     val listState: StateFlow<ListState> = _listState.asStateFlow()
 
     private val _activeFilterEnabled = MutableStateFlow(true)
@@ -43,7 +42,6 @@ class EventListViewModel @Inject constructor(eventRepository: EventRepository) :
             if (showArchived) result.addAll(archivedEvents)
             result.toPersistentList()
         }
-            .filter { it.isNotEmpty() }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000L),
@@ -55,7 +53,9 @@ class EventListViewModel @Inject constructor(eventRepository: EventRepository) :
             allEventsFlow
                 .onStart { _listState.value = ListState.Loading }
                 .collect { eventItems ->
-                    if (eventItems.isNotEmpty()) {
+                    if (eventItems.isEmpty()) {
+                        _listState.value = ListState.Empty
+                    } else {
                         _listState.value = ListState.Loaded(eventItems.toEventUiModels())
                     }
                 }
@@ -63,6 +63,8 @@ class EventListViewModel @Inject constructor(eventRepository: EventRepository) :
     }
 
     sealed interface ListState {
+        data object Empty : ListState
+
         data class Loaded(val eventUiModels: ImmutableList<EventUiModel> = persistentListOf()) :
             ListState
 

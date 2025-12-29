@@ -17,3 +17,7 @@ object Dimensions {
     val octuple = default * 8
     val nonuple = default * 9
 }
+
+object TextDimension {
+
+}

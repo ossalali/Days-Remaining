@@ -21,11 +21,13 @@ constructor(
         return eventDataSource.getAllEvents()
     }
 
-    suspend fun insertEvent(eventItem: EventItem) =
-        withContext(ioDispatcher) { eventDataSource.insertEvent(eventItem) }
+    suspend fun upsertEvent(eventItem: EventItem) =
+        withContext(ioDispatcher) { eventDataSource.upsertEvent(eventItem) }
 
     suspend fun deleteEvents(eventIds: List<Int>) =
         withContext(ioDispatcher) { eventDataSource.deleteEvents(eventIds) }
+    suspend fun deleteEvent(eventId: Int) =
+        withContext(ioDispatcher) { eventDataSource.deleteEvent(eventId) }
 
     suspend fun archiveEvents(eventIds: List<Int>) =
         withContext(ioDispatcher) { eventDataSource.archiveEvents(eventIds) }
@@ -54,4 +56,5 @@ constructor(
                 eventDataSource.getActiveEventsByIds(eventIds)
             }
         }
+
 }

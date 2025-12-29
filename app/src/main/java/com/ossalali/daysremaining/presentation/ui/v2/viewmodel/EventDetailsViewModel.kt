@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.infrastructure.EventRepository
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
+import com.ossalali.daysremaining.presentation.ui.v2.model.toEvent
 import com.ossalali.daysremaining.presentation.ui.v2.model.toEventUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +40,15 @@ class EventDetailsViewModel @Inject constructor(private val eventRepository: Eve
         if (_state.value is DetailsState.Loaded) {
             (_state.value as DetailsState.Loaded).event.copy(date = date.toString())
         }
+    }
+
+    fun updateEvent(uiModel: EventUiModel) {
+        val eventItem = uiModel.toEvent()
+        viewModelScope.launch { eventRepository.upsertEvent(eventItem) }
+    }
+
+    fun deleteEvent(eventId: Int) {
+        viewModelScope.launch { eventRepository.deleteEvent(eventId) }
     }
 
     sealed interface DetailsState {

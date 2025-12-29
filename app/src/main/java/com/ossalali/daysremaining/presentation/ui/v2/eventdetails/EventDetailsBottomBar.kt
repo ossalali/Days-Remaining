@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,24 +18,45 @@ import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.presentation.ui.theme.Dimensions
 
 @Composable
-fun EventDetailsBottomBar() {
-    BottomAppBar {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.default),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+fun EventDetailsBottomBar(
+    isSaving: Boolean = false,
+    isDeleting: Boolean = false,
+    leftButtonDrawable: Int,
+    leftButtonContentDescription: String = "",
+    rightButtonDrawable: Int,
+    rightButtonContentDescription: String = "",
+    onSaveClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.default),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        FloatingActionButton(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError,
+            onClick = onDeleteClick,
         ) {
-            FloatingActionButton(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
-                onClick = {},
-            ) {
-                Icon(painter = painterResource(R.drawable.delete_24px), contentDescription = null)
+            if (isDeleting) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.onError)
+            } else {
+                Icon(
+                    painter = painterResource(leftButtonDrawable),
+                    contentDescription = leftButtonContentDescription,
+                )
             }
-            FloatingActionButton(onClick = {}) {
-                Icon(painter = painterResource(R.drawable.add_24px), contentDescription = null)
+        }
+        FloatingActionButton(onClick = onSaveClick) {
+            if (isSaving) {
+                CircularProgressIndicator()
+            } else {
+                Icon(
+                    painter = painterResource(rightButtonDrawable),
+                    contentDescription = rightButtonContentDescription,
+                )
             }
         }
     }
@@ -44,5 +65,45 @@ fun EventDetailsBottomBar() {
 @Composable
 @PreviewLightDark
 fun EventDetailsBottomBarPreview() {
-    MyAppTheme { EventDetailsBottomBar() }
+    MyAppTheme {
+        EventDetailsBottomBar(
+            leftButtonDrawable = R.drawable.delete_24px,
+            rightButtonDrawable = R.drawable.check_24px,
+        )
+    }
+}
+
+@Composable
+@PreviewLightDark
+fun EventDetailsBottomBarAddModePreview() {
+    MyAppTheme {
+        EventDetailsBottomBar(
+            leftButtonDrawable = R.drawable.close_24px,
+            rightButtonDrawable = R.drawable.add_24px,
+        )
+    }
+}
+
+@Composable
+@PreviewLightDark
+fun EventDetailsBottomBarSavingPreview() {
+    MyAppTheme {
+        EventDetailsBottomBar(
+            isSaving = true,
+            leftButtonDrawable = R.drawable.close_24px,
+            rightButtonDrawable = R.drawable.add_24px,
+        )
+    }
+}
+
+@Composable
+@PreviewLightDark
+fun EventDetailsBottomBarDeletingPreview() {
+    MyAppTheme {
+        EventDetailsBottomBar(
+            isDeleting = true,
+            leftButtonDrawable = R.drawable.close_24px,
+            rightButtonDrawable = R.drawable.add_24px,
+        )
+    }
 }

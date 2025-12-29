@@ -44,6 +44,9 @@ interface EventDao {
     @Query("DELETE FROM eventitem WHERE id in (:eventIds)")
     suspend fun deleteEvents(eventIds: List<Int>)
 
+    @Query("DELETE FROM eventitem WHERE id = :eventId")
+    suspend fun deleteEvent(eventId: Int)
+
     @Query("UPDATE eventitem SET isArchived = 1 WHERE id in (:eventIds)")
     suspend fun archiveEvents(eventIds: List<Int>)
 

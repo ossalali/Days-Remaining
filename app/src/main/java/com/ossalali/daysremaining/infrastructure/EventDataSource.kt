@@ -15,12 +15,15 @@ class EventDataSource @Inject constructor(
         return eventDao.getAllEvents()
     }
 
-    suspend fun insertEvent(eventItem: EventItem) {
+    suspend fun upsertEvent(eventItem: EventItem) {
         eventDao.upsertEvent(eventItem)
     }
 
     suspend fun deleteEvents(eventIds: List<Int>) {
         eventDao.deleteEvents(eventIds)
+    }
+    suspend fun deleteEvent(eventId: Int) {
+        eventDao.deleteEvent(eventId)
     }
 
     suspend fun archiveEvents(eventIds: List<Int>) {

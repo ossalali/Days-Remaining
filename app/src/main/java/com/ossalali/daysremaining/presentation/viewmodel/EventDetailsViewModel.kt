@@ -43,7 +43,7 @@ class EventDetailsViewModel @Inject constructor(private val eventRepository: Eve
         viewModelScope.launch {
             _isSaving.value = true
             try {
-                eventRepository.insertEvent(event)
+                eventRepository.upsertEvent(event)
                 _event.value = event
                 _hasChanges.value = false
             } catch (e: Exception) {
@@ -106,7 +106,7 @@ class EventDetailsViewModel @Inject constructor(private val eventRepository: Eve
                     // date = formData.date,
                     imageUri = formData.imageUri,
                 )
-            eventRepository.insertEvent(updatedEvent)
+            eventRepository.upsertEvent(updatedEvent)
             _detailsState.value = DetailsState.Loaded(event = updatedEvent)
         }
     }

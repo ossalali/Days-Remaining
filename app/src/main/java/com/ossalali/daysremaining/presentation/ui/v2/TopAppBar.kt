@@ -36,16 +36,7 @@ fun TopAppBar(
                         contentDescription = stringResource(R.string.back),
                     )
                 }
-            }
-        },
-        actions = {
-            if (showTopAppBarButtons) {
-                IconButton(onClick = { navigateToSettingsScreen() }) {
-                    Icon(
-                        painter = painterResource(R.drawable.settings_24px),
-                        contentDescription = stringResource(R.string.open_settings_screen),
-                    )
-                }
+            } else {
                 if (BuildConfig.DEBUG) {
                     IconButton(
                         modifier = Modifier.padding(horizontal = Dimensions.quarter),
@@ -56,6 +47,16 @@ fun TopAppBar(
                             contentDescription = stringResource(R.string.open_debug_screen),
                         )
                     }
+                }
+            }
+        },
+        actions = {
+            if (showTopAppBarButtons) {
+                IconButton(onClick = { navigateToSettingsScreen() }) {
+                    Icon(
+                        painter = painterResource(R.drawable.settings_24px),
+                        contentDescription = stringResource(R.string.open_settings_screen),
+                    )
                 }
             }
         },
@@ -71,5 +72,5 @@ fun TopAppBarPreview() {
 @PreviewLightDark
 @Composable
 fun TopAppBarWithButtonsPreview() {
-    MyAppTheme { Surface { TopAppBar(showBackButton = true, showTopAppBarButtons = true) } }
+    MyAppTheme { Surface { TopAppBar(showTopAppBarButtons = true, showBackButton = true) } }
 }

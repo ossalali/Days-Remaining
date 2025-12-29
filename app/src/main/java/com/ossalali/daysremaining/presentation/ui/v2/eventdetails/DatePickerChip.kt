@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -57,17 +55,15 @@ fun DatePickerChip(
                             } else {
                                 LocalDate.now()
                             }
-                        onDateChanged(selectedDate)
                         showDatePickerDialog = false
+                        onDateChanged(selectedDate)
                     }
                 ) {
-                    Text(stringResource(R.string.ok), color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePickerDialog = false }) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.primary)
-                }
+                TextButton(onClick = { showDatePickerDialog = false }) { Text("Cancel") }
             },
         ) {
             DatePicker(state = datePickerState, modifier = Modifier.sizeIn(maxWidth = 350.dp))
@@ -78,5 +74,5 @@ fun DatePickerChip(
 @PreviewLightDark
 @Composable
 fun DatePickerChipPreview() {
-    MyAppTheme { Surface { DatePickerChip(chipText = LocalDate.now().toString()) } }
+    MyAppTheme { DatePickerChip(chipText = LocalDate.now().toString()) }
 }
