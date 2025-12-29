@@ -14,13 +14,14 @@ object PaddingSize {
     val nonuple = default * 9
 }
 
+object IconSize {
+    val inline = 20.dp
+    val default = 24.dp
+}
+
 object TextSize {
     val subtext = 12.sp
     val default = 16.sp
     val double = default * 2
     val triple = default * 3
-}
-
-object IconSize {
-
 }

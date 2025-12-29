@@ -1,5 +1,6 @@
 package com.ossalali.daysremaining.presentation.ui.v2.eventdetails
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DatePicker
@@ -20,6 +21,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
+import com.ossalali.daysremaining.presentation.ui.theme.IconSize
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -35,6 +37,7 @@ fun DatePickerChip(
     AssistChip(
         leadingIcon = {
             Icon(
+                modifier = Modifier.size(IconSize.inline),
                 painter = painterResource(R.drawable.calendar_today_24px),
                 contentDescription = null,
             )
