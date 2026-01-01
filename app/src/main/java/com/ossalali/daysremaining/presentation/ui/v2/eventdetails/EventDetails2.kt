@@ -114,6 +114,7 @@ fun EventDetailsLoaded(
     var showImagePickerDialog by remember { mutableStateOf(false) }
     var showConfirmImageDeleteDialog by remember { mutableStateOf(false) }
     var showEventDeletionDialog by remember { mutableStateOf(false) }
+    var showReminderDialog by remember { mutableStateOf(false) }
 
     val photoPickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
@@ -217,9 +218,23 @@ fun EventDetailsLoaded(
         }
 
         // reminders
-        TextButton(onClick = {}) {
-            Icon(painter = painterResource(R.drawable.add_24px), contentDescription = null)
+        TextButton(onClick = { showReminderDialog = true }) {
+            Icon(
+                modifier = Modifier.padding(end = PaddingSize.quarter),
+                painter = painterResource(R.drawable.notification_add_24px),
+                contentDescription = null,
+            )
             Text(text = "Add reminders")
+        }
+        if (showReminderDialog) {
+            ReminderDialog(
+                onSave = {
+                    showReminderDialog = false
+                },
+                onDismiss = {
+                    showReminderDialog = false
+                }
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))
