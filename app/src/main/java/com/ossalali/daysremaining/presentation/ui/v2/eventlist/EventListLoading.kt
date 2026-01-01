@@ -1,4 +1,4 @@
-package com.ossalali.daysremaining.presentation.ui.v2.eventdetails
+package com.ossalali.daysremaining.presentation.ui.v2.eventlist
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

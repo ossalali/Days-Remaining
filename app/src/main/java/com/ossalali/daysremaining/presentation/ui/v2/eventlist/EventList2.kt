@@ -28,9 +28,6 @@ import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.ui.theme.TextSize
-import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventListEmpty
-import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventListError
-import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.EventListLoading
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import com.ossalali.daysremaining.presentation.ui.v2.model.toNumberOfDays
 import com.ossalali.daysremaining.presentation.ui.v2.viewmodel.EventListViewModel

@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +38,7 @@ fun ReminderDialog(onSave: (Reminder) -> Unit = {}, onDismiss: () -> Unit = {}) 
     val timePickerState by remember {
         mutableStateOf(TimePickerState(initialHour = 12, initialMinute = 0, is24Hour = true))
     }
-    var eventType by remember { mutableStateOf(EventType.ON_EVENT_DAY) }
+    var eventType by remember { mutableStateOf(EventType.BEFORE_EVENT) }
 
     @Composable
     fun textPropsFor(type: EventType): TextProps {
@@ -72,7 +74,11 @@ fun ReminderDialog(onSave: (Reminder) -> Unit = {}, onDismiss: () -> Unit = {}) 
                     }
                 }
             ) {
-                Text(text = "OK")
+                if (eventType == EventType.ON_EVENT_DAY) {
+                    Text(text = "Add")
+                } else {
+                    Text(text = "Add", color = MaterialTheme.colorScheme.primary)
+                }
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(text = "Cancel") } },
@@ -126,6 +132,11 @@ fun ReminderDialog(onSave: (Reminder) -> Unit = {}, onDismiss: () -> Unit = {}) 
 @Composable
 fun BeforeEventContent() {
     Text(text = "How many days before the event would you like to be reminded?")
+    OutlinedTextField(
+        value = "",
+        onValueChange = {},
+        label = { Text(text = "Days") },
+    )
 }
 
 @Composable
@@ -141,6 +152,7 @@ enum class EventType {
     ON_EVENT_DAY,
 }
 
+@Immutable
 data class Reminder(
     val type: EventType = EventType.BEFORE_EVENT,
     val dateTime: LocalDateTime? = null,

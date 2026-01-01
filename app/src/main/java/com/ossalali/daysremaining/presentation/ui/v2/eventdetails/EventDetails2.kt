@@ -49,7 +49,9 @@ import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import com.ossalali.daysremaining.presentation.ui.v2.model.toNumberOfDays
 import com.ossalali.daysremaining.presentation.ui.v2.viewmodel.EventDetailsViewModel
+import kotlinx.collections.immutable.toImmutableList
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey>) {
     entry<EventDetailsRoute> { route ->
@@ -108,6 +110,7 @@ fun EventDetailsLoaded(
     var selectedDate by remember {
         mutableStateOf(eventUiModel.date.ifBlank { LocalDate.now().toString() })
     }
+    val reminders = remember { mutableListOf<LocalDateTime>() }
 
     var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
     var showFullScreenImage by remember { mutableStateOf(false) }
@@ -218,6 +221,9 @@ fun EventDetailsLoaded(
         }
 
         // reminders
+        if (reminders.isNotEmpty()) {
+            ReminderList(reminders = reminders.toImmutableList())
+        }
         TextButton(onClick = { showReminderDialog = true }) {
             Icon(
                 modifier = Modifier.padding(end = PaddingSize.quarter),
@@ -227,14 +233,21 @@ fun EventDetailsLoaded(
             Text(text = "Add reminders")
         }
         if (showReminderDialog) {
-            ReminderDialog(
-                onSave = {
+            ReminderDateTimePicker(
+                onSave = { dateTime ->
+                    reminders.add(dateTime)
                     showReminderDialog = false
                 },
-                onDismiss = {
-                    showReminderDialog = false
-                }
+                onDismiss = { showReminderDialog = false },
             )
+            // ReminderDialog(
+            //    onSave = {
+            //        showReminderDialog = false
+            //    },
+            //    onDismiss = {
+            //        showReminderDialog = false
+            //    }
+            // )
         }
 
         Spacer(modifier = Modifier.weight(1f))

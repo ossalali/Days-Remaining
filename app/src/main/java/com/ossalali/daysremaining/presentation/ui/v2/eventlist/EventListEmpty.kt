@@ -1,11 +1,10 @@
-package com.ossalali.daysremaining.presentation.ui.v2.eventdetails
+package com.ossalali.daysremaining.presentation.ui.v2.eventlist
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,28 +14,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @Composable
-fun EventListError() {
+fun EventListEmpty(onAddEvent: () -> Unit = {}) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .clickable(onClick = onAddEvent),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(modifier = Modifier, text = "ERROR WHILE LOADING LIST")
-            Icon(
-                modifier = Modifier.size(PaddingSize.triple),
-                painter = painterResource(R.drawable.warning_24px),
-                contentDescription = "error",
-                tint = MaterialTheme.colorScheme.onErrorContainer,
-            )
+            Text(text = "Add your first Event!")
+            Icon(painter = painterResource(R.drawable.add_24px), contentDescription = "add event")
         }
     }
 }
 
 @Composable
 @PreviewLightDark
-fun EventListErrorPreview() {
-    MyAppTheme { Surface { EventListError() } }
+fun EventListEmptyPreview() {
+    MyAppTheme { Surface { EventListEmpty() } }
 }
