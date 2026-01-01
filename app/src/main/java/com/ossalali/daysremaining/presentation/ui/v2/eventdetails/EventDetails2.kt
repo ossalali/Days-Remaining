@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.core.content.FileProvider
@@ -47,7 +50,6 @@ import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import com.ossalali.daysremaining.presentation.ui.v2.model.toNumberOfDays
 import com.ossalali.daysremaining.presentation.ui.v2.viewmodel.EventDetailsViewModel
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey>) {
     entry<EventDetailsRoute> { route ->
@@ -106,15 +108,6 @@ fun EventDetailsLoaded(
     var selectedDate by remember {
         mutableStateOf(eventUiModel.date.ifBlank { LocalDate.now().toString() })
     }
-
-    val numberOfDays =
-        remember(selectedDate) {
-            if (selectedDate.isNotBlank()) {
-                LocalDate.now().until(LocalDate.parse(selectedDate), ChronoUnit.DAYS)
-            } else {
-                0
-            }
-        }
 
     var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
     var showFullScreenImage by remember { mutableStateOf(false) }
@@ -224,6 +217,10 @@ fun EventDetailsLoaded(
         }
 
         // reminders
+        TextButton(onClick = {}) {
+            Icon(painter = painterResource(R.drawable.add_24px), contentDescription = null)
+            Text(text = "Add reminders")
+        }
 
         Spacer(modifier = Modifier.weight(1f))
 
