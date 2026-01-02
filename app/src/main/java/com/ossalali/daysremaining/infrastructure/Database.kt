@@ -9,10 +9,10 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ossalali.daysremaining.model.EventItem
-import com.ossalali.daysremaining.model.StableLocalDateTime
+import com.ossalali.daysremaining.model.Reminder
 
 @Database(
-    entities = [EventItem::class, StableLocalDateTime::class],
+    entities = [EventItem::class, Reminder::class],
     version = 3,
     exportSchema = true,
     autoMigrations = [AutoMigration(from = 2, to = 3)],

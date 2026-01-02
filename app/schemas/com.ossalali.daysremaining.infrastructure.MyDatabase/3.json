@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "e6ebae01850f2a650cae156fee7b0138",
+    "identityHash": "86ebdea9c7812b1254cf97682a9b5710",
     "entities": [
       {
         "tableName": "EventItem",
@@ -99,7 +99,7 @@
         ]
       },
       {
-        "tableName": "StableLocalDateTime",
+        "tableName": "Reminder",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventItemId` INTEGER NOT NULL, `dateTime` INTEGER NOT NULL, FOREIGN KEY(`eventItemId`) REFERENCES `EventItem`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
@@ -129,22 +129,22 @@
         },
         "indices": [
           {
-            "name": "index_StableLocalDateTime_id",
+            "name": "index_Reminder_id",
             "unique": false,
             "columnNames": [
               "id"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_StableLocalDateTime_id` ON `${TABLE_NAME}` (`id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_id` ON `${TABLE_NAME}` (`id`)"
           },
           {
-            "name": "index_StableLocalDateTime_eventItemId",
+            "name": "index_Reminder_eventItemId",
             "unique": false,
             "columnNames": [
               "eventItemId"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_StableLocalDateTime_eventItemId` ON `${TABLE_NAME}` (`eventItemId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_eventItemId` ON `${TABLE_NAME}` (`eventItemId`)"
           }
         ],
         "foreignKeys": [
@@ -164,7 +164,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e6ebae01850f2a650cae156fee7b0138')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '86ebdea9c7812b1254cf97682a9b5710')"
     ]
   }
 }

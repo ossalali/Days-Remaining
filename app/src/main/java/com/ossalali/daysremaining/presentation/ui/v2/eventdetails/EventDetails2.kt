@@ -46,7 +46,7 @@ import androidx.navigation3.runtime.NavKey
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.ImageStorage
-import com.ossalali.daysremaining.model.StableLocalDateTime
+import com.ossalali.daysremaining.model.Reminder
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
@@ -112,7 +112,7 @@ fun EventDetailsLoaded(
     var selectedDate by remember {
         mutableStateOf(eventUiModel.date.ifBlank { LocalDate.now().toString() })
     }
-    val reminders = remember { mutableListOf<StableLocalDateTime>() }
+    val reminders = remember { mutableListOf<Reminder>() }
 
     var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
     var showFullScreenImage by remember { mutableStateOf(false) }
@@ -247,7 +247,7 @@ fun EventDetailsLoaded(
                 ReminderDateTimePicker(
                     onSave = { dateTime ->
                         reminders.add(
-                            StableLocalDateTime(eventItemId = eventUiModel.id, dateTime = dateTime)
+                            Reminder(eventItemId = eventUiModel.id, dateTime = dateTime)
                         )
                         showReminderDialog = false
                     },

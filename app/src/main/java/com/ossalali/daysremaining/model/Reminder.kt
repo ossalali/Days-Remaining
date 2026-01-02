@@ -19,7 +19,7 @@ import java.time.LocalDateTime
         ],
     indices = [Index(value = ["id"]), Index(value = ["eventItemId"])],
 )
-data class StableLocalDateTime(
+data class Reminder(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val eventItemId: Int,
     val dateTime: LocalDateTime,

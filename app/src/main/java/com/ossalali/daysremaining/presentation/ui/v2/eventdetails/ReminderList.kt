@@ -18,7 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.model.StableLocalDateTime
+import com.ossalali.daysremaining.model.Reminder
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -27,7 +27,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 @Composable
-fun ReminderList(reminders: ImmutableList<StableLocalDateTime> = persistentListOf()) {
+fun ReminderList(reminders: ImmutableList<Reminder> = persistentListOf()) {
     reminders.forEach { stableLocalDateTime ->
         Card(
             modifier = Modifier.padding(vertical = PaddingSize.half),
@@ -69,8 +69,8 @@ fun ReminderListPreview() {
     MyAppTheme {
         ReminderList(
             persistentListOf(
-                StableLocalDateTime(1, 1, LocalDateTime.now()),
-                StableLocalDateTime(1, 2, LocalDateTime.now().plusDays(1)),
+                Reminder(1, 1, LocalDateTime.now()),
+                Reminder(1, 2, LocalDateTime.now().plusDays(1)),
             )
         )
     }
