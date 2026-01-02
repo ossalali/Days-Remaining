@@ -1,6 +1,7 @@
 package com.ossalali.daysremaining.infrastructure
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -8,12 +9,17 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ossalali.daysremaining.model.EventItem
+import com.ossalali.daysremaining.model.StableLocalDateTime
 import java.util.concurrent.Executors
 
-@Database(entities = [EventItem::class], version = 2, exportSchema = false)
+@Database(
+    entities = [EventItem::class, StableLocalDateTime::class],
+    version = 3,
+    exportSchema = true,
+    autoMigrations = [AutoMigration(from = 2, to = 3)],
+)
 @TypeConverters(Converters::class)
 abstract class MyDatabase : RoomDatabase() {
-
     abstract fun eventDao(): EventDao
 
     companion object {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -19,18 +20,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
+import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.Constants.SELECT_DATE
+import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.Constants.SELECT_TIME
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+object Constants {
+    const val SELECT_DATE = "Select Date"
+    const val SELECT_TIME = "Select Time"
+}
+
 @Composable
 fun ReminderDateTimePicker(onSave: (LocalDateTime) -> Unit = {}, onDismiss: () -> Unit = {}) {
     var showDatePickerDialog by remember { mutableStateOf(false) }
-    var datePickerText by remember { mutableStateOf("Select Date") }
-    var timePickerText by remember { mutableStateOf("Select Time") }
+    var datePickerText by remember { mutableStateOf(SELECT_DATE) }
+    var timePickerText by remember { mutableStateOf(SELECT_TIME) }
 
     // TODO: disable add button when date and time are not selected
 
@@ -38,14 +47,34 @@ fun ReminderDateTimePicker(onSave: (LocalDateTime) -> Unit = {}, onDismiss: () -
         modifier = Modifier.padding(horizontal = PaddingSize.half),
         title = { Text(text = "Reminders") },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    val localDate = LocalDate.parse(datePickerText)
-                    val localTime = LocalTime.parse(timePickerText)
-                    onSave(LocalDateTime.of(localDate, localTime))
+            if (datePickerText == SELECT_DATE && timePickerText == SELECT_TIME) {
+                Text(
+                    modifier = Modifier.padding(start = PaddingSize.half, end = 14.dp, top = 14.dp),
+                    text = "Add",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
+            } else {
+                TextButton(
+                    onClick = {
+                        val dateText =
+                            if (datePickerText == SELECT_DATE) {
+                                LocalDate.now().toString()
+                            } else {
+                                datePickerText
+                            }
+                        val timeText =
+                            if (timePickerText == SELECT_TIME) {
+                                LocalTime.now().toString()
+                            } else {
+                                timePickerText
+                            }
+                        val localDate = LocalDate.parse(dateText)
+                        val localTime = LocalTime.parse(timeText)
+                        onSave(LocalDateTime.of(localDate, localTime))
+                    }
+                ) {
+                    Text(text = "Add")
                 }
-            ) {
-                Text(text = "Add")
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(text = "Cancel") } },

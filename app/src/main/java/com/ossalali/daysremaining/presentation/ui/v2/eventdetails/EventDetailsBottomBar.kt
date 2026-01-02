@@ -19,6 +19,7 @@ import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @Composable
 fun EventDetailsBottomBar(
+    modifier: Modifier = Modifier,
     isSaving: Boolean = false,
     isDeleting: Boolean = false,
     leftButtonDrawable: Int,
@@ -29,9 +30,10 @@ fun EventDetailsBottomBar(
     onDeleteClick: () -> Unit = {},
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = PaddingSize.default),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = PaddingSize.default),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,15 +18,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
+import com.ossalali.daysremaining.model.StableLocalDateTime
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @Composable
-fun ReminderList(reminders: ImmutableList<LocalDateTime> = persistentListOf()) {
-    reminders.forEach {
-        Card(shape = RoundedCornerShape(PaddingSize.half)) {
+fun ReminderList(reminders: ImmutableList<StableLocalDateTime> = persistentListOf()) {
+    reminders.forEach { stableLocalDateTime ->
+        Card(
+            modifier = Modifier.padding(vertical = PaddingSize.half),
+            shape = RoundedCornerShape(PaddingSize.half),
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -38,7 +45,19 @@ fun ReminderList(reminders: ImmutableList<LocalDateTime> = persistentListOf()) {
                     contentDescription = null,
                 )
                 Spacer(modifier = Modifier.width(PaddingSize.half))
-                Text(text = "${it.year}-${it.monthValue}-${it.dayOfYear} ${it.hour}:${it.minute}")
+                Text(
+                    text =
+                        stableLocalDateTime.dateTime.format(
+                            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+                        )
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = {}) {
+                    Icon(
+                        painter = painterResource(R.drawable.delete_24px),
+                        contentDescription = null,
+                    )
+                }
             }
         }
     }
@@ -47,5 +66,12 @@ fun ReminderList(reminders: ImmutableList<LocalDateTime> = persistentListOf()) {
 @Composable
 @PreviewLightDark
 fun ReminderListPreview() {
-    MyAppTheme { ReminderList(persistentListOf(LocalDateTime.now())) }
+    MyAppTheme {
+        ReminderList(
+            persistentListOf(
+                StableLocalDateTime(1, 1, LocalDateTime.now()),
+                StableLocalDateTime(1, 2, LocalDateTime.now().plusDays(1)),
+            )
+        )
+    }
 }

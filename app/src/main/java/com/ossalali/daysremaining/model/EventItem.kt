@@ -10,6 +10,7 @@ import java.time.temporal.ChronoUnit
 @Entity(
     indices =
         [
+            Index(value = ["id"]),
             Index(value = ["isArchived"]),
             Index(value = ["date"]),
             Index(value = ["title"]),

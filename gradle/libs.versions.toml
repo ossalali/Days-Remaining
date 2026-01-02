@@ -93,6 +93,7 @@ androidx-glance-preview = { group = "androidx.glance", name = "glance-preview", 
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntime" }
 
 [plugins]
+room = { id = "androidx.room", version.ref = "roomCommon" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }

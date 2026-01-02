@@ -9,10 +9,11 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +35,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,6 +46,7 @@ import androidx.navigation3.runtime.NavKey
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.ImageStorage
+import com.ossalali.daysremaining.model.StableLocalDateTime
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
@@ -51,7 +54,6 @@ import com.ossalali.daysremaining.presentation.ui.v2.model.toNumberOfDays
 import com.ossalali.daysremaining.presentation.ui.v2.viewmodel.EventDetailsViewModel
 import kotlinx.collections.immutable.toImmutableList
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey>) {
     entry<EventDetailsRoute> { route ->
@@ -110,7 +112,7 @@ fun EventDetailsLoaded(
     var selectedDate by remember {
         mutableStateOf(eventUiModel.date.ifBlank { LocalDate.now().toString() })
     }
-    val reminders = remember { mutableListOf<LocalDateTime>() }
+    val reminders = remember { mutableListOf<StableLocalDateTime>() }
 
     var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
     var showFullScreenImage by remember { mutableStateOf(false) }
@@ -143,116 +145,126 @@ fun EventDetailsLoaded(
                 imageUri = cameraTempUri?.toString()
             }
         }
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(PaddingSize.default)) {
+        val scrollState = rememberScrollState()
+        Column(
+            modifier =
+                Modifier
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { focusManager.clearFocus() })
+                    }
+                    .verticalScroll(scrollState)
+                    .padding(bottom = 80.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            EventDetailsNumberOfDays(selectedDate.toNumberOfDays())
+            // Event Title
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = title,
+                onValueChange = { title = it },
+                label = { Text(text = stringResource(R.string.event_title)) },
+                placeholder = { Text(text = stringResource(R.string.enter_event_title)) },
+            )
+            // Event Date
+            DatePickerChip(
+                modifier = Modifier.align(Alignment.Start),
+                clearFocus = focusManager::clearFocus,
+                chipText = selectedDate,
+                onDateChanged = { selectedDate = it.toString() },
+            )
+            // Event Description
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = description,
+                onValueChange = { description = it },
+                label = { Text(text = stringResource(R.string.description)) },
+                placeholder = { Text(text = stringResource(R.string.add_event_details_optional)) },
+            )
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(PaddingSize.default)
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = { focusManager.clearFocus() })
-                },
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        EventDetailsNumberOfDays(selectedDate.toNumberOfDays())
-        // Event Title
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = title,
-            onValueChange = { title = it },
-            label = { Text(text = stringResource(R.string.event_title)) },
-            placeholder = { Text(text = stringResource(R.string.enter_event_title)) },
-        )
-        // Event Date
-        DatePickerChip(
-            modifier = Modifier.align(Alignment.Start),
-            clearFocus = focusManager::clearFocus,
-            chipText = selectedDate,
-            onDateChanged = { selectedDate = it.toString() },
-        )
-        // Event Description
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = description,
-            onValueChange = { description = it },
-            label = { Text(text = stringResource(R.string.description)) },
-            placeholder = { Text(text = stringResource(R.string.add_event_details_optional)) },
-        )
-
-        ImagePicker(
-            imageUri = imageUri,
-            showFullScreenImage = { showFullScreenImage = it },
-            showImagePickerDialog = { showImagePickerDialog = it },
-            showConfirmImageDeleteDialog = { showConfirmImageDeleteDialog = it },
-        )
-
-        if (showImagePickerDialog) {
-            ImagePickerDialog(
+            ImagePicker(
+                imageUri = imageUri,
+                showFullScreenImage = { showFullScreenImage = it },
                 showImagePickerDialog = { showImagePickerDialog = it },
-                imageChosen = {
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                },
-                openCamera = {
-                    val imageFile = ImageStorage.createImageFileInAppStorage(context)
-                    val uri =
-                        FileProvider.getUriForFile(
-                            context,
-                            context.packageName + ".fileprovider",
-                            imageFile,
-                        )
-                    cameraTempUri = uri
-                    cameraLauncher.launch(uri)
-                },
-            )
-        }
-
-        if (showFullScreenImage && !imageUri.isNullOrBlank()) {
-            FullScreenImage(showFullScreenImage = { showFullScreenImage = it }, imageUri = imageUri)
-        }
-
-        if (showConfirmImageDeleteDialog) {
-            ImageDeletionDialog(
                 showConfirmImageDeleteDialog = { showConfirmImageDeleteDialog = it },
-                removeImage = { imageUri = null },
             )
-        }
 
-        // reminders
-        if (reminders.isNotEmpty()) {
-            ReminderList(reminders = reminders.toImmutableList())
-        }
-        TextButton(onClick = { showReminderDialog = true }) {
-            Icon(
-                modifier = Modifier.padding(end = PaddingSize.quarter),
-                painter = painterResource(R.drawable.notification_add_24px),
-                contentDescription = null,
-            )
-            Text(text = "Add reminders")
-        }
-        if (showReminderDialog) {
-            ReminderDateTimePicker(
-                onSave = { dateTime ->
-                    reminders.add(dateTime)
-                    showReminderDialog = false
-                },
-                onDismiss = { showReminderDialog = false },
-            )
-            // ReminderDialog(
-            //    onSave = {
-            //        showReminderDialog = false
-            //    },
-            //    onDismiss = {
-            //        showReminderDialog = false
-            //    }
-            // )
-        }
+            if (showImagePickerDialog) {
+                ImagePickerDialog(
+                    showImagePickerDialog = { showImagePickerDialog = it },
+                    imageChosen = {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    },
+                    openCamera = {
+                        val imageFile = ImageStorage.createImageFileInAppStorage(context)
+                        val uri =
+                            FileProvider.getUriForFile(
+                                context,
+                                context.packageName + ".fileprovider",
+                                imageFile,
+                            )
+                        cameraTempUri = uri
+                        cameraLauncher.launch(uri)
+                    },
+                )
+            }
 
-        Spacer(modifier = Modifier.weight(1f))
+            if (showFullScreenImage && !imageUri.isNullOrBlank()) {
+                FullScreenImage(
+                    showFullScreenImage = { showFullScreenImage = it },
+                    imageUri = imageUri,
+                )
+            }
 
+            if (showConfirmImageDeleteDialog) {
+                ImageDeletionDialog(
+                    showConfirmImageDeleteDialog = { showConfirmImageDeleteDialog = it },
+                    removeImage = { imageUri = null },
+                )
+            }
+
+            // reminders
+            TextButton(onClick = { showReminderDialog = true }) {
+                Icon(
+                    modifier = Modifier.padding(end = PaddingSize.quarter),
+                    painter = painterResource(R.drawable.notification_add_24px),
+                    contentDescription = null,
+                )
+                Text(text = "Add reminders")
+            }
+
+            if (reminders.isNotEmpty()) {
+                ReminderList(reminders = reminders.toImmutableList())
+            }
+            if (showReminderDialog) {
+                ReminderDateTimePicker(
+                    onSave = { dateTime ->
+                        reminders.add(
+                            StableLocalDateTime(eventItemId = eventUiModel.id, dateTime = dateTime)
+                        )
+                        showReminderDialog = false
+                    },
+                    onDismiss = { showReminderDialog = false },
+                )
+                // ReminderDialog(
+                //    onSave = {
+                //        showReminderDialog = false
+                //    },
+                //    onDismiss = {
+                //        showReminderDialog = false
+                //    }
+                // )
+            }
+        }
         EventDetailsBottomBar(
+            modifier = Modifier.align(Alignment.BottomCenter),
             isSaving = false,
             leftButtonDrawable = R.drawable.delete_24px,
             leftButtonContentDescription = "delete",

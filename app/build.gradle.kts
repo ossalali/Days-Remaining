@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ktfmt)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -49,6 +50,10 @@ android {
     }
 
     packaging { resources { excludes += "META-INF/gradle/incremental.annotation.processors" } }
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
