@@ -10,7 +10,6 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ossalali.daysremaining.model.EventItem
 import com.ossalali.daysremaining.model.StableLocalDateTime
-import java.util.concurrent.Executors
 
 @Database(
     entities = [EventItem::class, StableLocalDateTime::class],
@@ -35,8 +34,8 @@ abstract class MyDatabase : RoomDatabase() {
                             MyDatabase::class.java,
                             "myDatabase",
                         )
-                            .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
-                            .setQueryExecutor(Executors.newFixedThreadPool(4))
+                            .setJournalMode(JournalMode.AUTOMATIC)
+                            .fallbackToDestructiveMigration(true)
                             .addMigrations(MIGRATION_1_2)
                             .build()
                     INSTANCE = instance
