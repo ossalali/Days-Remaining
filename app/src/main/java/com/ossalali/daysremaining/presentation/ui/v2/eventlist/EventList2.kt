@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -149,7 +150,13 @@ fun EventListLoaded(
                     }
 
                     if (item.description.isNotBlank()) {
-                        Text(text = item.description, fontSize = TextSize.subtext)
+                        Text(
+                            modifier = Modifier.padding(horizontal = PaddingSize.half),
+                            text = item.description,
+                            fontSize = TextSize.subtext,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
             }
@@ -166,7 +173,13 @@ fun EventListLoadedPreview() {
                 EventUiModel(
                     id = 1,
                     title = "title",
-                    description = "description",
+                    description =
+                        """
+                            This is a test of a multiline description
+                            123
+                            asd
+                            """
+                            .trimIndent(),
                     date = LocalDate.now().plusDays(20).toString(),
                     imageUri = "test",
                 )

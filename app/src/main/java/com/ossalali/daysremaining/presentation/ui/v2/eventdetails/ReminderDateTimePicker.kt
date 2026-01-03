@@ -45,7 +45,7 @@ fun ReminderDateTimePicker(onSave: (LocalDateTime) -> Unit = {}, onDismiss: () -
 
     AlertDialog(
         modifier = Modifier.padding(horizontal = PaddingSize.half),
-        title = { Text(text = "Reminders") },
+        title = { Text(text = "Add Reminders") },
         confirmButton = {
             if (datePickerText == SELECT_DATE && timePickerText == SELECT_TIME) {
                 Text(

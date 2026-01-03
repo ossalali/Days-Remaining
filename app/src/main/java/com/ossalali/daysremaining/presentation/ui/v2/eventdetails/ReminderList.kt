@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,64 +45,77 @@ fun ReminderList(
     reminders: ImmutableList<Reminder> = persistentListOf(),
     deleteReminder: (Int) -> Unit = {},
 ) {
-    var showDeleteReminderDialog by remember { mutableStateOf(false) }
-    reminders.forEach { stableLocalDateTime ->
-        Card(
-            modifier = Modifier.padding(vertical = PaddingSize.half),
-            shape = RoundedCornerShape(PaddingSize.default),
-        ) {
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = PaddingSize.default, vertical = PaddingSize.quarter),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically,
+    var reminderToDelete by remember { mutableStateOf(-1) }
+    LazyColumn {
+        items(items = reminders) { item ->
+            Card(
+                modifier = Modifier.padding(vertical = PaddingSize.half),
+                shape = RoundedCornerShape(PaddingSize.default),
+                colors =
+                    CardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.notifications_active_24px),
-                    contentDescription = null,
-                )
-                Spacer(modifier = Modifier.width(PaddingSize.half))
-                Text(
-                    text =
-                        stableLocalDateTime.dateTime.format(
-                            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-                        )
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                if (readOnly) {
-                    Spacer(modifier = Modifier.height(IconSize.double))
-                } else {
-                    IconButton(onClick = { showDeleteReminderDialog = true }) {
-                        Icon(
-                            modifier = Modifier.size(IconSize.default),
-                            painter = painterResource(R.drawable.delete_24px),
-                            contentDescription = null,
-                        )
-                    }
-                }
-                if (showDeleteReminderDialog) {
-                    AlertDialog(
-                        title = { Text(text = "Delete reminder?") },
-                        text = {
-                            Text(text = "Are you sure you want to delete this reminder?")
-                        },
-                        onDismissRequest = { showDeleteReminderDialog = false },
-                        confirmButton = {
-                            TextButton(onClick = { deleteReminder(stableLocalDateTime.id) }) {
-                                Text(text = "Yes")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showDeleteReminderDialog = false }) {
-                                Text(text = "No")
-                            }
-                        },
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = PaddingSize.default,
+                                vertical = PaddingSize.quarter,
+                            ),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.notifications_active_24px),
+                        contentDescription = null,
                     )
+                    Spacer(modifier = Modifier.width(PaddingSize.half))
+                    Text(
+                        text =
+                            item.dateTime.format(
+                                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+                            )
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (readOnly) {
+                        Spacer(modifier = Modifier.height(IconSize.double))
+                    } else {
+                        IconButton(onClick = { reminderToDelete = item.id }) {
+                            Icon(
+                                modifier = Modifier.size(IconSize.default),
+                                painter = painterResource(R.drawable.delete_24px),
+                                contentDescription = null,
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
+    if (reminderToDelete != -1) {
+        AlertDialog(
+            title = { Text(text = "Delete reminder?") },
+            text = { Text(text = "Are you sure you want to delete this reminder?") },
+            onDismissRequest = { reminderToDelete = -1 },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        deleteReminder(reminderToDelete)
+                        reminderToDelete = -1
+                    }
+                ) {
+                    Text(text = "Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reminderToDelete = -1 }) { Text(text = "No") }
+            },
+        )
     }
 }
 
@@ -109,8 +126,8 @@ fun ReminderListPreview() {
         ReminderList(
             reminders =
                 persistentListOf(
-                    Reminder(1, 1, LocalDateTime.now()),
-                    Reminder(1, 2, LocalDateTime.now().plusDays(1)),
+                    Reminder(id = 1, eventItemId = 1, dateTime = LocalDateTime.now()),
+                    Reminder(id = 2, eventItemId = 1, dateTime = LocalDateTime.now().plusDays(1)),
                 )
         )
     }
@@ -124,8 +141,8 @@ fun ReminderListReadOnlyPreview() {
             readOnly = true,
             reminders =
                 persistentListOf(
-                    Reminder(1, 1, LocalDateTime.now()),
-                    Reminder(1, 2, LocalDateTime.now().plusDays(1)),
+                    Reminder(id = 1, eventItemId = 1, dateTime = LocalDateTime.now()),
+                    Reminder(id = 2, eventItemId = 1, dateTime = LocalDateTime.now().plusDays(1)),
                 ),
         )
     }

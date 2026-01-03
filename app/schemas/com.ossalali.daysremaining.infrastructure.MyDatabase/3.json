@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "86ebdea9c7812b1254cf97682a9b5710",
+    "identityHash": "56a3701e8f2777af3bd2763de6c665a5",
     "entities": [
       {
         "tableName": "EventItem",
@@ -100,7 +100,7 @@
       },
       {
         "tableName": "Reminder",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventItemId` INTEGER NOT NULL, `dateTime` INTEGER NOT NULL, FOREIGN KEY(`eventItemId`) REFERENCES `EventItem`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `eventItemId` INTEGER NOT NULL, `dateTime` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`eventItemId`) REFERENCES `EventItem`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "id",
@@ -122,7 +122,7 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
             "id"
           ]
@@ -164,7 +164,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '86ebdea9c7812b1254cf97682a9b5710')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '56a3701e8f2777af3bd2763de6c665a5')"
     ]
   }
 }

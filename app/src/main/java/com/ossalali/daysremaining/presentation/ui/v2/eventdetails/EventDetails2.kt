@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -64,6 +63,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey>) {
     entry<EventDetailsRoute> { route ->
@@ -231,13 +231,28 @@ fun EventDetailsLoaded(
                 placeholder = { Text(text = stringResource(R.string.enter_event_title)) },
             )
             // Event Date
-            DatePickerChip(
-                modifier = Modifier.align(Alignment.Start),
-                readOnly = isArchived,
-                clearFocus = focusManager::clearFocus,
-                chipText = selectedDate,
-                onDateChanged = { selectedDate = it.toString() },
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                DatePickerChip(
+                    readOnly = isArchived,
+                    clearFocus = focusManager::clearFocus,
+                    chipText = selectedDate,
+                    onDateChanged = { selectedDate = it.toString() },
+                )
+                ReminderChip(
+                    readOnly = isArchived,
+                    onSave = { updatedReminders ->
+                        reminders.clear()
+                        reminders.addAll(updatedReminders)
+                    },
+                    clearFocus = focusManager::clearFocus,
+                    reminders = reminders.toImmutableList(),
+                    currentEventItemId = eventUiModel.id,
+                )
+            }
             // Event Description
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -294,60 +309,31 @@ fun EventDetailsLoaded(
                 )
             }
 
-            if (reminders.isNotEmpty()) {
-                ReminderList(
-                    readOnly = isArchived,
-                    reminders = reminders.toImmutableList(),
-                    deleteReminder = { idToBeDeleted ->
-                        reminders.removeIf { reminder -> reminder.id == idToBeDeleted }
-                    },
-                )
-            }
-
-            // reminders
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                if (!isArchived) {
-                    OutlinedButton(onClick = { showReminderDialog = true }) {
+            if (isArchived) {
+                OutlinedButton(onClick = { onUnarchiveClick(eventUiModel.id) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             modifier = Modifier.padding(end = PaddingSize.quarter),
-                            painter = painterResource(R.drawable.notification_add_24px),
+                            painter = painterResource(R.drawable.unarchive_24px),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                         )
-                        Text(text = "Add reminders", color = MaterialTheme.colorScheme.primary)
+                        Text(text = "Unarchive event", color = MaterialTheme.colorScheme.primary)
                     }
                 }
-                Spacer(modifier = Modifier.weight(1f))
-                if (isArchived) {
-                    OutlinedButton(onClick = { onUnarchiveClick(eventUiModel.id) }) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                modifier = Modifier.padding(end = PaddingSize.quarter),
-                                painter = painterResource(R.drawable.unarchive_24px),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                            Text(text = "Unarchive", color = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                } else {
-                    OutlinedButton(onClick = { onArchiveClick(eventUiModel.id) }) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                modifier = Modifier.padding(end = PaddingSize.quarter),
-                                painter = painterResource(R.drawable.archive_24px),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                            Text(text = "Archive", color = MaterialTheme.colorScheme.primary)
-                        }
+            } else {
+                OutlinedButton(onClick = { onArchiveClick(eventUiModel.id) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            modifier = Modifier.padding(end = PaddingSize.quarter),
+                            painter = painterResource(R.drawable.archive_24px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(text = "Archive event", color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
-
             if (showReminderDialog) {
                 ReminderDateTimePicker(
                     onSave = { dateTime ->
@@ -421,7 +407,11 @@ fun EventDetailsLoadedPreview() {
                             """
                                 .trimIndent(),
                         date = inputDate,
-                    )
+                    ),
+                eventReminders =
+                    persistentListOf(
+                        Reminder(id = 1, eventItemId = 1, dateTime = LocalDateTime.now())
+                    ),
             )
         }
     }
