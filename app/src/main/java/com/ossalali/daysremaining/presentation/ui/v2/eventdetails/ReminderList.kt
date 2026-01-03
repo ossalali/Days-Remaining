@@ -31,12 +31,13 @@ fun ReminderList(reminders: ImmutableList<Reminder> = persistentListOf()) {
     reminders.forEach { stableLocalDateTime ->
         Card(
             modifier = Modifier.padding(vertical = PaddingSize.half),
-            shape = RoundedCornerShape(PaddingSize.half),
+            shape = RoundedCornerShape(PaddingSize.default),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(PaddingSize.default),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingSize.default, vertical = PaddingSize.quarter),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

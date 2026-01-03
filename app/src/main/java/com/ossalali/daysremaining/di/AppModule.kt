@@ -4,6 +4,7 @@ import android.content.Context
 import com.ossalali.daysremaining.infrastructure.EventDao
 import com.ossalali.daysremaining.infrastructure.EventDataSource
 import com.ossalali.daysremaining.infrastructure.MyDatabase
+import com.ossalali.daysremaining.infrastructure.ReminderDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,6 +26,12 @@ object AppModule {
     @Singleton
     fun provideEventDao(database: MyDatabase): EventDao {
         return database.eventDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideReminderDao(database: MyDatabase): ReminderDao {
+        return database.reminderDao()
     }
 
     @Provides

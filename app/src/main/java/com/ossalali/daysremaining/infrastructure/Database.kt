@@ -21,6 +21,8 @@ import com.ossalali.daysremaining.model.Reminder
 abstract class MyDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
 
+    abstract fun reminderDao(): ReminderDao
+
     companion object {
         @Volatile
         private var INSTANCE: MyDatabase? = null

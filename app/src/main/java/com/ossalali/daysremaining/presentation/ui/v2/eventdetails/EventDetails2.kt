@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -52,32 +51,41 @@ import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import com.ossalali.daysremaining.presentation.ui.v2.model.toNumberOfDays
 import com.ossalali.daysremaining.presentation.ui.v2.viewmodel.EventDetailsViewModel
+import com.ossalali.daysremaining.presentation.ui.v2.viewmodel.ReminderViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import java.time.LocalDate
 
 fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey>) {
     entry<EventDetailsRoute> { route ->
-        val eventDetailsViewModel =
-            hiltViewModel<EventDetailsViewModel>(LocalViewModelStoreOwner.current!!)
+        val eventDetailsViewModel = hiltViewModel<EventDetailsViewModel>()
+        val reminderViewModel = hiltViewModel<ReminderViewModel>()
 
-        LaunchedEffect(route.eventId) { eventDetailsViewModel.init(route.eventId, route.isAddMode) }
+        LaunchedEffect(route.eventId) {
+            eventDetailsViewModel.init(route.eventId, route.isAddMode)
+            reminderViewModel.load(route.eventId)
+        }
 
-        val state = eventDetailsViewModel.state.collectAsStateWithLifecycle()
+        val eventState by eventDetailsViewModel.state.collectAsStateWithLifecycle()
 
-        when (state.value) {
+        when (eventState) {
             EventDetailsViewModel.DetailsState.AddMode -> {}
 
             is EventDetailsViewModel.DetailsState.Loaded -> {
+                val reminderState by reminderViewModel.state.collectAsStateWithLifecycle()
                 EventDetailsLoaded(
-                    eventUiModel = (state.value as EventDetailsViewModel.DetailsState.Loaded).event,
-                    onSaveClick = { uiModel ->
+                    eventUiModel = (eventState as EventDetailsViewModel.DetailsState.Loaded).event,
+                    onSaveClick = { uiModel, reminders ->
                         eventDetailsViewModel.updateEvent(uiModel)
+                        reminderViewModel.updateReminders(reminders)
                         backStack.removeLastOrNull()
                     },
                     onDeleteClick = { eventId ->
                         eventDetailsViewModel.deleteEvent(eventId)
                         backStack.removeLastOrNull()
                     },
+                    eventReminders = reminderState.reminders,
                 )
             }
 
@@ -102,8 +110,9 @@ fun EventDetailsLoading() {
 @Composable
 fun EventDetailsLoaded(
     eventUiModel: EventUiModel = EventUiModel(),
-    onSaveClick: (EventUiModel) -> Unit = {},
+    onSaveClick: (EventUiModel, ImmutableList<Reminder>) -> Unit = { _, _ -> },
     onDeleteClick: (Int) -> Unit = {},
+    eventReminders: ImmutableList<Reminder> = persistentListOf(),
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -112,7 +121,7 @@ fun EventDetailsLoaded(
     var selectedDate by remember {
         mutableStateOf(eventUiModel.date.ifBlank { LocalDate.now().toString() })
     }
-    val reminders = remember { mutableListOf<Reminder>() }
+    val reminders = remember { eventReminders.toMutableList() }
 
     var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
     var showFullScreenImage by remember { mutableStateOf(false) }
@@ -246,9 +255,7 @@ fun EventDetailsLoaded(
             if (showReminderDialog) {
                 ReminderDateTimePicker(
                     onSave = { dateTime ->
-                        reminders.add(
-                            Reminder(eventItemId = eventUiModel.id, dateTime = dateTime)
-                        )
+                        reminders.add(Reminder(eventItemId = eventUiModel.id, dateTime = dateTime))
                         showReminderDialog = false
                     },
                     onDismiss = { showReminderDialog = false },
@@ -277,7 +284,8 @@ fun EventDetailsLoaded(
                         description = description,
                         date = selectedDate,
                         imageUri = imageUri,
-                    )
+                    ),
+                    reminders.toImmutableList(),
                 )
             },
             onDeleteClick = { showEventDeletionDialog = true },
