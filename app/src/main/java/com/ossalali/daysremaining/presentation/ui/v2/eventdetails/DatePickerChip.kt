@@ -20,6 +20,7 @@ import java.time.LocalDate
 @Composable
 fun DatePickerChip(
     modifier: Modifier = Modifier,
+    readOnly: Boolean = false,
     clearFocus: () -> Unit = {},
     chipText: String = "",
     onDateChanged: (LocalDate) -> Unit = {},
@@ -35,6 +36,7 @@ fun DatePickerChip(
         },
         modifier = modifier,
         onClick = {
+            if (readOnly) return@AssistChip
             clearFocus()
             showDatePickerDialog = true
         },

@@ -16,15 +16,15 @@ import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
 
 @Composable
-fun EventListEmpty(onAddEvent: () -> Unit = {}) {
-    Box(modifier = Modifier.fillMaxSize()) {
+fun EventListEmpty(modifier: Modifier = Modifier, onAddEvent: () -> Unit = {}) {
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
                 .clickable(onClick = onAddEvent),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = "Add your first Event!")
+            Text(text = "Add Events!")
             Icon(painter = painterResource(R.drawable.add_24px), contentDescription = "add event")
         }
     }

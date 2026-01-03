@@ -367,7 +367,7 @@ private fun SetupTopAppBar(
                     if (eventListViewModel.hasArchivedEventItems()) {
                         IconButton(onClick = { eventListViewModel.unarchiveEvents(selectedEventItems) }) {
                             Icon(
-                                painter = painterResource(R.drawable.inbox_24px),
+                                painter = painterResource(R.drawable.unarchive_24px),
                                 contentDescription = "Unarchive selected Events",
                             )
                         }

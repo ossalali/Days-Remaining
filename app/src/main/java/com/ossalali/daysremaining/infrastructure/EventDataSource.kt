@@ -4,9 +4,7 @@ import com.ossalali.daysremaining.model.EventItem
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class EventDataSource @Inject constructor(
-    private val eventDao: EventDao
-) {
+class EventDataSource @Inject constructor(private val eventDao: EventDao) {
     val activeEventsAsFlow: Flow<List<EventItem>> = eventDao.getAllActiveEventsAsFlow()
 
     val archivedEventsAsFlow: Flow<List<EventItem>> = eventDao.getAllArchivedEventsAsFlow()
@@ -22,14 +20,22 @@ class EventDataSource @Inject constructor(
     suspend fun deleteEvents(eventIds: List<Int>) {
         eventDao.deleteEvents(eventIds)
     }
+
     suspend fun deleteEvent(eventId: Int) {
         eventDao.deleteEvent(eventId)
+    }
+
+    suspend fun archiveEvent(eventId: Int) {
+        eventDao.archiveEvent(eventId)
     }
 
     suspend fun archiveEvents(eventIds: List<Int>) {
         eventDao.archiveEvents(eventIds)
     }
 
+    suspend fun unarchiveEvent(eventId: Int) {
+        eventDao.unarchiveEvent(eventId)
+    }
     suspend fun unarchiveEvents(eventId: List<Int>) {
         eventDao.unarchiveEvents(eventId)
     }
@@ -53,5 +59,4 @@ class EventDataSource @Inject constructor(
             eventDao.getActiveEventsByIds(eventIds)
         }
     }
-
 }

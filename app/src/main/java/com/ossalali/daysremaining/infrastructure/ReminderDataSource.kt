@@ -10,12 +10,8 @@ class ReminderDataSource @Inject constructor(private val reminderDao: ReminderDa
         reminderDao.upsert(reminder)
     }
 
-    suspend fun upsert(reminders: List<Reminder>) {
-        reminderDao.upsert(reminders)
-    }
-
-    suspend fun delete(reminder: Reminder) {
-        reminderDao.delete(reminder)
+    suspend fun replace(reminders: List<Reminder>, eventId: Int) {
+        reminderDao.replace(reminders, eventId)
     }
 
     suspend fun getRemindersForEvent(eventId: Int): ImmutableList<Reminder> {

@@ -51,6 +51,14 @@ class EventDetailsViewModel @Inject constructor(private val eventRepository: Eve
         viewModelScope.launch { eventRepository.deleteEvent(eventId) }
     }
 
+    fun archiveEvent(eventId: Int) {
+        viewModelScope.launch { eventRepository.archiveEvent(eventId) }
+    }
+
+    fun unarchiveEvent(eventId: Int) {
+        viewModelScope.launch { eventRepository.unarchiveEvent(eventId) }
+    }
+
     sealed interface DetailsState {
         data object Loading : DetailsState
 

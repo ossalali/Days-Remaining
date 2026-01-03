@@ -22,6 +22,7 @@ fun EventDetailsBottomBar(
     modifier: Modifier = Modifier,
     isSaving: Boolean = false,
     isDeleting: Boolean = false,
+    isArchived: Boolean = false,
     leftButtonDrawable: Int,
     leftButtonContentDescription: String = "",
     rightButtonDrawable: Int,
@@ -30,10 +31,9 @@ fun EventDetailsBottomBar(
     onDeleteClick: () -> Unit = {},
 ) {
     Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(horizontal = PaddingSize.default),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = PaddingSize.default),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -51,14 +51,16 @@ fun EventDetailsBottomBar(
                 )
             }
         }
-        FloatingActionButton(onClick = onSaveClick) {
-            if (isSaving) {
-                CircularProgressIndicator()
-            } else {
-                Icon(
-                    painter = painterResource(rightButtonDrawable),
-                    contentDescription = rightButtonContentDescription,
-                )
+        if (!isArchived) {
+            FloatingActionButton(onClick = onSaveClick) {
+                if (isSaving) {
+                    CircularProgressIndicator()
+                } else {
+                    Icon(
+                        painter = painterResource(rightButtonDrawable),
+                        contentDescription = rightButtonContentDescription,
+                    )
+                }
             }
         }
     }
@@ -71,6 +73,18 @@ fun EventDetailsBottomBarPreview() {
         EventDetailsBottomBar(
             leftButtonDrawable = R.drawable.delete_24px,
             rightButtonDrawable = R.drawable.check_24px,
+        )
+    }
+}
+
+@Composable
+@PreviewLightDark
+fun EventDetailsBottomBarArchivedPreview() {
+    MyAppTheme {
+        EventDetailsBottomBar(
+            leftButtonDrawable = R.drawable.delete_24px,
+            rightButtonDrawable = R.drawable.check_24px,
+            isArchived = true
         )
     }
 }

@@ -16,11 +16,8 @@ constructor(
     suspend fun upsert(reminder: Reminder) =
         withContext(ioDispatcher) { reminderDataSource.upsert(reminder) }
 
-    suspend fun upsert(reminders: ImmutableList<Reminder>) =
-        withContext(ioDispatcher) { reminderDataSource.upsert(reminders.toList()) }
-
-    suspend fun delete(reminder: Reminder) =
-        withContext(ioDispatcher) { reminderDataSource.delete(reminder) }
+    suspend fun replace(reminders: ImmutableList<Reminder>, eventId: Int) =
+        withContext(ioDispatcher) { reminderDataSource.replace(reminders.toList(), eventId) }
 
     suspend fun getRemindersForEvent(eventId: Int) =
         withContext(ioDispatcher) { reminderDataSource.getRemindersForEvent(eventId) }

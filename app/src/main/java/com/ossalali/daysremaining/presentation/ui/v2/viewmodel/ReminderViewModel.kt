@@ -26,8 +26,8 @@ class ReminderViewModel @Inject constructor(private val reminderRepository: Remi
         }
     }
 
-    fun updateReminders(reminders: ImmutableList<Reminder>) {
-        viewModelScope.launch { reminderRepository.upsert(reminders) }
+    fun replaceReminders(reminders: ImmutableList<Reminder>, eventId: Int) {
+        viewModelScope.launch { reminderRepository.replace(reminders, eventId) }
     }
 
     data class State(val reminders: ImmutableList<Reminder> = persistentListOf())

@@ -27,9 +27,10 @@ class EventListViewModel @Inject constructor(eventRepository: EventRepository) :
     val listState: StateFlow<ListState> = _listState.asStateFlow()
 
     private val _activeFilterEnabled = MutableStateFlow(true)
-    val activeFilterEnabled: StateFlow<Boolean> = _activeFilterEnabled
+    val activeFilterEnabled = _activeFilterEnabled.asStateFlow()
     private val _archivedFilterEnabled = MutableStateFlow(false)
-    val archivedFilterEnabled: StateFlow<Boolean> = _archivedFilterEnabled
+    val archivedFilterEnabled = _archivedFilterEnabled.asStateFlow()
+
     private val allEventsFlow: StateFlow<ImmutableList<EventItem>> =
         combine(
             eventRepository.activeEventsAsFlow,
@@ -60,6 +61,14 @@ class EventListViewModel @Inject constructor(eventRepository: EventRepository) :
                     }
                 }
         }
+    }
+
+    fun toggleActiveFilter() {
+        _activeFilterEnabled.value = !_activeFilterEnabled.value
+    }
+
+    fun toggleArchivedFilter() {
+        _archivedFilterEnabled.value = !_archivedFilterEnabled.value
     }
 
     sealed interface ListState {

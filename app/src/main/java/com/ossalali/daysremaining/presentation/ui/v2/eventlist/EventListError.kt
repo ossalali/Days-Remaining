@@ -18,8 +18,8 @@ import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @Composable
-fun EventListError() {
-    Box(modifier = Modifier.fillMaxSize()) {
+fun EventListError(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,

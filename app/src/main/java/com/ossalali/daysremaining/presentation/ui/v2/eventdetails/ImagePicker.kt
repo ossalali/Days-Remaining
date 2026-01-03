@@ -31,6 +31,7 @@ import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 
 @Composable
 fun ImagePicker(
+    readOnly: Boolean = false,
     imageUri: String? = null,
     showFullScreenImage: (Boolean) -> Unit = {},
     showImagePickerDialog: (Boolean) -> Unit = {},
@@ -52,6 +53,7 @@ fun ImagePicker(
                         if (!imageUri.isNullOrBlank()) {
                             showFullScreenImage(true)
                         } else {
+                            if (readOnly) return@clickable
                             showImagePickerDialog(true)
                         }
                     },
@@ -74,7 +76,7 @@ fun ImagePicker(
                 )
             }
         }
-        if (!imageUri.isNullOrBlank()) {
+        if (!imageUri.isNullOrBlank() && !readOnly) {
             Column(
                 modifier =
                     Modifier
@@ -93,7 +95,11 @@ fun ImagePicker(
                             shape = ShapeDefaults.Small,
                             color = MaterialTheme.colorScheme.surfaceVariant,
                         ),
-                    onClick = { showFullScreenImage(true) },
+                    onClick = {
+                        if (readOnly) return@IconButton
+
+                        showFullScreenImage(true)
+                    },
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.fullscreen_24px),
@@ -107,7 +113,10 @@ fun ImagePicker(
                             shape = ShapeDefaults.Small,
                             color = MaterialTheme.colorScheme.surfaceVariant,
                         ),
-                    onClick = { showImagePickerDialog(true) },
+                    onClick = {
+                        if (readOnly) return@IconButton
+                        showImagePickerDialog(true)
+                    },
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.photo_library_24px),
@@ -121,7 +130,10 @@ fun ImagePicker(
                             shape = ShapeDefaults.Small,
                             color = MaterialTheme.colorScheme.surfaceVariant,
                         ),
-                    onClick = { showConfirmImageDeleteDialog(true) },
+                    onClick = {
+                        if (readOnly) return@IconButton
+                        showConfirmImageDeleteDialog(true)
+                    },
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.delete_24px),
@@ -138,4 +150,10 @@ fun ImagePicker(
 @PreviewLightDark
 fun ImagePickerPreview() {
     MyAppTheme { ImagePicker(imageUri = "asd") }
+}
+
+@Composable
+@PreviewLightDark
+fun ImagePickerArchivedPreview() {
+    MyAppTheme { ImagePicker(imageUri = "asd", readOnly = true) }
 }

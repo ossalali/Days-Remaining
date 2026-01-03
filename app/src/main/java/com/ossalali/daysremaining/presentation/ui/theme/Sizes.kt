@@ -17,6 +17,7 @@ object PaddingSize {
 object IconSize {
     val inline = 20.dp
     val default = 24.dp
+    val double = default * 2
 }
 
 object TextSize {
