@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import com.ossalali.daysremaining.R
 
@@ -15,26 +16,32 @@ import com.ossalali.daysremaining.R
 fun EventDeletionDialog(onDeleteConfirm: () -> Unit, showEventDeletionDialog: (Boolean) -> Unit) {
     AlertDialog(
         title = { Text(text = "Delete event?", style = MaterialTheme.typography.titleLarge) },
-        text = { Text("Do you want to delete the event?") },
+        text = { Text("Are you sure you want to delete this event?") },
         confirmButton = {
             TextButton(onClick = onDeleteConfirm) {
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.delete_24px),
                         contentDescription = "Confirm Delete Event",
                     )
-                    Text("OK")
+                    Text("Yes")
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = { showEventDeletionDialog(false) }) {
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.close_24px),
                         contentDescription = "Cancel Delete Event",
                     )
-                    Text("Cancel")
+                    Text("No")
                 }
             }
         },

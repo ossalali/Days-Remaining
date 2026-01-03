@@ -81,15 +81,18 @@ fun ReminderList(
                 if (showDeleteReminderDialog) {
                     AlertDialog(
                         title = { Text(text = "Delete reminder?") },
+                        text = {
+                            Text(text = "Are you sure you want to delete this reminder?")
+                        },
                         onDismissRequest = { showDeleteReminderDialog = false },
                         confirmButton = {
                             TextButton(onClick = { deleteReminder(stableLocalDateTime.id) }) {
-                                Text(text = "Delete")
+                                Text(text = "Yes")
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = { showDeleteReminderDialog = false }) {
-                                Text(text = "Cancel")
+                                Text(text = "No")
                             }
                         },
                     )

@@ -20,6 +20,7 @@ import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 @Composable
 fun EventDetailsBottomBar(
     modifier: Modifier = Modifier,
+    hasChanges: Boolean = false,
     isSaving: Boolean = false,
     isDeleting: Boolean = false,
     isArchived: Boolean = false,
@@ -52,9 +53,17 @@ fun EventDetailsBottomBar(
             }
         }
         if (!isArchived) {
-            FloatingActionButton(onClick = onSaveClick) {
+            FloatingActionButton(
+                onClick = onSaveClick,
+                containerColor =
+                    if (hasChanges) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surface,
+                contentColor =
+                    if (hasChanges) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+            ) {
                 if (isSaving) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 } else {
                     Icon(
                         painter = painterResource(rightButtonDrawable),
@@ -79,12 +88,24 @@ fun EventDetailsBottomBarPreview() {
 
 @Composable
 @PreviewLightDark
+fun EventDetailsBottomBarWithChangesPreview() {
+    MyAppTheme {
+        EventDetailsBottomBar(
+            hasChanges = true,
+            leftButtonDrawable = R.drawable.delete_24px,
+            rightButtonDrawable = R.drawable.check_24px,
+        )
+    }
+}
+
+@Composable
+@PreviewLightDark
 fun EventDetailsBottomBarArchivedPreview() {
     MyAppTheme {
         EventDetailsBottomBar(
             leftButtonDrawable = R.drawable.delete_24px,
             rightButtonDrawable = R.drawable.check_24px,
-            isArchived = true
+            isArchived = true,
         )
     }
 }
@@ -106,6 +127,7 @@ fun EventDetailsBottomBarSavingPreview() {
     MyAppTheme {
         EventDetailsBottomBar(
             isSaving = true,
+            hasChanges = true,
             leftButtonDrawable = R.drawable.close_24px,
             rightButtonDrawable = R.drawable.add_24px,
         )

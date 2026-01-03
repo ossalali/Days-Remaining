@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -141,6 +143,16 @@ fun EventDetailsLoaded(
     val reminders by remember { mutableStateOf(eventReminders.toMutableStateList()) }
     var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
     val isArchived by remember { mutableStateOf(eventUiModel.isArchived) }
+
+    val hasChanges by remember {
+        derivedStateOf {
+            title != eventUiModel.title ||
+                    description != eventUiModel.description ||
+                    selectedDate != eventUiModel.date.ifBlank { LocalDate.now().toString() } ||
+                    imageUri != eventUiModel.imageUri ||
+                    reminders.toList() != eventReminders.toList()
+        }
+    }
 
     var showFullScreenImage by remember { mutableStateOf(false) }
     var showImagePickerDialog by remember { mutableStateOf(false) }
@@ -282,19 +294,6 @@ fun EventDetailsLoaded(
                 )
             }
 
-            // reminders
-            if (!isArchived) {
-                OutlinedButton(onClick = { showReminderDialog = true }) {
-                    Icon(
-                        modifier = Modifier.padding(end = PaddingSize.quarter),
-                        painter = painterResource(R.drawable.notification_add_24px),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(text = "Add reminders", color = MaterialTheme.colorScheme.primary)
-                }
-            }
-
             if (reminders.isNotEmpty()) {
                 ReminderList(
                     readOnly = isArchived,
@@ -303,6 +302,50 @@ fun EventDetailsLoaded(
                         reminders.removeIf { reminder -> reminder.id == idToBeDeleted }
                     },
                 )
+            }
+
+            // reminders
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                if (!isArchived) {
+                    OutlinedButton(onClick = { showReminderDialog = true }) {
+                        Icon(
+                            modifier = Modifier.padding(end = PaddingSize.quarter),
+                            painter = painterResource(R.drawable.notification_add_24px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(text = "Add reminders", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                if (isArchived) {
+                    OutlinedButton(onClick = { onUnarchiveClick(eventUiModel.id) }) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                modifier = Modifier.padding(end = PaddingSize.quarter),
+                                painter = painterResource(R.drawable.unarchive_24px),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(text = "Unarchive", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                } else {
+                    OutlinedButton(onClick = { onArchiveClick(eventUiModel.id) }) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                modifier = Modifier.padding(end = PaddingSize.quarter),
+                                painter = painterResource(R.drawable.archive_24px),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(text = "Archive", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
             }
 
             if (showReminderDialog) {
@@ -322,37 +365,10 @@ fun EventDetailsLoaded(
                 //    }
                 // )
             }
-            if (isArchived) {
-                OutlinedButton(onClick = { onUnarchiveClick(eventUiModel.id) }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            modifier = Modifier.padding(end = PaddingSize.quarter),
-                            painter = painterResource(R.drawable.unarchive_24px),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Text(
-                            text = "Unarchive this event",
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-            } else {
-                OutlinedButton(onClick = { onArchiveClick(eventUiModel.id) }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            modifier = Modifier.padding(end = PaddingSize.quarter),
-                            painter = painterResource(R.drawable.archive_24px),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Text(text = "Archive this event", color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            }
         }
         EventDetailsBottomBar(
             modifier = Modifier.align(Alignment.BottomCenter),
+            hasChanges = hasChanges,
             isSaving = isSaving,
             isDeleting = isDeleting,
             isArchived = eventUiModel.isArchived,
