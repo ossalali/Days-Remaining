@@ -147,7 +147,7 @@ fun EventDetailsLoaded(
     var selectedDate by remember {
         mutableStateOf(eventUiModel.date.ifBlank { LocalDate.now().toString() })
     }
-    val reminders by remember { mutableStateOf(eventReminders.toMutableStateList()) }
+    val reminders by remember(eventReminders) { mutableStateOf(eventReminders.toMutableStateList()) }
     var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
     val isArchived by remember { mutableStateOf(eventUiModel.isArchived) }
 

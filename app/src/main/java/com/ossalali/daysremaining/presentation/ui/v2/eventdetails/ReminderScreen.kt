@@ -70,7 +70,10 @@ fun ReminderScreen(
             .fillMaxSize()
             .padding(PaddingSize.default)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             OutlinedButton(
                 modifier = Modifier.padding(bottom = PaddingSize.default),
                 onClick = { showNewReminderDialog = true },
