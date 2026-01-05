@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -20,10 +19,12 @@ import androidx.navigation3.ui.NavDisplay
 import com.ossalali.daysremaining.navigation.DebugRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
+import com.ossalali.daysremaining.navigation.ReminderRoute
 import com.ossalali.daysremaining.navigation.SettingsRoute
 import com.ossalali.daysremaining.presentation.ui.debugScreen
 import com.ossalali.daysremaining.presentation.ui.settingsScreen
 import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.eventDetailsScreen
+import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.reminderScreen
 import com.ossalali.daysremaining.presentation.ui.v2.eventlist.eventListScreen
 
 @Composable
@@ -32,7 +33,11 @@ fun MainScreen2() {
     Scaffold(
         topBar = {
             when (backStack.lastOrNull()) {
+                // TODO: add Title per Route
                 is EventDetailsRoute -> {
+                    TopAppBar(onBackClick = { backStack.removeLastOrNull() }, showBackButton = true)
+                }
+                is ReminderRoute -> {
                     TopAppBar(onBackClick = { backStack.removeLastOrNull() }, showBackButton = true)
                 }
 
@@ -68,7 +73,6 @@ fun MainScreen2() {
             entryDecorators =
                 listOf(
                     rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(),
                 ),
             transitionSpec = { slideInFromRight() togetherWith slideOutToLeft() },
             popTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
@@ -77,6 +81,7 @@ fun MainScreen2() {
                 entryProvider {
                     eventListScreen(backStack = backStack)
                     eventDetailsScreen(backStack = backStack)
+                    reminderScreen(backStack = backStack)
                     settingsScreen(backStack = backStack)
                     debugScreen(backStack = backStack)
                 },

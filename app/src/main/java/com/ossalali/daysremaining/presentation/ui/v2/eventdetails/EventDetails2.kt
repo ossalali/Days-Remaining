@@ -42,7 +42,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,6 +53,7 @@ import com.ossalali.daysremaining.R
 import com.ossalali.daysremaining.infrastructure.ImageStorage
 import com.ossalali.daysremaining.model.Reminder
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
+import com.ossalali.daysremaining.navigation.ReminderRoute
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import com.ossalali.daysremaining.presentation.ui.v2.model.toNumberOfDays
@@ -102,6 +102,12 @@ fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey
                         eventDetailsViewModel.unarchiveEvent(eventId)
                         backStack.removeLastOrNull()
                     },
+                    onReminderChipClick = { eventId ->
+                        val hasNone = backStack.none { route -> route is ReminderRoute }
+                        if (hasNone) {
+                            backStack.add(ReminderRoute(eventId))
+                        }
+                    },
                 )
             }
 
@@ -130,6 +136,7 @@ fun EventDetailsLoaded(
     onDeleteClick: (Int) -> Unit = {},
     onArchiveClick: (Int) -> Unit = {},
     onUnarchiveClick: (Int) -> Unit = {},
+    onReminderChipClick: (Int) -> Unit = {},
     eventReminders: ImmutableList<Reminder> = persistentListOf(),
 ) {
     val context = LocalContext.current
@@ -197,7 +204,7 @@ fun EventDetailsLoaded(
                         detectTapGestures(onTap = { focusManager.clearFocus() })
                     }
                     .verticalScroll(scrollState)
-                    .padding(bottom = 80.dp),
+                    .padding(bottom = PaddingSize.fabButton),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -251,6 +258,7 @@ fun EventDetailsLoaded(
                     clearFocus = focusManager::clearFocus,
                     reminders = reminders.toImmutableList(),
                     currentEventItemId = eventUiModel.id,
+                    onReminderChipClick = onReminderChipClick,
                 )
             }
             // Event Description
@@ -342,14 +350,6 @@ fun EventDetailsLoaded(
                     },
                     onDismiss = { showReminderDialog = false },
                 )
-                // ReminderDialog(
-                //    onSave = {
-                //        showReminderDialog = false
-                //    },
-                //    onDismiss = {
-                //        showReminderDialog = false
-                //    }
-                // )
             }
         }
         EventDetailsBottomBar(

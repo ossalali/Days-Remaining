@@ -1,6 +1,7 @@
 package com.ossalali.daysremaining.presentation.ui.v2.eventdetails
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,17 +45,18 @@ fun ReminderList(
     readOnly: Boolean = false,
     reminders: ImmutableList<Reminder> = persistentListOf(),
     deleteReminder: (Int) -> Unit = {},
+    contentPadding: PaddingValues = PaddingValues(),
 ) {
     var reminderToDelete by remember { mutableStateOf(-1) }
-    LazyColumn {
+    LazyColumn(contentPadding = contentPadding) {
         items(items = reminders) { item ->
             Card(
                 modifier = Modifier.padding(vertical = PaddingSize.half),
                 shape = RoundedCornerShape(PaddingSize.default),
                 colors =
                     CardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),

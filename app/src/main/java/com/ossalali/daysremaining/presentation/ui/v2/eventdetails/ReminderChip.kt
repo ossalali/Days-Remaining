@@ -28,6 +28,7 @@ fun ReminderChip(
     clearFocus: () -> Unit = {},
     reminders: ImmutableList<Reminder> = persistentListOf(),
     currentEventItemId: Int = 0,
+    onReminderChipClick: (Int) -> Unit = {},
 ) {
     var showReminderDialog by remember { mutableStateOf(false) }
     val iconDrawable =
@@ -61,8 +62,8 @@ fun ReminderChip(
         },
         modifier = modifier,
         onClick = {
-            clearFocus()
-            showReminderDialog = true
+            onReminderChipClick(currentEventItemId)
+            //showReminderDialog = true
         },
         label = { Text(text = chipText) },
     )

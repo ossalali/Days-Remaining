@@ -12,6 +12,7 @@ object PaddingSize {
     val double = default * 2
     val triple = default * 3
     val nonuple = default * 9
+    val fabButton = 80.dp
 }
 
 object IconSize {

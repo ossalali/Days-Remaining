@@ -18,6 +18,9 @@ data object EventListRoute : DaysRoute
 data class EventDetailsRoute(val eventId: Int, val isAddMode: Boolean = false) : DaysRoute
 
 @Serializable
+data class ReminderRoute(val eventId: Int) : DaysRoute
+
+@Serializable
 data object SettingsRoute : DaysRoute
 
 @Serializable
