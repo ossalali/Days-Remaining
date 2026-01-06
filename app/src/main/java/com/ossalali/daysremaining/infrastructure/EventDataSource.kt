@@ -36,8 +36,13 @@ class EventDataSource @Inject constructor(private val eventDao: EventDao) {
     suspend fun unarchiveEvent(eventId: Int) {
         eventDao.unarchiveEvent(eventId)
     }
+
     suspend fun unarchiveEvents(eventId: List<Int>) {
         eventDao.unarchiveEvents(eventId)
+    }
+
+    suspend fun insertEvent(eventItem: EventItem): Long {
+        return eventDao.upsertEvent(eventItem = eventItem)
     }
 
     suspend fun insertEvents(eventItemList: List<EventItem>) {

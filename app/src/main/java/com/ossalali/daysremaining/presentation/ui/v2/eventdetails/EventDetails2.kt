@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -70,23 +69,29 @@ fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey
         val eventDetailsViewModel = hiltViewModel<EventDetailsViewModel>()
         val reminderViewModel = hiltViewModel<ReminderViewModel>()
 
-        LaunchedEffect(route.eventId) {
-            eventDetailsViewModel.init(route.eventId, route.isAddMode)
-            reminderViewModel.load(route.eventId)
+        LaunchedEffect(route.eventId, route.eventUiModel) {
+            if (route.eventId != null) {
+                eventDetailsViewModel.init(route.eventId)
+                reminderViewModel.load(route.eventId)
+            } else if (route.eventUiModel != null) {
+                val insertedId = eventDetailsViewModel.init(eventUiModel = route.eventUiModel)
+                reminderViewModel.load(insertedId)
+            }
         }
 
         val eventState by eventDetailsViewModel.state.collectAsStateWithLifecycle()
 
         when (eventState) {
-            EventDetailsViewModel.DetailsState.AddMode -> {}
-
             is EventDetailsViewModel.DetailsState.Loaded -> {
                 val reminderState by reminderViewModel.state.collectAsStateWithLifecycle()
                 EventDetailsLoaded(
                     eventUiModel = (eventState as EventDetailsViewModel.DetailsState.Loaded).event,
                     onSaveClick = { uiModel, reminders ->
                         eventDetailsViewModel.updateEvent(uiModel)
-                        reminderViewModel.replaceReminders(reminders, uiModel.id)
+                        reminderViewModel.replaceReminders(
+                            reminders = reminders,
+                            eventId = uiModel.id,
+                        )
                         backStack.removeLastOrNull()
                     },
                     onDeleteClick = { eventId ->
@@ -111,21 +116,14 @@ fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey
                 )
             }
 
-            EventDetailsViewModel.DetailsState.Loading -> {
+            is EventDetailsViewModel.DetailsState.Loading -> {
                 EventDetailsLoading()
             }
 
-            EventDetailsViewModel.DetailsState.Saving -> {}
-
-            EventDetailsViewModel.DetailsState.Error -> {}
+            is EventDetailsViewModel.DetailsState.Error -> {
+                EventDetailsError()
+            }
         }
-    }
-}
-
-@Composable
-fun EventDetailsLoading() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
     }
 }
 
@@ -147,7 +145,8 @@ fun EventDetailsLoaded(
     var selectedDate by remember {
         mutableStateOf(eventUiModel.date.ifBlank { LocalDate.now().toString() })
     }
-    val reminders by remember(eventReminders) { mutableStateOf(eventReminders.toMutableStateList()) }
+    val reminders by
+    remember(eventReminders) { mutableStateOf(eventReminders.toMutableStateList()) }
     var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
     val isArchived by remember { mutableStateOf(eventUiModel.isArchived) }
 
@@ -255,7 +254,6 @@ fun EventDetailsLoaded(
                         reminders.clear()
                         reminders.addAll(updatedReminders)
                     },
-                    clearFocus = focusManager::clearFocus,
                     reminders = reminders.toImmutableList(),
                     currentEventItemId = eventUiModel.id,
                     onReminderChipClick = onReminderChipClick,

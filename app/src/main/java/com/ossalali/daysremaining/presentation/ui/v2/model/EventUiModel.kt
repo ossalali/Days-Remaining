@@ -3,14 +3,16 @@ package com.ossalali.daysremaining.presentation.ui.v2.model
 import com.ossalali.daysremaining.model.EventItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
+@Serializable
 data class EventUiModel(
     val id: Int = 0,
     val title: String = "",
     val description: String = "",
-    val date: String = "",
+    val date: String = LocalDate.now().toString(),
     val imageUri: String? = null,
     val isArchived: Boolean = false,
 )
@@ -20,7 +22,8 @@ fun String.toNumberOfDays(): String {
         LocalDate.now().until(LocalDate.parse(this), ChronoUnit.DAYS)
     } else {
         0
-    }.toString()
+    }
+        .toString()
 }
 
 fun EventUiModel.toEvent(): EventItem {

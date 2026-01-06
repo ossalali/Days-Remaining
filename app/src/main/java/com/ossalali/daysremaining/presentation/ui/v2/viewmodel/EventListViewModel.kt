@@ -21,7 +21,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class EventListViewModel @Inject constructor(eventRepository: EventRepository) : ViewModel() {
+class EventListViewModel @Inject constructor(private val eventRepository: EventRepository) :
+    ViewModel() {
 
     private val _listState = MutableStateFlow<ListState>(ListState.Empty)
     val listState: StateFlow<ListState> = _listState.asStateFlow()
@@ -61,6 +62,10 @@ class EventListViewModel @Inject constructor(eventRepository: EventRepository) :
                     }
                 }
         }
+    }
+
+    fun resetList() {
+        _listState.value = ListState.Empty
     }
 
     fun toggleActiveFilter() {

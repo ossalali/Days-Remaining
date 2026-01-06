@@ -42,6 +42,9 @@ constructor(
     suspend fun unarchiveEvents(eventId: List<Int>) =
         withContext(ioDispatcher) { eventDataSource.unarchiveEvents(eventId) }
 
+    suspend fun insertEvent(eventItem: EventItem) =
+        withContext(ioDispatcher) { eventDataSource.insertEvent(eventItem = eventItem) }
+
     suspend fun insertEvents(eventItemList: List<EventItem>) =
         withContext(ioDispatcher) { eventDataSource.insertEvents(eventItemList) }
 

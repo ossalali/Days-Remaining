@@ -70,10 +70,7 @@ fun MainScreen2() {
         NavDisplay(
             modifier = Modifier.padding(paddingValues),
             backStack = backStack,
-            entryDecorators =
-                listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                ),
+            entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
             transitionSpec = { slideInFromRight() togetherWith slideOutToLeft() },
             popTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },
             predictivePopTransitionSpec = { slideInFromLeft() togetherWith slideOutToRight() },

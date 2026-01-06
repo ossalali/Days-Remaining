@@ -25,7 +25,6 @@ fun ReminderChip(
     modifier: Modifier = Modifier,
     readOnly: Boolean = false,
     onSave: (ImmutableList<Reminder>) -> Unit = {},
-    clearFocus: () -> Unit = {},
     reminders: ImmutableList<Reminder> = persistentListOf(),
     currentEventItemId: Int = 0,
     onReminderChipClick: (Int) -> Unit = {},

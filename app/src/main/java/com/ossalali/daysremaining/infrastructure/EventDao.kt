@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface EventDao {
     @Upsert
-    suspend fun upsertEvent(eventItem: EventItem)
+    suspend fun upsertEvent(eventItem: EventItem): Long
 
     @Upsert
     suspend fun upsertEvents(eventItems: List<EventItem>)

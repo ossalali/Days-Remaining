@@ -26,14 +26,12 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import coil.compose.AsyncImage
 import com.ossalali.daysremaining.MyAppTheme
 import com.ossalali.daysremaining.R
-import com.ossalali.daysremaining.navigation.AddEventRoute
 import com.ossalali.daysremaining.navigation.EventDetailsRoute
 import com.ossalali.daysremaining.navigation.EventListRoute
 import com.ossalali.daysremaining.presentation.ui.theme.PaddingSize
@@ -47,9 +45,8 @@ import kotlinx.collections.immutable.toPersistentList
 import java.time.LocalDate
 
 fun EntryProviderScope<NavKey>.eventListScreen(backStack: NavBackStack<NavKey>) {
-    entry<EventListRoute> { route ->
-        val eventListViewModel =
-            hiltViewModel<EventListViewModel>(LocalViewModelStoreOwner.current!!)
+    entry<EventListRoute> { _ ->
+        val eventListViewModel = hiltViewModel<EventListViewModel>()
 
         val state = eventListViewModel.listState.collectAsStateWithLifecycle()
         val activeFilter by eventListViewModel.activeFilterEnabled.collectAsStateWithLifecycle()
@@ -68,9 +65,10 @@ fun EntryProviderScope<NavKey>.eventListScreen(backStack: NavBackStack<NavKey>) 
                     EventListEmpty(
                         modifier = Modifier.weight(1f),
                         onAddEvent = {
-                            val hasNone = backStack.none { route -> route is AddEventRoute }
+                            val eventUiModel = EventUiModel()
+                            val hasNone = backStack.none { route -> route is EventDetailsRoute }
                             if (hasNone) {
-                                backStack.add(AddEventRoute)
+                                backStack.add(EventDetailsRoute(eventUiModel = eventUiModel))
                             }
                         },
                     )

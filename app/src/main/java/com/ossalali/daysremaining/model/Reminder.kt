@@ -15,6 +15,7 @@ import java.time.LocalDateTime
                 entity = EventItem::class,
                 parentColumns = ["id"],
                 childColumns = ["eventItemId"],
+                onDelete = ForeignKey.CASCADE
             )
         ],
     indices = [Index(value = ["id"]), Index(value = ["eventItemId"])],
