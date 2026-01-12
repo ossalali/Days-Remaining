@@ -69,6 +69,8 @@ fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey
         val eventDetailsViewModel = hiltViewModel<EventDetailsViewModel>()
         val reminderViewModel = hiltViewModel<ReminderViewModel>()
 
+        // TODO: empty item created, it should either be deleted or figure out a way to add an item
+        // without inserting an item into the database
         LaunchedEffect(route.eventId, route.eventUiModel) {
             if (route.eventId != null) {
                 eventDetailsViewModel.init(route.eventId)
@@ -140,15 +142,17 @@ fun EventDetailsLoaded(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
-    var title by remember { mutableStateOf(eventUiModel.title) }
-    var description by remember { mutableStateOf(eventUiModel.description) }
-    var selectedDate by remember {
+    var title by remember(eventUiModel.title) { mutableStateOf(eventUiModel.title) }
+    var description by
+    remember(eventUiModel.description) { mutableStateOf(eventUiModel.description) }
+    var selectedDate by
+    remember(eventUiModel.date) {
         mutableStateOf(eventUiModel.date.ifBlank { LocalDate.now().toString() })
     }
     val reminders by
     remember(eventReminders) { mutableStateOf(eventReminders.toMutableStateList()) }
-    var imageUri by remember { mutableStateOf(eventUiModel.imageUri) }
-    val isArchived by remember { mutableStateOf(eventUiModel.isArchived) }
+    var imageUri by remember(eventUiModel.imageUri) { mutableStateOf(eventUiModel.imageUri) }
+    val isArchived by remember(eventUiModel.isArchived) { mutableStateOf(eventUiModel.isArchived) }
 
     val hasChanges by remember {
         derivedStateOf {
