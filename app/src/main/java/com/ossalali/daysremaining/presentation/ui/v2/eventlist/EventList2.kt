@@ -65,10 +65,9 @@ fun EntryProviderScope<NavKey>.eventListScreen(backStack: NavBackStack<NavKey>) 
                     EventListEmpty(
                         modifier = Modifier.weight(1f),
                         onAddEvent = {
-                            val eventUiModel = EventUiModel()
                             val hasNone = backStack.none { route -> route is EventDetailsRoute }
                             if (hasNone) {
-                                backStack.add(EventDetailsRoute(eventUiModel = eventUiModel))
+                                backStack.add(EventDetailsRoute(addMode = true))
                             }
                         },
                     )

@@ -42,16 +42,29 @@ fun EntryProviderScope<NavKey>.reminderScreen(backStack: NavBackStack<NavKey>) {
     entry<ReminderRoute> { route ->
         val reminderViewModel = hiltViewModel<ReminderViewModel>()
 
-        LaunchedEffect(route.eventId) { reminderViewModel.load(route.eventId) }
+        LaunchedEffect(route.eventId) {
+            if (route.eventId != 0) {
+                reminderViewModel.load(route.eventId)
+            }
+        }
         val reminderState by reminderViewModel.state.collectAsStateWithLifecycle()
-        ReminderScreen(
-            reminderState.reminders,
-            route.eventId,
-            onSave = { reminders, eventId ->
-                reminderViewModel.replaceReminders(reminders, eventId)
-                backStack.removeLastOrNull()
-            },
-        )
+        if (route.eventId == 0) {
+            ReminderScreen(
+                onSave = { reminders, eventId ->
+                    reminderViewModel.setReminders(reminders, eventId)
+                    backStack.removeLastOrNull()
+                }
+            )
+        } else {
+            ReminderScreen(
+                reminders = (reminderState as ReminderViewModel.ReminderState.Loaded).reminders,
+                eventId = route.eventId,
+                onSave = { reminders, eventId ->
+                    reminderViewModel.replaceReminders(reminders, eventId)
+                    backStack.removeLastOrNull()
+                },
+            )
+        }
     }
 }
 
@@ -65,14 +78,12 @@ fun ReminderScreen(
     val currentReminders by remember { mutableStateOf(reminders.toMutableStateList()) }
     var showDatePickerDialog by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(PaddingSize.default)
-    ) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(PaddingSize.default)) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             OutlinedButton(
                 modifier = Modifier.padding(bottom = PaddingSize.default),

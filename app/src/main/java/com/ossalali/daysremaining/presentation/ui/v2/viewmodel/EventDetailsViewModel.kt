@@ -3,6 +3,7 @@ package com.ossalali.daysremaining.presentation.ui.v2.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ossalali.daysremaining.infrastructure.EventRepository
+import com.ossalali.daysremaining.presentation.ui.v2.eventdetails.PendingRemindersHolder
 import com.ossalali.daysremaining.presentation.ui.v2.model.EventUiModel
 import com.ossalali.daysremaining.presentation.ui.v2.model.toEvent
 import com.ossalali.daysremaining.presentation.ui.v2.model.toEventUiModel
@@ -15,7 +16,10 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
-class EventDetailsViewModel @Inject constructor(private val eventRepository: EventRepository) :
+class EventDetailsViewModel @Inject constructor(
+    private val eventRepository: EventRepository,
+    private val pendingRemindersHolder: PendingRemindersHolder
+) :
     ViewModel() {
     private val _state = MutableStateFlow<DetailsState>(DetailsState.Loading)
     val state: StateFlow<DetailsState> = _state.asStateFlow()
@@ -31,14 +35,8 @@ class EventDetailsViewModel @Inject constructor(private val eventRepository: Eve
         }
     }
 
-    fun init(eventUiModel: EventUiModel): Int {
-        var insertedId = 0
-        viewModelScope.launch {
-            insertedId = eventRepository.insertEvent(eventUiModel.toEvent()).toInt()
-            val updatedModel = eventUiModel.copy(id = insertedId)
-            _state.value = DetailsState.Loaded(updatedModel)
-        }
-        return insertedId
+    fun init() {
+        viewModelScope.launch { _state.value = DetailsState.AddMode }
     }
 
     fun updateDate(date: LocalDate) {
@@ -66,6 +64,8 @@ class EventDetailsViewModel @Inject constructor(private val eventRepository: Eve
 
     sealed interface DetailsState {
         data object Loading : DetailsState
+
+        data object AddMode : DetailsState
 
         data class Loaded(val event: EventUiModel) : DetailsState
 

@@ -71,13 +71,12 @@ fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey
 
         // TODO: empty item created, it should either be deleted or figure out a way to add an item
         // without inserting an item into the database
-        LaunchedEffect(route.eventId, route.eventUiModel) {
+        LaunchedEffect(route.eventId) {
             if (route.eventId != null) {
                 eventDetailsViewModel.init(route.eventId)
                 reminderViewModel.load(route.eventId)
-            } else if (route.eventUiModel != null) {
-                val insertedId = eventDetailsViewModel.init(eventUiModel = route.eventUiModel)
-                reminderViewModel.load(insertedId)
+            } else if (route.addMode) {
+                eventDetailsViewModel.init()
             }
         }
 
@@ -100,7 +99,38 @@ fun EntryProviderScope<NavKey>.eventDetailsScreen(backStack: NavBackStack<NavKey
                         eventDetailsViewModel.deleteEvent(eventId)
                         backStack.removeLastOrNull()
                     },
-                    eventReminders = reminderState.reminders,
+                    eventReminders = (reminderState as ReminderViewModel.ReminderState.Loaded).reminders,
+                    onArchiveClick = { eventId ->
+                        eventDetailsViewModel.archiveEvent(eventId)
+                        backStack.removeLastOrNull()
+                    },
+                    onUnarchiveClick = { eventId ->
+                        eventDetailsViewModel.unarchiveEvent(eventId)
+                        backStack.removeLastOrNull()
+                    },
+                    onReminderChipClick = { eventId ->
+                        val hasNone = backStack.none { route -> route is ReminderRoute }
+                        if (hasNone) {
+                            backStack.add(ReminderRoute(eventId))
+                        }
+                    },
+                )
+            }
+
+            is EventDetailsViewModel.DetailsState.AddMode -> {
+                EventDetailsLoaded(
+                    onSaveClick = { uiModel, reminders ->
+                        eventDetailsViewModel.updateEvent(uiModel)
+                        reminderViewModel.replaceReminders(
+                            reminders = reminders,
+                            eventId = uiModel.id,
+                        )
+                        backStack.removeLastOrNull()
+                    },
+                    onDeleteClick = { eventId ->
+                        eventDetailsViewModel.deleteEvent(eventId)
+                        backStack.removeLastOrNull()
+                    },
                     onArchiveClick = { eventId ->
                         eventDetailsViewModel.archiveEvent(eventId)
                         backStack.removeLastOrNull()
